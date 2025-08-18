@@ -1,0 +1,6 @@
+@VoxNest.Server_HostAddress = http://localhost:5201
+
+GET {{VoxNest.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
