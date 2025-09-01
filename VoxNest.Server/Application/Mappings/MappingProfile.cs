@@ -1,0 +1,54 @@
+using AutoMapper;
+using VoxNest.Server.Application.DTOs.Auth;
+using VoxNest.Server.Application.DTOs.Post;
+using VoxNest.Server.Domain.Entities.Content;
+using VoxNest.Server.Domain.Entities.User;
+
+namespace VoxNest.Server.Application.Mappings;
+
+/// <summary>
+/// AutoMapper映射配置
+/// </summary>
+public class MappingProfile : Profile
+{
+    public MappingProfile()
+    {
+        CreateUserMappings();
+        CreatePostMappings();
+    }
+
+    private void CreateUserMappings()
+    {
+        // User -> UserDto
+        CreateMap<User, UserDto>()
+            .ForMember(dest => dest.DisplayName, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.DisplayName : src.Username))
+            .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.Avatar : null))
+            .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.UserRoles.Select(ur => ur.Role.Name).ToList()));
+
+        // User -> PostAuthorDto
+        CreateMap<User, PostAuthorDto>()
+            .ForMember(dest => dest.DisplayName, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.DisplayName : src.Username))
+            .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.Avatar : null));
+    }
+
+    private void CreatePostMappings()
+    {
+        // Post -> PostDto
+        CreateMap<Post, PostDto>()
+            .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.Author))
+            .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
+            .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.PostTags.Select(pt => pt.Tag).ToList()));
+
+        // Post -> PostListDto
+        CreateMap<Post, PostListDto>()
+            .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.Author))
+            .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
+            .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.PostTags.Select(pt => pt.Tag).ToList()));
+
+        // Category -> CategoryDto
+        CreateMap<Category, CategoryDto>();
+
+        // Tag -> TagDto
+        CreateMap<Tag, TagDto>();
+    }
+}
