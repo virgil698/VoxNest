@@ -12,8 +12,14 @@ const PostDetailPage = lazy(() => import('../pages/post/PostDetail'));
 const CreatePostPage = lazy(() => import('../pages/post/CreatePost'));
 const MyPostsPage = lazy(() => import('../pages/post/MyPosts'));
 const ProfilePage = lazy(() => import('../pages/user/Profile'));
+const InstallPage = lazy(() => import('../pages/Install'));
 
 export const router = createBrowserRouter([
+  // 安装页面（不需要Layout）
+  {
+    path: '/install',
+    element: <InstallPage />,
+  },
   {
     path: '/',
     element: <Layout />,

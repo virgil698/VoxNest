@@ -1,38 +1,34 @@
 # VoxNest 服务器配置文件
 server:
-  name: "VoxNest Server"
-  version: "1.0.0"
-  environment: "Development"
-  
+  name: VoxNest Server
+  version: 1.0.0
+  environment: Development
 database:
-  provider: "MySQL" # 支持 MySQL, PostgreSQL, SQLite
-  connection_string: "Server=localhost;Database=voxnest_dev;User=root;Password=123456;Port=3306;CharSet=utf8mb4;"
+  provider: MySQL
+  connection_string: Server=localhost;Database=voxnest;User=root;Password=virgil698;Port=3307;CharSet=utf8mb4;
   enable_sensitive_data_logging: true
   enable_detailed_errors: true
-  
 jwt:
-  secret_key: "VoxNest-Super-Secret-Key-For-Development-Only-2024"
-  issuer: "VoxNest"
-  audience: "VoxNest-Users"
-  expire_minutes: 1440 # 24小时
-
+  secret_key: bEuFqrhqaXPUuV8DXV4EuolvyLDDBA8CuEyxKEfDnr3RXj3gC9UFRrfkttxHwerL
+  issuer: VoxNest
+  audience: VoxNest-Users
+  expire_minutes: 1440
 cors:
   allowed_origins:
-    - "https://localhost:54976"
-    - "http://localhost:54976"
+  - http://localhost:54976
+  - http://localhost:3000
   allowed_methods:
-    - "GET"
-    - "POST"
-    - "PUT"
-    - "DELETE"
-    - "OPTIONS"
+  - GET
+  - POST
+  - PUT
+  - DELETE
+  - OPTIONS
   allowed_headers:
-    - "Content-Type"
-    - "Authorization"
-    - "X-Requested-With"
-
+  - Content-Type
+  - Authorization
+  - X-Requested-With
 logging:
-  level: "Information"
+  level: Information
   enable_console: true
   enable_file: true
-  file_path: "logs/voxnest.log"
+  file_path: logs/voxnest.log

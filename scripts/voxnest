@@ -1,0 +1,145 @@
+#!/bin/bash
+# VoxNest 论坛系统通用启动器 (Linux/macOS)
+# 自动检测环境并选择合适的脚本
+
+# 颜色定义
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+WHITE='\033[1;37m'
+NC='\033[0m' # No Color
+
+# 获取脚本目录
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+echo -e "${CYAN}========================================${NC}"
+echo -e "${CYAN}       VoxNest 论坛系统启动器${NC}"
+echo -e "${CYAN}========================================${NC}"
+echo ""
+
+# 检查第一个参数是否是动作
+ACTION=""
+case "$1" in
+    start|run)
+        ACTION="start"
+        shift
+        ;;
+    stop|kill)
+        ACTION="stop"
+        shift
+        ;;
+    restart)
+        ACTION="restart"
+        shift
+        ;;
+    status)
+        ACTION="status"
+        shift
+        ;;
+    *)
+        ACTION="start"  # 默认动作
+        ;;
+esac
+
+# 函数：检查进程状态
+check_status() {
+    local backend_pid_file="$SCRIPT_DIR/.pids/backend.pid"
+    local frontend_pid_file="$SCRIPT_DIR/.pids/frontend.pid"
+    
+    echo -e "${YELLOW}[信息] 检查 VoxNest 服务状态...${NC}"
+    echo ""
+    
+    # 检查后端
+    if [ -f "$backend_pid_file" ]; then
+        local backend_pid=$(cat "$backend_pid_file")
+        if kill -0 "$backend_pid" 2>/dev/null; then
+            echo -e "${GREEN}[后端] 运行中 (PID: $backend_pid)${NC}"
+        else
+            echo -e "${RED}[后端] 已停止 (PID文件存在但进程不存在)${NC}"
+            rm -f "$backend_pid_file"
+        fi
+    else
+        echo -e "${RED}[后端] 已停止${NC}"
+    fi
+    
+    # 检查前端
+    if [ -f "$frontend_pid_file" ]; then
+        local frontend_pid=$(cat "$frontend_pid_file")
+        if kill -0 "$frontend_pid" 2>/dev/null; then
+            echo -e "${GREEN}[前端] 运行中 (PID: $frontend_pid)${NC}"
+        else
+            echo -e "${RED}[前端] 已停止 (PID文件存在但进程不存在)${NC}"
+            rm -f "$frontend_pid_file"
+        fi
+    else
+        echo -e "${RED}[前端] 已停止${NC}"
+    fi
+    
+    echo ""
+    
+    # 检查端口占用
+    if command -v lsof >/dev/null 2>&1; then
+        echo -e "${YELLOW}[信息] 端口占用情况:${NC}"
+        
+        local ports=(5000 54976 3000 4173 5173)
+        for port in "${ports[@]}"; do
+            local process=$(lsof -t -i ":$port" 2>/dev/null)
+            if [ -n "$process" ]; then
+                local process_name=$(ps -p "$process" -o comm= 2>/dev/null)
+                echo -e "  ${CYAN}端口 $port: $process_name (PID: $process)${NC}"
+            else
+                echo -e "  ${WHITE}端口 $port: 未占用${NC}"
+            fi
+        done
+    fi
+}
+
+# 执行相应动作
+case "$ACTION" in
+    start)
+        echo -e "${GREEN}[信息] 启动 VoxNest 论坛系统...${NC}"
+        echo ""
+        "$SCRIPT_DIR/start.sh" "$@"
+        ;;
+    stop)
+        echo -e "${RED}[信息] 停止 VoxNest 论坛系统...${NC}"
+        echo ""
+        "$SCRIPT_DIR/stop.sh" "$@"
+        ;;
+    restart)
+        echo -e "${YELLOW}[信息] 重启 VoxNest 论坛系统...${NC}"
+        echo ""
+        echo -e "${RED}[步骤1] 停止服务...${NC}"
+        "$SCRIPT_DIR/stop.sh" --force
+        echo ""
+        echo -e "${GREEN}[步骤2] 等待3秒...${NC}"
+        sleep 3
+        echo ""
+        echo -e "${GREEN}[步骤3] 启动服务...${NC}"
+        "$SCRIPT_DIR/start.sh" "$@"
+        ;;
+    status)
+        check_status
+        ;;
+    *)
+        echo -e "${RED}[错误] 未知动作: $ACTION${NC}"
+        echo ""
+        echo -e "${WHITE}用法: $0 {start|stop|restart|status} [选项]${NC}"
+        echo ""
+        echo -e "${YELLOW}动作:${NC}"
+        echo -e "  ${WHITE}start     启动服务 (默认)${NC}"
+        echo -e "  ${WHITE}stop      停止服务${NC}"
+        echo -e "  ${WHITE}restart   重启服务${NC}"
+        echo -e "  ${WHITE}status    查看状态${NC}"
+        echo ""
+        echo -e "${YELLOW}示例:${NC}"
+        echo -e "  ${WHITE}$0 start                # 启动所有服务${NC}"
+        echo -e "  ${WHITE}$0 start --no-frontend  # 仅启动后端${NC}"
+        echo -e "  ${WHITE}$0 stop --force         # 强制停止所有服务${NC}"
+        echo -e "  ${WHITE}$0 restart              # 重启所有服务${NC}"
+        echo -e "  ${WHITE}$0 status               # 查看运行状态${NC}"
+        exit 1
+        ;;
+esac

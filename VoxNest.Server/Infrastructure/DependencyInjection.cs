@@ -53,6 +53,7 @@ public static class DependencyInjection
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IPostService, PostService>();
+        services.AddScoped<IInstallService, InstallService>();
 
         return services;
     }
@@ -69,18 +70,14 @@ public static class DependencyInjection
             switch (dbSettings.Provider.ToUpper())
             {
                 case "MYSQL":
+                case "MARIADB":
                     var serverVersion = ServerVersion.AutoDetect(dbSettings.ConnectionString);
                     options.UseMySql(dbSettings.ConnectionString, serverVersion);
                     break;
                 case "POSTGRESQL":
-                    // options.UseNpgsql(dbSettings.ConnectionString);
                     throw new NotSupportedException("PostgreSQL支持需要安装Npgsql.EntityFrameworkCore.PostgreSQL包");
-                    break;
-                case "SQLITE":
-                    throw new NotSupportedException("SQLite支持需要安装Microsoft.EntityFrameworkCore.Sqlite包");
-                    break;
                 default:
-                    throw new NotSupportedException($"不支持的数据库提供商: {dbSettings.Provider}");
+                    throw new NotSupportedException($"不支持的数据库提供商: {dbSettings.Provider}。支持的数据库：MySQL、MariaDB、PostgreSQL");
             }
 
             if (dbSettings.EnableSensitiveDataLogging)

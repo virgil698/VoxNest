@@ -9,6 +9,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { usePostStore } from '../stores/postStore';
+import { useAuthStore } from '../stores/authStore';
 
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
@@ -22,6 +23,7 @@ const { Title, Text, Paragraph } = Typography;
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
   const { 
     posts, 
     isLoadingList, 
@@ -49,6 +51,15 @@ const Home: React.FC = () => {
   // 跳转到帖子详情
   const handlePostClick = (postId: number) => {
     navigate(`/posts/${postId}`);
+  };
+
+  // 处理发帖按钮点击
+  const handleCreatePostClick = () => {
+    if (!isAuthenticated) {
+      navigate('/auth/login');
+      return;
+    }
+    navigate('/posts/create');
   };
 
   // 渲染帖子状态图标
@@ -175,8 +186,8 @@ const Home: React.FC = () => {
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           style={{ margin: '48px 0' }}
         >
-          <Button type="primary" onClick={() => navigate('/posts/create')}>
-            发布第一篇帖子
+          <Button type="primary" onClick={handleCreatePostClick}>
+            {isAuthenticated ? '发布第一篇帖子' : '登录后发布帖子'}
           </Button>
         </Empty>
       ) : (

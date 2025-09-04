@@ -125,40 +125,50 @@ export const Layout: React.FC = () => {
 
         {/* 右侧操作区 */}
         <Space size="middle">
-          {/* 发帖按钮 */}
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleCreatePost}
-          >
-            发帖
-          </Button>
-
-          {/* 用户信息或登录按钮 */}
+          {/* 用户已登录时显示发帖按钮和用户信息 */}
           {isAuthenticated && user ? (
-            <Dropdown
-              menu={{
-                items: userMenuItems,
-                onClick: handleUserMenuClick,
-              }}
-              placement="bottomRight"
-            >
-              <Space style={{ cursor: 'pointer' }}>
-                <Avatar 
-                  src={user.avatar} 
-                  icon={<UserOutlined />}
-                  size="default"
-                />
-                <span>{user.displayName || user.username}</span>
-              </Space>
-            </Dropdown>
+            <>
+              {/* 发帖按钮 */}
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={handleCreatePost}
+              >
+                发帖
+              </Button>
+              
+              {/* 用户信息下拉菜单 */}
+              <Dropdown
+                menu={{
+                  items: userMenuItems,
+                  onClick: handleUserMenuClick,
+                }}
+                placement="bottomRight"
+              >
+                <Space style={{ cursor: 'pointer' }}>
+                  <Avatar 
+                    src={user.avatar} 
+                    icon={<UserOutlined />}
+                    size="default"
+                  />
+                  <span>{user.displayName || user.username}</span>
+                </Space>
+              </Dropdown>
+            </>
           ) : (
-            <Button 
-              icon={<LoginOutlined />}
-              onClick={handleLogin}
-            >
-              登录
-            </Button>
+            /* 用户未登录时显示注册和登录按钮 */
+            <>
+              <Button onClick={() => navigate('/auth/register')}>
+                注册
+              </Button>
+              <Button 
+                type="primary"
+                icon={<LoginOutlined />}
+                onClick={handleLogin}
+              >
+                登录
+              </Button>
+            </>
           )}
         </Space>
       </Header>

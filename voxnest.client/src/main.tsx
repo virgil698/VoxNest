@@ -5,11 +5,14 @@ import { ConfigProvider } from 'antd'
 import zhCN from 'antd/locale/zh_CN'
 import './index.css'
 import { router } from './router'
+import InstallGuard from './components/InstallGuard'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ConfigProvider locale={zhCN}>
-      <RouterProvider router={router} />
+      <InstallGuard>
+        <RouterProvider router={router} />
+      </InstallGuard>
     </ConfigProvider>
   </StrictMode>,
 )

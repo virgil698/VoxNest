@@ -16,14 +16,25 @@ public class Result
     public string ErrorMessage { get; protected set; } = string.Empty;
 
     /// <summary>
+    /// 消息（成功或错误信息）
+    /// </summary>
+    public string Message => IsSuccess ? SuccessMessage : ErrorMessage;
+
+    /// <summary>
+    /// 成功消息
+    /// </summary>
+    public string SuccessMessage { get; protected set; } = string.Empty;
+
+    /// <summary>
     /// 错误详细信息
     /// </summary>
     public List<string> ErrorDetails { get; protected set; } = new();
 
-    protected Result(bool isSuccess, string errorMessage = "")
+    protected Result(bool isSuccess, string errorMessage = "", string successMessage = "")
     {
         IsSuccess = isSuccess;
         ErrorMessage = errorMessage;
+        SuccessMessage = successMessage;
     }
 
     /// <summary>
@@ -31,6 +42,13 @@ public class Result
     /// </summary>
     /// <returns></returns>
     public static Result Success() => new(true);
+
+    /// <summary>
+    /// 创建成功结果
+    /// </summary>
+    /// <param name="successMessage"></param>
+    /// <returns></returns>
+    public static Result Success(string successMessage) => new(true, "", successMessage);
 
     /// <summary>
     /// 创建失败结果

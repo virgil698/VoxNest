@@ -1,0 +1,223 @@
+.install-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.install-card {
+  width: 100%;
+  max-width: 800px;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.install-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 20px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.install-header h1 {
+  color: #1890ff;
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.install-header p {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+}
+
+.install-steps {
+  margin-bottom: 40px;
+}
+
+.install-content {
+  min-height: 400px;
+  padding: 20px 0;
+}
+
+.install-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.install-loading p {
+  margin-top: 16px;
+  color: #666;
+  font-size: 16px;
+}
+
+.step-content {
+  padding: 20px;
+}
+
+.step-description {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.step-description h3 {
+  color: #1890ff;
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+.step-description p {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+}
+
+.step-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.step-loading p {
+  margin-top: 16px;
+  color: #666;
+  font-size: 16px;
+}
+
+/* 表单样式 */
+.install-form {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.install-form .ant-form-item {
+  margin-bottom: 20px;
+}
+
+.install-form .ant-btn {
+  height: 40px;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+.install-form .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+.install-form .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(24, 144, 255, 0.4);
+}
+
+.install-form .ant-input,
+.install-form .ant-select-selector {
+  height: 40px;
+  border-radius: 8px;
+  border: 2px solid #f0f0f0;
+  transition: all 0.3s ease;
+}
+
+.install-form .ant-input:focus,
+.install-form .ant-select-focused .ant-select-selector {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* 测试按钮样式 */
+.test-button {
+  margin-left: 12px;
+}
+
+.test-button.ant-btn-default {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+.test-button.ant-btn-default:hover {
+  border-color: #40a9ff;
+  color: #40a9ff;
+}
+
+/* 成功状态样式 */
+.test-success {
+  color: #52c41a;
+  font-weight: 500;
+}
+
+.test-error {
+  color: #ff4d4f;
+  font-weight: 500;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .install-container {
+    padding: 10px;
+  }
+  
+  .install-card {
+    margin: 0;
+    border-radius: 8px;
+  }
+  
+  .install-header h1 {
+    font-size: 24px;
+  }
+  
+  .install-header p {
+    font-size: 14px;
+  }
+  
+  .install-form {
+    max-width: 100%;
+  }
+  
+  .step-description h3 {
+    font-size: 20px;
+  }
+  
+  .step-description p {
+    font-size: 14px;
+  }
+}
+
+/* 动画效果 */
+.install-card {
+  animation: slideIn 0.6s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.step-content {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
