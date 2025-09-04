@@ -74,10 +74,8 @@ public static class DependencyInjection
                     var serverVersion = ServerVersion.AutoDetect(dbSettings.ConnectionString);
                     options.UseMySql(dbSettings.ConnectionString, serverVersion);
                     break;
-                case "POSTGRESQL":
-                    throw new NotSupportedException("PostgreSQL支持需要安装Npgsql.EntityFrameworkCore.PostgreSQL包");
                 default:
-                    throw new NotSupportedException($"不支持的数据库提供商: {dbSettings.Provider}。支持的数据库：MySQL、MariaDB、PostgreSQL");
+                    throw new NotSupportedException($"不支持的数据库提供商: {dbSettings.Provider}。支持的数据库：MySQL、MariaDB");
             }
 
             if (dbSettings.EnableSensitiveDataLogging)

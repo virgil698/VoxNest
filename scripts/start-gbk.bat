@@ -1,6 +1,6 @@
 @echo off
-REM 设置UTF-8编码以正确显示中文
-chcp 65001 >nul
+REM 设置GBK编码以正确显示中文（适用于老版本Windows）
+chcp 936 >nul
 
 echo ========================================
 echo       VoxNest 论坛系统启动脚本

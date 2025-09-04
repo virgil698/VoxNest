@@ -75,6 +75,13 @@ if (builder.Environment.IsDevelopment())
 
 var app = builder.Build();
 
+// 在安装模式下设置配置文件监视器
+const string dbInitFlagFile = "db-initialized.lock";
+if (!isInstalled && app.Environment.IsDevelopment())
+{
+    SetupConfigFileWatcher(app, dbInitFlagFile);
+}
+
 // 检查是否需要初始化数据库（仅在已安装且配置存在时）
 if (isInstalled && configExists && app.Environment.IsDevelopment())
 {
@@ -94,8 +101,12 @@ if (isInstalled && configExists && app.Environment.IsDevelopment())
     }
 }
 
-app.UseDefaultFiles();
-app.MapStaticAssets();
+// 只在正常模式下启用静态文件服务
+if (isInstalled && configExists)
+{
+    app.UseDefaultFiles();
+    app.MapStaticAssets();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -169,3 +180,108 @@ app.MapControllers();
 app.MapFallbackToFile("/index.html");
 
 app.Run();
+
+// 配置文件监视器设置
+static void SetupConfigFileWatcher(WebApplication app, string dbInitFlagFile)
+{
+    const string configFile = "server-config.yml";
+    
+    var logger = app.Logger;
+    var watcher = new FileSystemWatcher
+    {
+        Path = Directory.GetCurrentDirectory(),
+        Filter = configFile,
+        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime,
+        EnableRaisingEvents = true
+    };
+    
+    watcher.Changed += async (sender, e) =>
+    {
+        try
+        {
+            // 避免重复触发
+            await Task.Delay(1000);
+            
+            logger.LogInformation("检测到配置文件变化，开始热重载...");
+            
+            if (!File.Exists(configFile))
+            {
+                return;
+            }
+            
+            // 检查是否已经初始化过数据库
+            if (File.Exists(dbInitFlagFile))
+            {
+                logger.LogInformation("数据库已经初始化过，跳过重复初始化");
+                return;
+            }
+            
+            // 等待文件写入完成
+            await Task.Delay(500);
+            
+            // 重新加载配置并初始化数据库
+            await ReloadConfigAndInitializeDatabase(app, configFile, dbInitFlagFile, logger);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "配置文件热重载失败");
+        }
+    };
+    
+    logger.LogInformation("配置文件监视器已启动，监听: {ConfigFile}", configFile);
+}
+
+// 重新加载配置并初始化数据库
+static async Task ReloadConfigAndInitializeDatabase(WebApplication app, string configFile, string dbInitFlagFile, ILogger logger)
+{
+    try
+    {
+        // 加载配置
+        var config = VoxNest.Server.Shared.Extensions.ConfigurationExtensions.LoadServerConfigurationFromYaml(configFile);
+        logger.LogInformation("配置文件重新加载完成");
+        
+        // 创建数据库上下文选项
+        var optionsBuilder = new Microsoft.EntityFrameworkCore.DbContextOptionsBuilder<VoxNest.Server.Infrastructure.Persistence.Contexts.VoxNestDbContext>();
+        
+        // 配置数据库
+        switch (config.Database.Provider.ToUpper())
+        {
+            case "MYSQL" or "MARIADB":
+                optionsBuilder.UseMySql(config.Database.ConnectionString, 
+                    Microsoft.EntityFrameworkCore.ServerVersion.AutoDetect(config.Database.ConnectionString));
+                break;
+            default:
+                throw new NotSupportedException($"不支持的数据库提供商: {config.Database.Provider}");
+        }
+        
+        if (config.Database.EnableSensitiveDataLogging)
+        {
+            optionsBuilder.EnableSensitiveDataLogging();
+        }
+        
+        if (config.Database.EnableDetailedErrors)
+        {
+            optionsBuilder.EnableDetailedErrors();
+        }
+        
+        // 创建数据库上下文并初始化
+        using var context = new VoxNest.Server.Infrastructure.Persistence.Contexts.VoxNestDbContext(optionsBuilder.Options);
+        
+        logger.LogInformation("开始创建数据库...");
+        await context.Database.EnsureCreatedAsync();
+        logger.LogInformation("数据库创建完成");
+        
+        logger.LogInformation("开始种子数据...");
+        await VoxNest.Server.Infrastructure.Persistence.Seed.DatabaseSeeder.SeedAsync(context);
+        logger.LogInformation("种子数据完成");
+        
+        // 创建数据库初始化标记文件
+        await File.WriteAllTextAsync(dbInitFlagFile, DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
+        logger.LogInformation("数据库初始化完成，标记文件已创建");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "数据库初始化失败: {Message}", ex.Message);
+        throw;
+    }
+}

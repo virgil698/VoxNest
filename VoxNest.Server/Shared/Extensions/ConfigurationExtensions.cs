@@ -68,6 +68,7 @@ public static class ConfigurationExtensions
                 AllowedOrigins = new List<string>
                 {
                     "http://localhost:54976",
+                    "http://localhost:54977",
                     "http://localhost:3000"
                 },
                 AllowedMethods = new List<string>

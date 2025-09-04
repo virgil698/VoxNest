@@ -21,6 +21,7 @@ public class InstallService : IInstallService
     private readonly ILogger<InstallService> _logger;
     private const string InstallFlagFile = "install.lock";
     private const string ConfigFile = "server-config.yml";
+    private const string DbInitFlagFile = "db-initialized.lock";
 
     public InstallService(IWebHostEnvironment environment, ILogger<InstallService> logger)
     {
@@ -76,12 +77,17 @@ public class InstallService : IInstallService
                 return status;
             }
 
-            // 检查数据库是否已初始化
-            var dbInitialized = await CheckDatabaseInitializedAsync(config.Database);
-            if (!dbInitialized)
+            // 检查数据库是否已初始化（优先检查标记文件）
+            status.DatabaseInitialized = File.Exists(DbInitFlagFile);
+            if (!status.DatabaseInitialized)
             {
-                status.CurrentStep = InstallStep.DatabaseInit;
-                return status;
+                // 如果标记文件不存在，再检查数据库实际状态
+                status.DatabaseInitialized = await CheckDatabaseInitializedAsync(config.Database);
+                if (!status.DatabaseInitialized)
+                {
+                    status.CurrentStep = InstallStep.DatabaseInit;
+                    return status;
+                }
             }
 
             // 检查是否有管理员账户
@@ -176,26 +182,30 @@ public class InstallService : IInstallService
                 return Result.Failure("配置文件不存在，请先配置数据库");
             }
 
-            var config = VoxNest.Server.Shared.Extensions.ConfigurationExtensions.LoadServerConfigurationFromYaml(ConfigFile);
+            // 在安装模式下，数据库初始化由配置文件热重载机制触发
+            // 这里只需要等待热重载完成
+            _logger.LogInformation("等待配置文件热重载机制初始化数据库...");
             
-            // 创建数据库上下文
-            var optionsBuilder = new DbContextOptionsBuilder<VoxNestDbContext>();
-            ConfigureDbContext(optionsBuilder, config.Database);
-
-            using var context = new VoxNestDbContext(optionsBuilder.Options);
+            // 等待数据库初始化完成（最多等待30秒）
+            var timeout = TimeSpan.FromSeconds(30);
+            var startTime = DateTime.UtcNow;
             
-            // 创建数据库
-            await context.Database.EnsureCreatedAsync();
+            while (DateTime.UtcNow - startTime < timeout)
+            {
+                if (File.Exists(DbInitFlagFile))
+                {
+                    _logger.LogInformation("数据库初始化完成");
+                    return Result.Success("数据库初始化成功");
+                }
+                
+                await Task.Delay(500); // 每500ms检查一次
+            }
             
-            // 运行种子数据
-            await VoxNest.Server.Infrastructure.Persistence.Seed.DatabaseSeeder.SeedAsync(context);
-
-            _logger.LogInformation("数据库初始化完成");
-            return Result.Success("数据库初始化成功");
+            return Result.Failure("数据库初始化超时，请检查配置文件和数据库连接");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "初始化数据库时发生错误");
+            _logger.LogError(ex, "等待数据库初始化时发生错误");
             return Result.Failure($"数据库初始化失败: {ex.Message}");
         }
     }
@@ -347,8 +357,6 @@ public class InstallService : IInstallService
         {
             "MYSQL" or "MARIADB" => 
                 $"Server={config.Server};Database={config.Database};User={config.Username};Password={config.Password};Port={config.Port};CharSet={config.CharSet};",
-            "POSTGRESQL" => 
-                $"Host={config.Server};Port={config.Port};Database={config.Database};Username={config.Username};Password={config.Password};",
             _ => throw new NotSupportedException($"不支持的数据库提供商: {config.Provider}")
         };
     }
@@ -378,8 +386,6 @@ public class InstallService : IInstallService
                 var serverVersion = ServerVersion.AutoDetect(dbSettings.ConnectionString);
                 optionsBuilder.UseMySql(dbSettings.ConnectionString, serverVersion);
                 break;
-            case "POSTGRESQL":
-                throw new NotSupportedException("PostgreSQL支持需要安装Npgsql.EntityFrameworkCore.PostgreSQL包");
             default:
                 throw new NotSupportedException($"不支持的数据库提供商: {dbSettings.Provider}");
         }

@@ -1,380 +1,252 @@
 # VoxNest 论坛系统启动脚本
 
-这个文件夹包含了 VoxNest 论坛系统的启动和管理脚本，支持 Windows、Linux 和 macOS 平台。
+本目录包含了 VoxNest 论坛系统的启动和停止脚本，支持 Windows 和 Linux 系统。
 
-## 📁 文件结构
+## 特性
 
-```
-scripts/
-├── README.md           # 本文档
-├── start.bat          # Windows 批处理启动脚本
-├── stop.bat           # Windows 批处理停止脚本
-├── start.ps1          # Windows PowerShell 启动脚本（推荐）
-├── stop.ps1           # Windows PowerShell 停止脚本（推荐）
-├── start.sh           # Linux/macOS 启动脚本
-├── stop.sh            # Linux/macOS 停止脚本
-├── voxnest.cmd        # Windows 通用启动器
-├── voxnest            # Linux/macOS 通用启动器
-└── .pids/             # PID 文件存储目录（自动创建）
-```
+- **简化启动**：利用 .NET SPA 代理功能，只需启动后端，前端会自动启动
+- **跨平台支持**：支持 Windows、Linux 和 macOS
+- **智能检测**：自动检查运行环境和依赖
+- **优雅停止**：智能识别和停止相关进程
 
-## 🚀 快速开始
+## 文件说明
 
-### Windows
+### 启动脚本
 
-#### 方法1：使用通用启动器（推荐）
+| 文件 | 平台 | 说明 |
+|------|------|------|
+| `start.bat` | Windows | Windows 批处理脚本 |
+| `start.sh` | Linux/macOS | Bash Shell 脚本 |
+| `start.ps1` | Windows | PowerShell 脚本 |
+
+### 停止脚本
+
+| 文件 | 平台 | 说明 |
+|------|------|------|
+| `stop.bat` | Windows | Windows 批处理脚本 |
+| `stop.sh` | Linux/macOS | Bash Shell 脚本 |
+| `stop.ps1` | Windows | PowerShell 脚本 |
+
+## 使用方法
+
+### Windows 系统
+
+#### 方法一：使用批处理文件
 ```cmd
-# 启动所有服务
-voxnest.cmd
+# 启动
+scripts\start.bat
 
-# 停止所有服务
-scripts\stop.ps1
+# 停止
+scripts\stop.bat
 ```
 
-#### 方法2：直接使用 PowerShell 脚本（推荐）
+#### 方法二：使用 PowerShell
 ```powershell
-# 启动所有服务
-.\start.ps1
+# 启动
+.\scripts\start.ps1
 
-# 停止所有服务
-.\stop.ps1
+# 停止
+.\scripts\stop.ps1
 
 # 查看帮助
-.\start.ps1 -Help
-.\stop.ps1 -Help
+.\scripts\start.ps1 -Help
+.\scripts\stop.ps1 -Help
 ```
 
-#### 方法3：使用批处理文件
-```cmd
-# 启动所有服务
-start.bat
+### Linux/macOS 系统
 
-# 停止所有服务
-stop.bat
-```
-
-### Linux/macOS
-
-#### 方法1：使用通用启动器（推荐）
 ```bash
-# 给脚本添加执行权限（首次使用）
-chmod +x voxnest start.sh stop.sh
+# 启动
+./scripts/start.sh
 
-# 启动所有服务
-./voxnest start
-
-# 停止所有服务
-./voxnest stop
-
-# 重启服务
-./voxnest restart
-
-# 查看状态
-./voxnest status
-```
-
-#### 方法2：直接使用脚本
-```bash
-# 启动所有服务
-./start.sh
-
-# 停止所有服务
-./stop.sh
+# 停止
+./scripts/stop.sh
 
 # 查看帮助
-./start.sh --help
-./stop.sh --help
+./scripts/start.sh --help
+./scripts/stop.sh --help
 ```
 
-## 📖 详细使用说明
+## 高级选项
 
-### 启动脚本参数
+### 启动选项
 
-#### Windows PowerShell (start.ps1)
+#### PowerShell (start.ps1)
 ```powershell
-# 基本用法
-.\start.ps1 [参数]
+# 生产模式启动
+.\scripts\start.ps1 -Production
 
-# 参数说明
--Help                   # 显示帮助信息
--NoFrontend            # 仅启动后端服务
--NoBackend             # 仅启动前端服务
--Production            # 以生产模式启动
--BackendPort <PORT>    # 指定后端端口（默认：5000）
--FrontendPort <PORT>   # 指定前端端口（默认：54976）
-
-# 示例
-.\start.ps1                           # 启动前端和后端
-.\start.ps1 -NoFrontend              # 仅启动后端
-.\start.ps1 -BackendPort 8080        # 自定义后端端口
-.\start.ps1 -NoBackend -FrontendPort 3000  # 仅启动前端，使用端口3000
+# 自定义端口
+.\scripts\start.ps1 -Port 8080
 ```
 
-#### Linux/macOS (start.sh)
+#### Bash (start.sh)
 ```bash
-# 基本用法
-./start.sh [选项]
+# 生产模式启动
+./scripts/start.sh --production
 
-# 选项说明
--h, --help              # 显示帮助信息
---no-frontend           # 仅启动后端服务
---no-backend            # 仅启动前端服务
---production            # 以生产模式启动
---backend-port PORT     # 指定后端端口（默认：5000）
---frontend-port PORT    # 指定前端端口（默认：54976）
-
-# 示例
-./start.sh                            # 启动前端和后端
-./start.sh --no-frontend             # 仅启动后端
-./start.sh --backend-port 8080       # 自定义后端端口
-./start.sh --no-backend --frontend-port 3000  # 仅启动前端，使用端口3000
+# 自定义端口
+./scripts/start.sh --port 8080
 ```
 
-### 停止脚本参数
+### 停止选项
 
-#### Windows PowerShell (stop.ps1)
+#### PowerShell (stop.ps1)
 ```powershell
-# 基本用法
-.\stop.ps1 [参数]
-
-# 参数说明
--Help                   # 显示帮助信息
--Force                  # 强制停止所有相关进程
--OnlyFrontend          # 仅停止前端服务
--OnlyBackend           # 仅停止后端服务
--Ports <PORT1,PORT2>   # 指定要检查的端口列表
-
-# 示例
-.\stop.ps1                           # 停止所有服务
-.\stop.ps1 -Force                   # 强制停止所有相关进程
-.\stop.ps1 -OnlyFrontend            # 仅停止前端
-.\stop.ps1 -Ports 5000,3000         # 仅停止指定端口的进程
+# 强制停止所有相关进程
+.\scripts\stop.ps1 -Force
 ```
 
-#### Linux/macOS (stop.sh)
-```bash
-# 基本用法
-./stop.sh [选项]
-
-# 选项说明
--h, --help              # 显示帮助信息
--f, --force             # 强制停止所有相关进程
---only-frontend         # 仅停止前端服务
---only-backend          # 仅停止后端服务
---ports PORT1,PORT2     # 指定要检查的端口列表
-
-# 示例
-./stop.sh                           # 停止所有服务
-./stop.sh --force                  # 强制停止所有相关进程
-./stop.sh --only-frontend          # 仅停止前端
-./stop.sh --ports 5000,3000        # 仅停止指定端口的进程
-```
-
-## 🔧 环境要求
-
-### 必需软件
-- **Node.js** (推荐 20.19+ 或 22.12+)
-- **.NET 9.0 SDK**
-- **npm** (通常随 Node.js 安装)
-
-### Windows 额外要求
-- **PowerShell 5.1+** 或 **PowerShell Core 7+**（推荐）
-- **Windows 10/11** 或 **Windows Server 2016+**
-
-### Linux/macOS 额外要求
-- **Bash 4.0+**
-- 标准 Unix 工具：`ps`, `kill`, `pgrep`, `pkill`
-- 可选：`lsof`, `netstat`, 或 `ss`（用于端口检查）
-
-## 📊 默认端口配置
-
-| 服务 | 默认端口 | 说明 |
-|------|----------|------|
-| 后端 API | 5000 | .NET Web API 服务器 |
-| 前端开发服务器 | 54976 | Vite 开发服务器 |
-| Swagger 文档 | 5000/swagger | API 文档界面 |
-
-### 常见端口冲突解决
-
-如果遇到端口冲突，可以：
-
-1. **指定自定义端口**：
-   ```bash
-   # Linux/macOS
-   ./start.sh --backend-port 8080 --frontend-port 3000
-   
-   # Windows
-   .\start.ps1 -BackendPort 8080 -FrontendPort 3000
-   ```
-
-2. **停止占用端口的进程**：
-   ```bash
-   # Linux/macOS
-   ./stop.sh --ports 5000,54976
-   
-   # Windows
-   .\stop.ps1 -Ports 5000,54976
-   ```
-
-## 🛠️ 故障排除
-
-### 常见问题
-
-#### 1. 脚本无法执行（Windows PowerShell）
-```powershell
-# 临时允许脚本执行
-Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
-
-# 或者使用绕过策略运行
-powershell -ExecutionPolicy Bypass -File .\start.ps1
-```
-
-#### 2. 脚本无权限执行（Linux/macOS）
-```bash
-# 添加执行权限
-chmod +x *.sh voxnest
-```
-
-#### 3. 端口被占用
-```bash
-# 查看端口占用情况
-# Linux/macOS
-lsof -i :5000
-netstat -tulpn | grep 5000
-
-# Windows
-netstat -ano | findstr :5000
-```
-
-#### 4. 进程无法停止
+#### Bash (stop.sh)
 ```bash
 # 强制停止所有相关进程
-# Linux/macOS
-./stop.sh --force
-
-# Windows
-.\stop.ps1 -Force
+./scripts/stop.sh --force
 ```
 
-#### 5. 依赖未安装
-确保已安装所需依赖：
-```bash
-# 检查 Node.js
-node --version
+## 服务地址
 
+启动成功后，可以通过以下地址访问服务：
+
+- **前端**: http://localhost:54977 (SPA代理自动启动)
+- **后端**: http://localhost:5000
+- **API文档**: http://localhost:5000/swagger
+
+## 系统要求
+
+### 必需组件
+
+- **.NET 9.0 SDK** - 后端运行环境
+- **Node.js** (LTS版本) - 前端构建和开发环境
+- **npm** - Node.js 包管理器
+
+### 检查安装
+
+```bash
 # 检查 .NET
 dotnet --version
+
+# 检查 Node.js
+node --version
 
 # 检查 npm
 npm --version
 ```
 
-### 日志文件
+## 工作原理
 
-脚本会生成日志文件，用于调试：
+1. **启动过程**:
+   - 检查系统环境 (.NET, Node.js, npm)
+   - 安装前端依赖 (如需要)
+   - 启动后端服务器
+   - .NET SPA 代理自动启动前端开发服务器
 
-#### Linux/macOS
-- 后端日志：`scripts/.pids/backend.log`
-- 前端日志：`scripts/.pids/frontend.log`
+2. **停止过程**:
+   - 查找并停止 VoxNest.Server dotnet 进程
+   - 检查并停止占用关键端口的进程
+   - 由于使用 SPA 代理，前端会随后端自动停止
 
-#### Windows
-日志会在各自的控制台窗口中显示。
+## 故障排除
 
-### 查看服务状态
+### 常见问题
 
-#### Linux/macOS
-```bash
-# 使用通用启动器查看状态
-./voxnest status
-
-# 手动检查 PID 文件
-cat scripts/.pids/backend.pid
-cat scripts/.pids/frontend.pid
-```
-
-#### Windows
-```powershell
-# 检查进程
-Get-Process | Where-Object { $_.ProcessName -like "*dotnet*" -or $_.ProcessName -like "*node*" }
-
-# 检查端口
-netstat -ano | findstr "5000\|54976"
-```
-
-## 🔄 开发工作流
-
-### 典型开发流程
-
-1. **启动开发环境**：
-   ```bash
-   # 启动所有服务
-   ./voxnest start        # Linux/macOS
-   voxnest.cmd            # Windows
+1. **中文显示乱码 (Windows)**
+   - **bat脚本**: 已自动设置UTF-8编码 (`chcp 65001`)
+   - **PowerShell脚本**: 已自动设置控制台UTF-8编码
+   - 如果仍有乱码，请确保：
+     - 命令行窗口字体支持中文 (如 Consolas, SimSun)
+     - 脚本文件保存为UTF-8编码
+   
+   ```cmd
+   REM 手动设置编码（如果需要）
+   chcp 65001  REM UTF-8编码
+   chcp 936    REM GBK编码（中文简体）
    ```
 
-2. **仅重启前端**（前端代码修改后）：
+2. **端口被占用**
+   - 脚本会检测端口占用并提示
+   - 可以选择继续或停止其他占用进程
+
+3. **权限不足 (Linux)**
    ```bash
-   ./stop.sh --only-frontend && ./start.sh --no-backend
+   chmod +x scripts/*.sh
    ```
 
-3. **仅重启后端**（后端代码修改后）：
-   ```bash
-   ./stop.sh --only-backend && ./start.sh --no-frontend
+4. **PowerShell执行策略限制 (Windows)**
+   ```powershell
+   # 临时允许脚本执行
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+   
+   # 或者绕过执行策略运行
+   powershell -ExecutionPolicy Bypass -File .\scripts\start.ps1
    ```
 
-4. **完全重启**：
+5. **依赖缺失**
+   - 脚本会自动检查并提示缺失的组件
+   - 按提示安装相应组件
+
+6. **前端依赖问题**
    ```bash
-   ./voxnest restart      # Linux/macOS
+   cd voxnest.client
+   rm -rf node_modules package-lock.json
+   npm install
    ```
 
-### 生产部署
+### 手动操作
 
-对于生产环境，建议：
-
-1. 使用反向代理（如 Nginx）
-2. 配置 SSL/TLS 证书
-3. 使用进程管理器（如 PM2, systemd）
-4. 配置日志轮转
-5. 设置监控和告警
-
-## 📝 自定义配置
-
-### 修改默认端口
-
-编辑脚本文件中的默认端口设置：
+如果脚本无法正常工作，可以手动执行：
 
 ```bash
-# start.sh
-BACKEND_PORT=5000
-FRONTEND_PORT=54976
+# 手动启动后端
+cd VoxNest.Server
+dotnet run --urls "http://localhost:5000"
 
-# start.ps1
-[int]$BackendPort = 5000,
-[int]$FrontendPort = 54976
+# 手动停止 (Linux)
+pkill -f "dotnet.*VoxNest"
+
+# 手动停止 (Windows)
+taskkill /f /im dotnet.exe
 ```
 
-### 添加环境变量
+## 开发说明
 
-可以在脚本中添加环境变量：
+- 脚本利用 .NET 的 SPA 代理功能，配置在 `VoxNest.Server.csproj` 中
+- `SpaProxyServerUrl` 设置为 `http://localhost:54977`
+- `SpaProxyLaunchCommand` 设置为 `npm run dev`
+- 前端项目路径由 `SpaRoot` 指定为 `../voxnest.client`
 
-```bash
-# Linux/macOS (start.sh)
-export NODE_ENV=development
-export ASPNETCORE_ENVIRONMENT=Development
+## 编码说明
 
-# Windows (start.ps1)
-$env:NODE_ENV = "development"
-$env:ASPNETCORE_ENVIRONMENT = "Development"
+### Windows 中文支持
+
+为了解决Windows系统下中文显示乱码问题，脚本已进行以下优化：
+
+1. **批处理脚本 (start.bat, stop.bat)**
+   - 自动设置UTF-8编码 (`chcp 65001`)
+   - 支持现代Windows系统的中文显示
+
+2. **PowerShell脚本 (start.ps1, stop.ps1)**
+   - 自动设置控制台输出编码为UTF-8
+   - 兼容PowerShell 5.1+ 和 PowerShell Core 7+
+
+### 备用解决方案
+
+如果在较老的Windows系统上仍有编码问题，已提供GBK编码版本的脚本：
+
+```cmd
+REM 使用GBK编码版本（适用于老版本Windows）
+scripts\start-gbk.bat
+scripts\stop-gbk.bat
+
+REM 或者手动修改现有脚本
+REM 将 chcp 65001 改为 chcp 936
 ```
 
-## 🤝 贡献
+**文件说明**:
+- `start.bat` / `stop.bat` - UTF-8编码版本（推荐）
+- `start-gbk.bat` / `stop-gbk.bat` - GBK编码版本（兼容老系统）
 
-如果您发现问题或有改进建议，请：
+## 更新日志
 
-1. 提交 Issue 描述问题
-2. 提交 Pull Request 包含修复
-3. 更新文档说明新功能
-
-## 📄 许可证
-
-本脚本与 VoxNest 项目使用相同的许可证。
+- **v2.1**: 修复Windows中文显示乱码问题
+- **v2.0**: 简化启动流程，利用 SPA 代理功能  
+- **v1.0**: 分别启动前端和后端服务

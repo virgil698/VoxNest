@@ -26,6 +26,11 @@ public class InstallStatusDto
     public bool DatabaseConnected { get; set; }
 
     /// <summary>
+    /// 数据库是否已初始化
+    /// </summary>
+    public bool DatabaseInitialized { get; set; }
+
+    /// <summary>
     /// 是否有管理员账户
     /// </summary>
     public bool HasAdminUser { get; set; }

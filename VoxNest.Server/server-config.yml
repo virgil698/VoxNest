@@ -9,13 +9,14 @@ database:
   enable_sensitive_data_logging: true
   enable_detailed_errors: true
 jwt:
-  secret_key: bEuFqrhqaXPUuV8DXV4EuolvyLDDBA8CuEyxKEfDnr3RXj3gC9UFRrfkttxHwerL
+  secret_key: 6AvIdDNDxkOdoCbkJ0v4NrFvzCYGdkrUYfuEEKLjpKbsOi2xkkOw1KY7asCJ5ods
   issuer: VoxNest
   audience: VoxNest-Users
   expire_minutes: 1440
 cors:
   allowed_origins:
   - http://localhost:54976
+  - http://localhost:54977
   - http://localhost:3000
   allowed_methods:
   - GET
