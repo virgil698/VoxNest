@@ -1,5 +1,18 @@
 import axios from 'axios';
-import type { AxiosRequestConfig, AxiosResponse } from 'axios';
+import type { AxiosResponse, AxiosError, AxiosRequestConfig } from 'axios';
+import { message } from 'antd';
+
+// 错误响应接口
+export interface ErrorResponse {
+  errorCode: string;
+  message: string;
+  details?: string;
+  traceId?: string;
+  timestamp: string;
+  path?: string;
+  method?: string;
+  success: boolean;
+}
 
 // API基础配置
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
@@ -7,39 +20,95 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000
 // 创建axios实例
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 15000, // 增加超时时间
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// 请求拦截器 - 添加认证令牌
+// 请求拦截器 - 添加认证令牌和请求追踪
 apiClient.interceptors.request.use(
   (config) => {
+    // 添加请求追踪ID
+    config.headers['X-Request-Id'] = `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
     const token = localStorage.getItem('access_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // 记录请求开始（仅在开发模式）
+    if (import.meta.env.DEV) {
+      console.log(`🔄 API请求: ${config.method?.toUpperCase()} ${config.url}`, {
+        requestId: config.headers['X-Request-Id'],
+        data: config.data,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
     return config;
   },
   (error) => {
+    console.error('❌ 请求配置失败:', error);
     return Promise.reject(error);
   }
 );
 
-// 响应拦截器 - 处理通用错误
+// 响应拦截器 - 处理通用错误和详细日志
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
+    // 记录成功响应（仅在开发模式）
+    if (import.meta.env.DEV) {
+      console.log(`✅ API响应成功: ${response.config.method?.toUpperCase()} ${response.config.url}`, {
+        status: response.status,
+        requestId: response.config.headers['X-Request-Id'],
+        traceId: response.data?.traceId,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
     return response;
   },
-  (error) => {
+  (error: AxiosError<ErrorResponse>) => {
+    const errorResponse = error.response?.data;
+    const requestId = error.config?.headers?.['X-Request-Id'];
+    
+    // 详细记录错误信息
+    console.error(`❌ API请求失败: ${error.config?.method?.toUpperCase()} ${error.config?.url}`, {
+      status: error.response?.status,
+      requestId,
+      errorCode: errorResponse?.errorCode,
+      message: errorResponse?.message,
+      details: errorResponse?.details,
+      traceId: errorResponse?.traceId,
+      timestamp: new Date().toISOString(),
+      fullError: error
+    });
+
     if (error.response?.status === 401) {
       // Token过期或无效，清除本地存储并跳转到登录页
       localStorage.removeItem('access_token');
       localStorage.removeItem('user_info');
+      message.error('认证失效，请重新登录');
       window.location.href = '/auth/login';
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
+
+    // 增强错误对象，包含后端返回的详细信息
+    const enhancedError = {
+      ...error,
+      errorCode: errorResponse?.errorCode || 'NETWORK_ERROR',
+      message: errorResponse?.message || error.message || '网络请求失败',
+      details: errorResponse?.details,
+      traceId: errorResponse?.traceId,
+      timestamp: errorResponse?.timestamp || new Date().toISOString(),
+      path: errorResponse?.path,
+      method: errorResponse?.method,
+      requestId,
+      originalError: error
+    };
+
+    return Promise.reject(enhancedError);
   }
 );
 
@@ -49,6 +118,12 @@ export interface ApiResponse<T = any> {
   message: string;
   data?: T;
   errors?: string[];
+  errorCode?: string;
+  details?: string;
+  traceId?: string;
+  timestamp?: string;
+  path?: string;
+  method?: string;
 }
 
 export interface PaginatedApiResponse<T = any> extends ApiResponse<T[]> {
@@ -61,6 +136,45 @@ export interface PaginatedApiResponse<T = any> extends ApiResponse<T[]> {
     hasNextPage: boolean;
   };
 }
+
+// 错误处理工具函数
+export const handleApiError = (error: any, customMessage?: string) => {
+  const errorInfo = {
+    title: customMessage || '操作失败',
+    message: error.message || '未知错误',
+    errorCode: error.errorCode || 'UNKNOWN_ERROR',
+    details: error.details,
+    traceId: error.traceId,
+    requestId: error.requestId,
+    timestamp: error.timestamp || new Date().toISOString()
+  };
+
+  // 构建错误消息内容
+  let errorContent = `❌ ${errorInfo.title}\n${errorInfo.message}`;
+  
+  if (errorInfo.details && errorInfo.details !== errorInfo.message) {
+    errorContent += `\n📋 详细信息: ${errorInfo.details}`;
+  }
+  
+  if (errorInfo.traceId) {
+    errorContent += `\n🔍 追踪ID: ${errorInfo.traceId}`;
+  }
+  
+  if (errorInfo.errorCode && errorInfo.errorCode !== 'UNKNOWN_ERROR') {
+    errorContent += `\n📝 错误代码: ${errorInfo.errorCode}`;
+  }
+  
+  errorContent += `\n⏰ ${new Date(errorInfo.timestamp).toLocaleString()}`;
+
+  // 显示用户友好的错误消息
+  message.error({
+    content: errorContent,
+    duration: 10
+  });
+
+  // 返回错误信息供进一步处理
+  return errorInfo;
+};
 
 // 通用API请求方法
 export const api = {

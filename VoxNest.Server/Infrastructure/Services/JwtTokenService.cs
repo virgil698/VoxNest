@@ -16,6 +16,7 @@ namespace VoxNest.Server.Infrastructure.Services;
 public class JwtTokenService : IJwtTokenService
 {
     private readonly JwtSettings _jwtSettings;
+    private readonly SecuritySettings _securitySettings;
     private readonly VoxNestDbContext _dbContext;
     private readonly ILogger<JwtTokenService> _logger;
 
@@ -25,6 +26,7 @@ public class JwtTokenService : IJwtTokenService
         ILogger<JwtTokenService> logger)
     {
         _jwtSettings = serverConfig.Jwt;
+        _securitySettings = serverConfig.Security;
         _dbContext = dbContext;
         _logger = logger;
     }
@@ -80,14 +82,15 @@ public class JwtTokenService : IJwtTokenService
 
             tokenHandler.ValidateToken(token, new TokenValidationParameters
             {
-                ValidateIssuerSigningKey = true,
+                ValidateIssuerSigningKey = _securitySettings.ValidateIssuerSigningKey,
                 IssuerSigningKey = new SymmetricSecurityKey(key),
-                ValidateIssuer = true,
+                ValidateIssuer = _securitySettings.ValidateIssuer,
                 ValidIssuer = _jwtSettings.Issuer,
-                ValidateAudience = true,
+                ValidateAudience = _securitySettings.ValidateAudience,
                 ValidAudience = _jwtSettings.Audience,
-                ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero
+                ValidateLifetime = _securitySettings.ValidateLifetime,
+                RequireSignedTokens = _securitySettings.RequireSignedTokens,
+                ClockSkew = TimeSpan.FromMinutes(_jwtSettings.ClockSkew)
             }, out SecurityToken validatedToken);
 
             return true;

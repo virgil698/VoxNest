@@ -10,6 +10,7 @@ public class ServerConfiguration
     public ServerSettings Server { get; set; } = new();
     public DatabaseSettings Database { get; set; } = new();
     public JwtSettings Jwt { get; set; } = new();
+    public SecuritySettings Security { get; set; } = new();
     public CorsSettings Cors { get; set; } = new();
     public LoggingSettings Logging { get; set; } = new();
 }
@@ -60,6 +61,12 @@ public class JwtSettings
     
     [Range(1, 43200)] // 最大30天
     public int ExpireMinutes { get; set; } = 1440;
+    
+    /// <summary>
+    /// 时钟偏差容忍度（分钟）
+    /// </summary>
+    [Range(0, 60)]
+    public int ClockSkew { get; set; } = 5;
 }
 
 /// <summary>
@@ -70,6 +77,42 @@ public class CorsSettings
     public List<string> AllowedOrigins { get; set; } = new();
     public List<string> AllowedMethods { get; set; } = new();
     public List<string> AllowedHeaders { get; set; } = new();
+}
+
+/// <summary>
+/// 安全设置
+/// </summary>
+public class SecuritySettings
+{
+    /// <summary>
+    /// 是否要求HTTPS元数据
+    /// </summary>
+    public bool RequireHttpsMetadata { get; set; } = true;
+    
+    /// <summary>
+    /// 是否要求签名令牌
+    /// </summary>
+    public bool RequireSignedTokens { get; set; } = true;
+    
+    /// <summary>
+    /// 是否验证发行者
+    /// </summary>
+    public bool ValidateIssuer { get; set; } = true;
+    
+    /// <summary>
+    /// 是否验证受众
+    /// </summary>
+    public bool ValidateAudience { get; set; } = true;
+    
+    /// <summary>
+    /// 是否验证生命周期
+    /// </summary>
+    public bool ValidateLifetime { get; set; } = true;
+    
+    /// <summary>
+    /// 是否验证签名密钥
+    /// </summary>
+    public bool ValidateIssuerSigningKey { get; set; } = true;
 }
 
 /// <summary>

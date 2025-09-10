@@ -54,6 +54,10 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IPostService, PostService>();
         services.AddScoped<IInstallService, InstallService>();
+        
+        // 注册基础设施服务
+        services.AddScoped<IDatabaseMigrationService, DatabaseMigrationService>();
+        services.AddScoped<IDatabasePerformanceService, DatabasePerformanceService>();
 
         return services;
     }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using VoxNest.Server.Application.DTOs.Post;
 using VoxNest.Server.Application.Interfaces;
+using VoxNest.Server.Shared.Models;
 
 namespace VoxNest.Server.Presentation.Controllers;
 
@@ -12,17 +13,15 @@ namespace VoxNest.Server.Presentation.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-public class PostController : ControllerBase
+public class PostController : BaseApiController
 {
     private readonly IPostService _postService;
-    private readonly ILogger<PostController> _logger;
 
     public PostController(
         IPostService postService,
-        ILogger<PostController> logger)
+        ILogger<PostController> logger) : base(logger)
     {
         _postService = postService;
-        _logger = logger;
     }
 
     /// <summary>
@@ -39,40 +38,27 @@ public class PostController : ControllerBase
     {
         if (!ModelState.IsValid)
         {
-            return BadRequest(ModelState);
+            return HandleModelStateErrors();
         }
 
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var authorId))
         {
-            return Unauthorized(new
-            {
-                success = false,
-                message = "无效的用户身份"
-            });
+            return Error("无效的用户身份", ErrorCodes.UNAUTHORIZED, 401);
         }
 
         var result = await _postService.CreatePostAsync(request, authorId);
 
         if (result.IsSuccess)
         {
-            return CreatedAtAction(
-                nameof(GetPost),
-                new { id = result.Data!.Id },
-                new
-                {
-                    success = true,
-                    message = "帖子创建成功",
-                    data = result.Data
-                });
+            var response = Success(result.Data, "帖子创建成功");
+            // 设置Created状态码和Location头
+            Response.StatusCode = 201;
+            Response.Headers.Location = Url.Action(nameof(GetPost), new { id = result.Data!.Id });
+            return response;
         }
 
-        return BadRequest(new
-        {
-            success = false,
-            message = result.ErrorMessage,
-            errors = result.ErrorDetails
-        });
+        return Error(result.ErrorMessage, ErrorCodes.BAD_REQUEST);
     }
 
     /// <summary>
@@ -146,29 +132,16 @@ public class PostController : ControllerBase
 
         if (result.IsSuccess)
         {
-            return Ok(new
-            {
-                success = true,
-                message = "获取帖子列表成功",
-                data = result.Data,
-                pagination = new
-                {
-                    currentPage = result.PageNumber,
-                    pageSize = result.PageSize,
-                    totalCount = result.TotalCount,
-                    totalPages = result.TotalPages,
-                    hasPreviousPage = result.HasPreviousPage,
-                    hasNextPage = result.HasNextPage
-                }
-            });
+            return SuccessPaginated(
+                result.Data, 
+                result.PageNumber, 
+                result.PageSize, 
+                result.TotalCount, 
+                "获取帖子列表成功"
+            );
         }
 
-        return BadRequest(new
-        {
-            success = false,
-            message = result.ErrorMessage,
-            errors = result.ErrorDetails
-        });
+        return Error(result.ErrorMessage, ErrorCodes.BAD_REQUEST);
     }
 
     /// <summary>

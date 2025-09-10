@@ -6,6 +6,7 @@ export interface InstallStatusDto {
   currentStep: InstallStep;
   configExists: boolean;
   databaseConnected: boolean;
+  databaseInitialized: boolean;
   hasAdminUser: boolean;
 }
 
@@ -50,6 +51,12 @@ export interface SiteConfigDto {
 export interface ApiResponse {
   success: boolean;
   message: string;
+  errorCode?: string;
+  details?: string;
+  traceId?: string;
+  timestamp?: string;
+  path?: string;
+  method?: string;
 }
 
 // 安装API类
@@ -78,6 +85,14 @@ export class InstallApi {
     return response.data;
   }
 
+  // 直接初始化数据库（不依赖热重载）
+  static async initializeDatabaseDirect(forceReinitialize: boolean = false): Promise<ApiResponse> {
+    const response = await apiClient.post<ApiResponse>('/api/install/initialize-database-direct', {
+      forceReinitialize
+    });
+    return response.data;
+  }
+
   // 创建管理员账户
   static async createAdminUser(adminInfo: CreateAdminDto): Promise<ApiResponse> {
     const response = await apiClient.post<ApiResponse>('/api/install/create-admin', adminInfo);
@@ -87,6 +102,18 @@ export class InstallApi {
   // 完成安装
   static async completeInstallation(siteConfig: SiteConfigDto): Promise<ApiResponse> {
     const response = await apiClient.post<ApiResponse>('/api/install/complete', siteConfig);
+    return response.data;
+  }
+
+  // 诊断数据库状态
+  static async diagnoseDatabase(): Promise<any> {
+    const response = await apiClient.get('/api/install/diagnose-database');
+    return response.data;
+  }
+
+  // 修复数据库结构
+  static async repairDatabase(): Promise<ApiResponse> {
+    const response = await apiClient.post<ApiResponse>('/api/install/repair-database');
     return response.data;
   }
 

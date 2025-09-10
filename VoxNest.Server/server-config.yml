@@ -9,7 +9,7 @@ database:
   enable_sensitive_data_logging: true
   enable_detailed_errors: true
 jwt:
-  secret_key: 6AvIdDNDxkOdoCbkJ0v4NrFvzCYGdkrUYfuEEKLjpKbsOi2xkkOw1KY7asCJ5ods
+  secret_key: zkvFvqgXulHdyhS1IKkbJsQzJh7S6iAn44bu6jS67mN0Sye48j2IsVbTDZjU6BIT
   issuer: VoxNest
   audience: VoxNest-Users
   expire_minutes: 1440

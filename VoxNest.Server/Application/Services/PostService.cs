@@ -5,6 +5,7 @@ using VoxNest.Server.Application.Interfaces;
 using VoxNest.Server.Domain.Entities.Content;
 using VoxNest.Server.Domain.Enums;
 using VoxNest.Server.Infrastructure.Persistence.Contexts;
+using VoxNest.Server.Infrastructure.Extensions;
 using VoxNest.Server.Shared.Results;
 
 namespace VoxNest.Server.Application.Services;
@@ -144,13 +145,7 @@ public class PostService : IPostService
     {
         try
         {
-            var query = _dbContext.Posts
-                .Include(p => p.Author)
-                .ThenInclude(a => a.Profile)
-                .Include(p => p.Category)
-                .Include(p => p.PostTags)
-                .ThenInclude(pt => pt.Tag)
-                .Where(p => p.Status == PostStatus.Published);
+            var query = _dbContext.GetOptimizedPostsQuery();
 
             // 按分类筛选
             if (categoryId.HasValue)
@@ -183,13 +178,7 @@ public class PostService : IPostService
     {
         try
         {
-            var query = _dbContext.Posts
-                .Include(p => p.Author)
-                .ThenInclude(a => a.Profile)
-                .Include(p => p.Category)
-                .Include(p => p.PostTags)
-                .ThenInclude(pt => pt.Tag)
-                .Where(p => p.AuthorId == userId && p.Status != PostStatus.Deleted)
+            var query = _dbContext.GetOptimizedUserPostsQuery(userId)
                 .OrderByDescending(p => p.CreatedAt);
 
             var totalCount = await query.CountAsync();
@@ -213,16 +202,8 @@ public class PostService : IPostService
     {
         try
         {
-            var post = await _dbContext.Posts.FindAsync(postId);
-            
-            if (post == null)
-            {
-                return Result.Failure("帖子不存在");
-            }
-
-            post.ViewCount++;
-            await _dbContext.SaveChangesAsync();
-
+            // 使用优化的批量更新方法，避免加载整个实体
+            await _dbContext.IncrementPostViewCountAsync(postId);
             return Result.Success();
         }
         catch (Exception ex)

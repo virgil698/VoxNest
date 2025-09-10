@@ -1,23 +1,22 @@
 using Microsoft.AspNetCore.Mvc;
 using VoxNest.Server.Application.DTOs.Install;
 using VoxNest.Server.Application.Interfaces;
+using VoxNest.Server.Shared.Models;
 
 namespace VoxNest.Server.Presentation.Controllers;
 
 /// <summary>
 /// 安装控制器
 /// </summary>
-[ApiController]
 [Route("api/[controller]")]
-public class InstallController : ControllerBase
+public class InstallController : BaseApiController
 {
     private readonly IInstallService _installService;
-    private readonly ILogger<InstallController> _logger;
 
-    public InstallController(IInstallService installService, ILogger<InstallController> logger)
+    public InstallController(IInstallService installService, ILogger<InstallController> logger) 
+        : base(logger)
     {
         _installService = installService;
-        _logger = logger;
     }
 
     /// <summary>
@@ -25,18 +24,13 @@ public class InstallController : ControllerBase
     /// </summary>
     /// <returns>安装状态</returns>
     [HttpGet("status")]
-    public async Task<ActionResult<InstallStatusDto>> GetInstallStatus()
+    public async Task<IActionResult> GetInstallStatus()
     {
-        try
-        {
-            var status = await _installService.GetInstallStatusAsync();
-            return Ok(status);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "获取安装状态失败");
-            return StatusCode(500, "获取安装状态失败");
-        }
+        LogApiCall("获取安装状态");
+        return await ExecuteDataAsync(
+            () => _installService.GetInstallStatusAsync(),
+            "获取安装状态"
+        );
     }
 
     /// <summary>
@@ -47,58 +41,36 @@ public class InstallController : ControllerBase
     [HttpPost("test-database")]
     public async Task<IActionResult> TestDatabaseConnection([FromBody] DatabaseConfigDto config)
     {
-        try
+        if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            return BadRequest(ModelState);
+        }
 
-            var result = await _installService.TestDatabaseConnectionAsync(config);
-            
-            if (result.IsSuccess)
-            {
-                return Ok(new { success = true, message = result.Message });
-            }
-            
-            return BadRequest(new { success = false, message = result.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "测试数据库连接失败");
-            return StatusCode(500, new { success = false, message = "测试数据库连接失败" });
-        }
+        LogApiCall("测试数据库连接", new { provider = config.Provider, server = config.Server, database = config.Database });
+        return await ExecuteAsync(
+            () => _installService.TestDatabaseConnectionAsync(config),
+            "测试数据库连接"
+        );
     }
 
     /// <summary>
     /// 保存数据库配置
     /// </summary>
     /// <param name="config">数据库配置</param>
-    /// <returns>保存结果</returns>
+    /// <returns>配置结果</returns>
     [HttpPost("save-database-config")]
     public async Task<IActionResult> SaveDatabaseConfig([FromBody] DatabaseConfigDto config)
     {
-        try
+        if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            return BadRequest(ModelState);
+        }
 
-            var result = await _installService.SaveDatabaseConfigAsync(config);
-            
-            if (result.IsSuccess)
-            {
-                return Ok(new { success = true, message = result.Message });
-            }
-            
-            return BadRequest(new { success = false, message = result.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "保存数据库配置失败");
-            return StatusCode(500, new { success = false, message = "保存数据库配置失败" });
-        }
+        LogApiCall("保存数据库配置", new { provider = config.Provider, server = config.Server, database = config.Database });
+        return await ExecuteAsync(
+            () => _installService.SaveDatabaseConfigAsync(config),
+            "保存数据库配置"
+        );
     }
 
     /// <summary>
@@ -108,22 +80,11 @@ public class InstallController : ControllerBase
     [HttpPost("initialize-database")]
     public async Task<IActionResult> InitializeDatabase()
     {
-        try
-        {
-            var result = await _installService.InitializeDatabaseAsync();
-            
-            if (result.IsSuccess)
-            {
-                return Ok(new { success = true, message = result.Message });
-            }
-            
-            return BadRequest(new { success = false, message = result.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "初始化数据库失败");
-            return StatusCode(500, new { success = false, message = "初始化数据库失败" });
-        }
+        LogApiCall("初始化数据库");
+        return await ExecuteAsync(
+            () => _installService.InitializeDatabaseAsync(),
+            "初始化数据库"
+        );
     }
 
     /// <summary>
@@ -134,27 +95,16 @@ public class InstallController : ControllerBase
     [HttpPost("create-admin")]
     public async Task<IActionResult> CreateAdminUser([FromBody] CreateAdminDto adminInfo)
     {
-        try
+        if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            return BadRequest(ModelState);
+        }
 
-            var result = await _installService.CreateAdminUserAsync(adminInfo);
-            
-            if (result.IsSuccess)
-            {
-                return Ok(new { success = true, message = result.Message });
-            }
-            
-            return BadRequest(new { success = false, message = result.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "创建管理员账户失败");
-            return StatusCode(500, new { success = false, message = "创建管理员账户失败" });
-        }
+        LogApiCall("创建管理员用户", new { username = adminInfo.Username, email = adminInfo.Email });
+        return await ExecuteAsync(
+            () => _installService.CreateAdminUserAsync(adminInfo),
+            "创建管理员用户"
+        );
     }
 
     /// <summary>
@@ -165,27 +115,72 @@ public class InstallController : ControllerBase
     [HttpPost("complete")]
     public async Task<IActionResult> CompleteInstallation([FromBody] SiteConfigDto siteConfig)
     {
-        try
+        if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            return BadRequest(ModelState);
+        }
 
-            var result = await _installService.CompleteInstallationAsync(siteConfig);
-            
-            if (result.IsSuccess)
-            {
-                return Ok(new { success = true, message = result.Message });
-            }
-            
-            return BadRequest(new { success = false, message = result.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "完成安装失败");
-            return StatusCode(500, new { success = false, message = "完成安装失败" });
-        }
+        LogApiCall("完成安装", new { siteName = siteConfig.SiteName, adminEmail = siteConfig.AdminEmail });
+        return await ExecuteAsync(
+            () => _installService.CompleteInstallationAsync(siteConfig),
+            "完成安装"
+        );
+    }
+
+    /// <summary>
+    /// 直接初始化数据库（不依赖热重载）
+    /// </summary>
+    /// <param name="request">初始化请求参数</param>
+    /// <returns>初始化结果</returns>
+    [HttpPost("initialize-database-direct")]
+    public async Task<IActionResult> InitializeDatabaseDirect([FromBody] InitializeDatabaseRequest? request = null)
+    {
+        var forceReinitialize = request?.ForceReinitialize ?? false;
+        LogApiCall("直接初始化数据库", new { forceReinitialize });
+        
+        return await ExecuteAsync(
+            () => _installService.InitializeDatabaseDirectAsync(forceReinitialize),
+            "直接初始化数据库"
+        );
+    }
+
+    /// <summary>
+    /// 诊断数据库状态
+    /// </summary>
+    /// <returns>数据库诊断结果</returns>
+    [HttpGet("diagnose-database")]
+    public async Task<IActionResult> DiagnoseDatabase()
+    {
+        LogApiCall("诊断数据库状态");
+        return await ExecuteDataAsync(
+            () => _installService.DiagnoseDatabaseAsync(),
+            "诊断数据库状态"
+        );
+    }
+
+    /// <summary>
+    /// 修复数据库结构
+    /// </summary>
+    /// <returns>修复结果</returns>
+    [HttpPost("repair-database")]
+    public async Task<IActionResult> RepairDatabase()
+    {
+        LogApiCall("修复数据库结构");
+        return await ExecuteAsync(
+            () => _installService.RepairDatabaseAsync(),
+            "修复数据库结构"
+        );
+    }
+
+    /// <summary>
+    /// 数据库初始化请求参数
+    /// </summary>
+    public class InitializeDatabaseRequest
+    {
+        /// <summary>
+        /// 是否强制重新初始化
+        /// </summary>
+        public bool ForceReinitialize { get; set; } = false;
     }
 
     /// <summary>
@@ -195,21 +190,10 @@ public class InstallController : ControllerBase
     [HttpPost("reset")]
     public async Task<IActionResult> ResetInstallation()
     {
-        try
-        {
-            var result = await _installService.ResetInstallationAsync();
-            
-            if (result.IsSuccess)
-            {
-                return Ok(new { success = true, message = result.Message });
-            }
-            
-            return BadRequest(new { success = false, message = result.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "重置安装状态失败");
-            return StatusCode(500, new { success = false, message = "重置安装状态失败" });
-        }
+        LogApiCall("重置安装状态");
+        return await ExecuteAsync(
+            () => _installService.ResetInstallationAsync(),
+            "重置安装状态"
+        );
     }
 }
