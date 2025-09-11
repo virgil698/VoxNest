@@ -1,3 +1,8 @@
+/* 导入组件样式 */
+@import './styles/components/Layout.css';
+@import './styles/components/Post.css';
+@import './styles/components/Auth.css';
+
 /* 全局样式重置 */
 * {
   margin: 0;
@@ -14,14 +19,13 @@ body,
 
 body {
   line-height: 1.6;
-  color: rgba(0, 0, 0, 0.87);
+  color: #4A4A4A;
   font-size: 14px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  background-attachment: fixed;
+  background: #FFFFFF;
   min-height: 100vh;
 }
 
-/* VoxNest 主题色 */
+/* VoxNest 白色主题色 */
 :root {
   --primary-color: #4F46E5;
   --primary-hover: #6366F1;
@@ -30,11 +34,17 @@ body {
   --success-color: #10B981;
   --warning-color: #F59E0B;
   --error-color: #EF4444;
-  --text-primary: rgba(0, 0, 0, 0.87);
-  --text-secondary: rgba(0, 0, 0, 0.65);
-  --border-color: #E5E7EB;
+  --text-primary: #2D3748;
+  --text-secondary: #718096;
+  --text-muted: #A0AEC0;
+  --border-color: #E2E8F0;
+  --border-light: #F7FAFC;
   --bg-primary: #FFFFFF;
-  --bg-secondary: #F9FAFB;
+  --bg-secondary: #F8FAFC;
+  --bg-tertiary: #EDF2F7;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.08);
 }
 
 /* 链接样式 */
@@ -71,19 +81,19 @@ a:active {
   background: #a8a8a8;
 }
 
-/* Ant Design 组件定制 */
+/* Ant Design 组件定制 - 白色主题 */
 .ant-card {
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.95);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .ant-card:hover {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-light);
+  transform: translateY(-1px);
 }
 
 .ant-btn-primary {
@@ -140,23 +150,24 @@ a:active {
   }
 }
 
-/* VoxNest 专用样式 */
+/* VoxNest 白色主题专用样式 */
 .voxnest-banner {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 16px;
-  color: white;
+  color: var(--text-primary);
   padding: 40px 32px;
   margin-bottom: 24px;
   text-align: center;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
 .voxnest-stats-card {
-  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-  color: white;
-  border: none;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
   border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .voxnest-stats-card .ant-card-body {
@@ -165,19 +176,20 @@ a:active {
 
 .voxnest-post-card {
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
 }
 
 .voxnest-post-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-color);
 }
 
-.voxnest-gradient-bg {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.voxnest-white-bg {
+  background: var(--bg-primary);
   min-height: 100vh;
 }
 

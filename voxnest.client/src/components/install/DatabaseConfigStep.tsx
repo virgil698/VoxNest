@@ -84,13 +84,13 @@ const DatabaseConfigStep: React.FC<DatabaseConfigStepProps> = ({ onSubmit, loadi
         padding: '24px',
         background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
         borderRadius: '16px',
-        color: 'white'
+        color: 'var(--text-secondary)'
       }}>
         <DatabaseOutlined style={{ fontSize: '48px', marginBottom: '16px', display: 'block' }} />
-        <h3 style={{ color: 'white', fontSize: '24px', fontWeight: '600', margin: '0 0 12px 0' }}>
+        <h3 style={{ color: 'var(--primary-color)', fontSize: '24px', fontWeight: '600', margin: '0 0 12px 0' }}>
           数据库配置
         </h3>
-        <p style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '16px', margin: 0, lineHeight: '1.6' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '16px', margin: 0, lineHeight: '1.6' }}>
           请配置数据库连接信息，系统将在此数据库中创建必要的表结构
         </p>
       </div>

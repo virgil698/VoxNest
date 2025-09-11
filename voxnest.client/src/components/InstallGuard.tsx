@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Button, Result } from 'antd';
 import { InstallApi } from '../api/install';
 import type { InstallStatusDto } from '../api/install';
+import { installLockManager } from '../utils/installLock';
 import SimpleLoading from './common/SimpleLoading';
 
 interface InstallGuardProps {
@@ -33,12 +34,56 @@ const InstallGuard: React.FC<InstallGuardProps> = ({ children }) => {
       setLoading(true);
       setError(null);
       
+      // 首先检查前端本地的安装锁
+      console.log('🔍 检查前端安装锁文件...');
+      if (installLockManager.hasInstallLock()) {
+        const lockData = installLockManager.getInstallLock();
+        console.log('✅ 发现本地安装锁，系统已安装:', lockData);
+        
+        // 验证安装锁是否有效
+        const validation = await installLockManager.validateInstallation();
+        if (validation.isValid && !validation.shouldRecheck) {
+          console.log('✅ 安装锁验证通过，跳过后端检查');
+          setInstallStatus({ 
+            isInstalled: true, 
+            currentStep: 3, // InstallStep.Completed
+            configExists: true,
+            databaseConnected: true,
+            databaseInitialized: true,
+            hasAdminUser: true
+          });
+          setLoading(false);
+          return;
+        }
+        
+        console.log('⚠️ 安装锁需要重新验证，检查后端状态');
+      } else {
+        console.log('❌ 未发现本地安装锁，检查后端安装状态');
+      }
+      
+      // 尝试从缓存获取状态
+      const cachedStatus = installLockManager.getCachedInstallStatus();
+      if (cachedStatus && cachedStatus.isInstalled) {
+        console.log('📋 使用缓存的安装状态');
+        setInstallStatus(cachedStatus);
+        setLoading(false);
+        return;
+      }
+      
+      // 检查后端安装状态
+      console.log('🌐 请求后端安装状态...');
       const status = await InstallApi.getInstallStatus();
       setInstallStatus(status);
       
-      // 如果未安装，跳转到安装页面
-      if (!status.isInstalled) {
-        console.log('系统未安装，跳转到安装页面');
+      // 缓存后端状态
+      installLockManager.cacheInstallStatus(status);
+      
+      // 如果后端已安装，创建前端安装锁
+      if (status.isInstalled) {
+        console.log('✅ 后端已安装，创建前端安装锁');
+        installLockManager.createInstallLock();
+      } else {
+        console.log('❌ 系统未安装，跳转到安装页面');
         window.location.href = '/install';
         return;
       }

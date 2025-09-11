@@ -1,0 +1,223 @@
+/* 帖子相关组件白色主题样式 */
+
+.post-list {
+  background: var(--bg-primary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  padding: 0;
+  overflow: hidden;
+}
+
+.post-item {
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 20px 24px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.post-item:hover {
+  background: var(--bg-secondary);
+  border-left: 3px solid var(--primary-color);
+  padding-left: 21px;
+}
+
+.post-item:last-child {
+  border-bottom: none;
+}
+
+.post-title {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.post-title:hover {
+  color: var(--primary-color);
+}
+
+.post-excerpt {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.post-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.post-author {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.post-date {
+  color: var(--text-muted);
+}
+
+.post-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.post-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+}
+
+.post-stat:hover {
+  color: var(--primary-color);
+}
+
+/* 帖子详情页面 */
+.post-detail {
+  background: var(--bg-primary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.post-detail-header {
+  background: var(--bg-secondary);
+  padding: 32px 24px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.post-detail-title {
+  color: var(--text-primary);
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  line-height: 1.3;
+}
+
+.post-detail-content {
+  padding: 32px 24px;
+  color: var(--text-primary);
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+.post-detail-content h1,
+.post-detail-content h2,
+.post-detail-content h3 {
+  color: var(--text-primary);
+  margin-top: 32px;
+  margin-bottom: 16px;
+}
+
+.post-detail-content p {
+  margin-bottom: 16px;
+}
+
+.post-detail-content pre {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+  overflow-x: auto;
+}
+
+.post-detail-content code {
+  background: var(--bg-tertiary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+/* 帖子创建/编辑表单 */
+.post-form {
+  background: var(--bg-primary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  padding: 24px;
+}
+
+.post-form .ant-form-item-label > label {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.post-form .ant-input,
+.post-form .ant-input-password .ant-input,
+.post-form textarea.ant-input {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.post-form .ant-input:focus,
+.post-form .ant-input-password .ant-input:focus,
+.post-form textarea.ant-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
+/* 标签样式 */
+.post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.post-tag {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.post-tag:hover {
+  background: var(--primary-color);
+  color: var(--text-primary);
+  border-color: var(--primary-color);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .post-item {
+    padding: 16px 20px;
+  }
+  
+  .post-item:hover {
+    padding-left: 17px;
+  }
+  
+  .post-detail-header {
+    padding: 24px 20px;
+  }
+  
+  .post-detail-title {
+    font-size: 24px;
+  }
+  
+  .post-detail-content {
+    padding: 24px 20px;
+  }
+  
+  .post-form {
+    padding: 20px;
+  }
+}

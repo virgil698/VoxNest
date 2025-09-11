@@ -37,8 +37,11 @@ const Home: React.FC = () => {
 
   // 页面加载时获取帖子列表
   useEffect(() => {
-    loadPosts({ pageNumber: 1, pageSize: 10 }).catch(() => {
-      message.error('加载帖子列表失败');
+    loadPosts({ pageNumber: 1, pageSize: 10 }).catch((error) => {
+      // 404错误已经在store中处理了，不显示错误信息
+      if (error.response?.status !== 404 && error.status !== 404) {
+        message.error('加载帖子列表失败');
+      }
     });
   }, [loadPosts]);
 
@@ -46,8 +49,11 @@ const Home: React.FC = () => {
   const handleLoadMore = async () => {
     try {
       await loadPosts({ pageNumber: currentPage + 1, pageSize: 10 });
-    } catch (error) {
-      message.error('加载更多帖子失败');
+    } catch (error: any) {
+      // 404错误已经在store中处理了，不显示错误信息
+      if (error.response?.status !== 404 && error.status !== 404) {
+        message.error('加载更多帖子失败');
+      }
     }
   };
 
@@ -177,10 +183,10 @@ const Home: React.FC = () => {
     <div>
       {/* 欢迎横幅 */}
       <div className="voxnest-banner">
-        <Title level={1} style={{ color: 'white', marginBottom: '16px', fontSize: '32px' }}>
+        <Title level={1} style={{ color: 'var(--text-primary)', marginBottom: '16px', fontSize: '32px' }}>
           欢迎来到VoxNest
         </Title>
-        <Text style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '16px' }}>
+        <Text style={{ color: 'var(--text-secondary)', fontSize: '16px' }}>
           分享你的奇思妙想
         </Text>
       </div>
@@ -231,7 +237,7 @@ const Home: React.FC = () => {
           {/* 站点统计 */}
           <Card className="voxnest-stats-card" style={{ marginBottom: '24px' }}>
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-              <Title level={4} style={{ color: 'white', margin: 0 }}>
+              <Title level={4} style={{ color: 'var(--text-primary)', margin: 0 }}>
                 📊 站点统计
               </Title>
             </div>
@@ -240,7 +246,7 @@ const Home: React.FC = () => {
                 <Statistic
                   title="总用户数"
                   value={5}
-                  valueStyle={{ color: 'white', fontSize: '24px', fontWeight: 'bold' }}
+                  valueStyle={{ color: 'var(--text-primary)', fontSize: '24px', fontWeight: 'bold' }}
                   prefix={<UserOutlined />}
                 />
               </Col>
@@ -248,7 +254,7 @@ const Home: React.FC = () => {
                 <Statistic
                   title="在线用户"
                   value={0}
-                  valueStyle={{ color: 'white', fontSize: '24px', fontWeight: 'bold' }}
+                  valueStyle={{ color: 'var(--text-primary)', fontSize: '24px', fontWeight: 'bold' }}
                   prefix={<TeamOutlined />}
                 />
               </Col>
@@ -256,7 +262,7 @@ const Home: React.FC = () => {
                 <Statistic
                   title="注册用户"
                   value={2}
-                  valueStyle={{ color: 'white', fontSize: '24px', fontWeight: 'bold' }}
+                  valueStyle={{ color: 'var(--text-primary)', fontSize: '24px', fontWeight: 'bold' }}
                   prefix={<FileTextOutlined />}
                 />
               </Col>

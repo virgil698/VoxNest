@@ -37,7 +37,7 @@ export const defaultConfig: FrontendConfig = {
   apiBaseUrl: 'http://localhost:5201',
   backendHttpPort: 5201,
   backendHttpsPort: 7042,
-  useHttps: false
+  useHttps: false // 默认使用HTTP，不使用HTTPS
 };
 
 /**

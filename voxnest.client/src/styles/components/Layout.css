@@ -1,0 +1,101 @@
+/* 布局组件白色主题样式 */
+
+.voxnest-layout {
+  background: var(--bg-primary);
+  min-height: 100vh;
+}
+
+.voxnest-header {
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+}
+
+.voxnest-header .logo {
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: bold;
+  margin-right: 32px;
+}
+
+.voxnest-content {
+  background: var(--bg-secondary);
+  padding: 24px;
+  min-height: calc(100vh - 64px);
+}
+
+.voxnest-sidebar {
+  background: var(--bg-primary);
+  border-right: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.voxnest-sidebar .ant-menu {
+  background: transparent;
+  border-right: none;
+}
+
+.voxnest-sidebar .ant-menu-item {
+  color: var(--text-secondary);
+  margin: 4px 8px;
+  border-radius: 8px;
+}
+
+.voxnest-sidebar .ant-menu-item:hover {
+  background: var(--bg-secondary);
+  color: var(--primary-color);
+}
+
+.voxnest-sidebar .ant-menu-item-selected {
+  background: rgba(79, 70, 229, 0.1);
+  color: var(--primary-color);
+}
+
+/* 页面容器 */
+.page-container {
+  background: var(--bg-primary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.page-header {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.page-header h1 {
+  color: var(--text-primary);
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.page-header p {
+  color: var(--text-secondary);
+  margin: 8px 0 0 0;
+  font-size: 14px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .voxnest-content {
+    padding: 16px;
+  }
+  
+  .page-container {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .voxnest-header {
+    padding: 0 16px;
+  }
+}

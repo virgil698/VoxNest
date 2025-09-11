@@ -53,13 +53,13 @@ const AdminSetupStep: React.FC<AdminSetupStepProps> = ({ onSubmit, loading }) =>
         padding: '24px',
         background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
         borderRadius: '16px',
-        color: 'white'
+        color: 'var(--text-secondary)'
       }}>
         <UserOutlined style={{ fontSize: '48px', marginBottom: '16px', display: 'block' }} />
-        <h3 style={{ color: 'white', fontSize: '24px', fontWeight: '600', margin: '0 0 12px 0' }}>
+        <h3 style={{ color: 'var(--primary-color)', fontSize: '24px', fontWeight: '600', margin: '0 0 12px 0' }}>
           创建管理员账户
         </h3>
-        <p style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '16px', margin: 0, lineHeight: '1.6' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '16px', margin: 0, lineHeight: '1.6' }}>
           请创建系统管理员账户，该账户将拥有系统的最高权限
         </p>
       </div>

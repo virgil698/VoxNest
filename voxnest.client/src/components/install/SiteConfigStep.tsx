@@ -31,13 +31,13 @@ const SiteConfigStep: React.FC<SiteConfigStepProps> = ({ onSubmit, loading }) =>
         padding: '24px',
         background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
         borderRadius: '16px',
-        color: 'white'
+        color: 'var(--text-secondary)'
       }}>
         <GlobalOutlined style={{ fontSize: '48px', marginBottom: '16px', display: 'block' }} />
-        <h3 style={{ color: 'white', fontSize: '24px', fontWeight: '600', margin: '0 0 12px 0' }}>
+        <h3 style={{ color: 'var(--primary-color)', fontSize: '24px', fontWeight: '600', margin: '0 0 12px 0' }}>
           站点配置
         </h3>
-        <p style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '16px', margin: 0, lineHeight: '1.6' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '16px', margin: 0, lineHeight: '1.6' }}>
           最后一步！请配置站点基本信息，完成安装
         </p>
       </div>
@@ -48,13 +48,13 @@ const SiteConfigStep: React.FC<SiteConfigStepProps> = ({ onSubmit, loading }) =>
         padding: '32px',
         textAlign: 'center',
         marginBottom: '32px',
-        color: 'white'
+        color: 'var(--text-secondary)'
       }}>
-        <CheckCircleOutlined style={{ fontSize: '64px', marginBottom: '16px', display: 'block', color: 'white' }} />
-        <h3 style={{ color: 'white', fontSize: '24px', fontWeight: '600', margin: '0 0 12px 0' }}>
+        <CheckCircleOutlined style={{ fontSize: '64px', marginBottom: '16px', display: 'block', color: 'var(--primary-color)' }} />
+        <h3 style={{ color: 'var(--primary-color)', fontSize: '24px', fontWeight: '600', margin: '0 0 12px 0' }}>
           恭喜！系统安装即将完成
         </h3>
-        <p style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '16px', margin: 0, lineHeight: '1.6' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '16px', margin: 0, lineHeight: '1.6' }}>
           数据库已成功初始化，管理员账户已创建，现在只需要完成站点配置即可开始使用
         </p>
       </div>
@@ -179,12 +179,12 @@ const SiteConfigStep: React.FC<SiteConfigStepProps> = ({ onSubmit, loading }) =>
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         borderRadius: '16px',
         textAlign: 'center',
-        color: 'white'
+        color: 'var(--text-secondary)'
       }}>
-        <h4 style={{ color: 'white', marginBottom: '12px', fontSize: '18px', fontWeight: '600' }}>
+        <h4 style={{ color: 'var(--text-primary)', marginBottom: '12px', fontSize: '18px', fontWeight: '600' }}>
           🎆 安装完成后
         </h4>
-        <p style={{ margin: 0, color: 'rgba(255, 255, 255, 0.9)', lineHeight: '1.6' }}>
+        <p style={{ margin: 0, color: 'var(--text-secondary)', lineHeight: '1.6' }}>
           系统将自动重启并跳转到论坛首页<br />
           您可以使用刚才创建的管理员账户登录并开始管理您的论坛
         </p>

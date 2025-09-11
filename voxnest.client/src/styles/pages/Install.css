@@ -1,6 +1,6 @@
 .install-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11,10 +11,9 @@
   width: 100%;
   max-width: 800px;
   border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: var(--shadow-lg);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
   overflow: hidden;
 }
 
@@ -23,7 +22,7 @@
   margin-bottom: 32px;
   padding: 32px 0;
   border-bottom: 1px solid var(--border-color);
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
+  background: var(--bg-secondary);
 }
 
 .install-header h1 {
@@ -60,9 +59,10 @@
   align-items: center;
   justify-content: center;
   min-height: 200px;
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 16px;
-  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-sm);
 }
 
 .install-loading p {
@@ -104,9 +104,11 @@
   align-items: center;
   justify-content: center;
   padding: 48px 0;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 16px;
   margin: 24px 0;
+  box-shadow: var(--shadow-sm);
 }
 
 .step-loading p {
@@ -322,7 +324,7 @@
   height: 64px;
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
   border-radius: 50%;
-  color: white;
+  color: var(--text-primary);
   font-weight: bold;
   font-size: 28px;
   margin-bottom: 20px;
@@ -394,19 +396,19 @@
 
 /* 状态卡片样式 */
 .install-status-card {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
+  background: var(--bg-primary);
   border-radius: 16px;
   padding: 24px;
   margin: 20px 0;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
   transition: all 0.3s ease;
 }
 
 .install-status-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-color);
 }
 
 .install-status-card .status-icon {
@@ -422,17 +424,17 @@
 
 .install-status-card.success .status-icon {
   background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-  color: white;
+  color: var(--text-primary);
 }
 
 .install-status-card.error .status-icon {
   background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
-  color: white;
+  color: var(--text-primary);
 }
 
 .install-status-card.warning .status-icon {
   background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-  color: white;
+  color: var(--text-primary);
 }
 
 /* 工具提示样式 */

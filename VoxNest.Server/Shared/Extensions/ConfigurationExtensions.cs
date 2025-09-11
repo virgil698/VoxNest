@@ -54,13 +54,13 @@ public static class ConfigurationExtensions
             Database = new DatabaseSettings
             {
                 Provider = "MySQL",
-                ConnectionString = "Server=localhost;Database=voxnest_dev;User=root;Password=;Port=3306;CharSet=utf8mb4;",
-                EnableSensitiveDataLogging = true,
-                EnableDetailedErrors = true
+                ConnectionString = "Server=localhost;Database=voxnest;User=root;Password=your_password;Port=3306;CharSet=utf8mb4;",
+                EnableSensitiveDataLogging = false,
+                EnableDetailedErrors = false
             },
             Jwt = new JwtSettings
             {
-                SecretKey = GenerateSecretKey(),
+                SecretKey = GenerateSecretKey(), // 每次都生成新的密钥
                 Issuer = "VoxNest",
                 Audience = "VoxNest-Users",
                 ExpireMinutes = 1440 // 24小时
@@ -69,10 +69,9 @@ public static class ConfigurationExtensions
             {
                 AllowedOrigins = new List<string>
                 {
-                    "http://localhost:54976",
-                    "http://localhost:54977", 
-                    "http://localhost:3000",
-                    "http://localhost:5201"
+                    "http://localhost:54976", // 前端开发服务器
+                    "http://localhost:3000",   // 备用前端端口
+                    "http://localhost:5173"    // Vite默认端口
                 },
                 AllowedMethods = new List<string>
                 {
@@ -80,7 +79,7 @@ public static class ConfigurationExtensions
                 },
                 AllowedHeaders = new List<string>
                 {
-                    "Content-Type", "Authorization", "X-Requested-With"
+                    "Content-Type", "Authorization", "X-Requested-With", "X-Request-Id"
                 }
             },
             Logging = new LoggingSettings

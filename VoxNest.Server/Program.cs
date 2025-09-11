@@ -19,6 +19,15 @@ builder.Configuration
     .AddEnvironmentConfiguration() // 支持.env文件和环境变量
     .AddCommandLine(args);
 
+// 确保服务器配置文件存在，如果不存在则生成默认配置
+if (!File.Exists("server-config.yml"))
+{
+    Console.WriteLine("🔧 未找到服务器配置文件，正在生成默认配置...");
+    var defaultConfig = VoxNest.Server.Shared.Extensions.ConfigurationExtensions.CreateDefaultConfiguration();
+    VoxNest.Server.Shared.Extensions.ConfigurationExtensions.SaveConfigurationToYaml(defaultConfig, "server-config.yml");
+    Console.WriteLine("✅ 默认配置文件已生成: server-config.yml");
+}
+
 // 确保安全配置存在
 builder.Services.EnsureSecureConfiguration(builder.Configuration, builder.Environment);
 
@@ -29,10 +38,9 @@ if (File.Exists("server-config.yml"))
     {
         var serverConfig = VoxNest.Server.Shared.Extensions.ConfigurationExtensions.LoadServerConfigurationFromYaml("server-config.yml");
         var httpUrl = $"http://localhost:{serverConfig.Server.Port}";
-        var httpsUrl = $"https://localhost:{serverConfig.Server.HttpsPort}";
         
-        builder.WebHost.UseUrls(httpUrl, httpsUrl);
-        Console.WriteLine($"✅ 服务器配置监听端口: HTTP={serverConfig.Server.Port}, HTTPS={serverConfig.Server.HttpsPort}");
+        builder.WebHost.UseUrls(httpUrl);
+        Console.WriteLine($"✅ 服务器监听HTTP端口: {serverConfig.Server.Port}");
     }
     catch (Exception ex)
     {

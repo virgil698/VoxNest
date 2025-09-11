@@ -17,8 +17,11 @@ const MyPosts: React.FC = () => {
   } = usePostStore();
 
   useEffect(() => {
-    loadMyPosts({ pageNumber: 1, pageSize: 10 }).catch(() => {
-      message.error('加载我的帖子失败');
+    loadMyPosts({ pageNumber: 1, pageSize: 10 }).catch((error) => {
+      // 404错误已经在store中处理了，不显示错误信息
+      if (error.response?.status !== 404 && error.status !== 404) {
+        message.error('加载我的帖子失败');
+      }
     });
   }, [loadMyPosts]);
 

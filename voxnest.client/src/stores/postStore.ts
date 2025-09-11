@@ -80,6 +80,22 @@ export const usePostStore = create<PostState>((set, get) => ({
       }
     } catch (error: any) {
       set({ isLoadingList: false });
+      
+      // 如果是404错误，设置为空列表而不是抛出错误
+      if (error.response?.status === 404 || error.status === 404) {
+        console.log('📝 暂无帖子数据，设置为空列表');
+        set({
+          posts: [],
+          currentPage: 1,
+          pageSize: params.pageSize || 10,
+          totalCount: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        });
+        return; // 不抛出错误，正常返回
+      }
+      
       console.error('加载帖子列表失败:', error);
       throw error;
     }
@@ -155,6 +171,18 @@ export const usePostStore = create<PostState>((set, get) => ({
       }
     } catch (error: any) {
       set({ isLoadingMyPosts: false });
+      
+      // 如果是404错误，设置为空列表而不是抛出错误
+      if (error.response?.status === 404 || error.status === 404) {
+        console.log('📝 暂无个人帖子数据，设置为空列表');
+        set({
+          myPosts: [],
+          myPostsCurrentPage: 1,
+          myPostsTotalCount: 0,
+        });
+        return; // 不抛出错误，正常返回
+      }
+      
       console.error('加载我的帖子失败:', error);
       throw error;
     }
