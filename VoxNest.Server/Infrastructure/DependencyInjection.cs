@@ -39,6 +39,9 @@ public static class DependencyInjection
 
         // 配置数据库
         AddDatabase(services, serverConfig.Database);
+        
+        // 添加自定义DbContext工厂（避免生命周期冲突）
+        services.AddSingleton<IDbContextFactory<VoxNestDbContext>, CustomDbContextFactory>();
 
         // 配置认证
         AddAuthentication(services, serverConfig.Jwt);
@@ -53,8 +56,9 @@ public static class DependencyInjection
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IPostService, PostService>();
-        services.AddScoped<IInstallService, InstallService>();
+        services.AddScoped<IInstallService, EnhancedInstallService>();
         services.AddScoped<IMarkdownService, MarkdownService>();
+        services.AddScoped<IInstallLockService, InstallLockService>();
         
         // 注册基础设施服务
         services.AddScoped<IDatabaseMigrationService, DatabaseMigrationService>();
@@ -72,27 +76,37 @@ public static class DependencyInjection
     {
         services.AddDbContext<VoxNestDbContext>(options =>
         {
-            switch (dbSettings.Provider.ToUpper())
-            {
-                case "MYSQL":
-                case "MARIADB":
-                    var serverVersion = ServerVersion.AutoDetect(dbSettings.ConnectionString);
-                    options.UseMySql(dbSettings.ConnectionString, serverVersion);
-                    break;
-                default:
-                    throw new NotSupportedException($"不支持的数据库提供商: {dbSettings.Provider}。支持的数据库：MySQL、MariaDB");
-            }
-
-            if (dbSettings.EnableSensitiveDataLogging)
-            {
-                options.EnableSensitiveDataLogging();
-            }
-
-            if (dbSettings.EnableDetailedErrors)
-            {
-                options.EnableDetailedErrors();
-            }
+            ConfigureDbContextOptions(options, dbSettings);
         });
+    }
+
+    /// <summary>
+    /// 配置数据库上下文选项
+    /// </summary>
+    /// <param name="options">选项构建器</param>
+    /// <param name="dbSettings">数据库设置</param>
+    private static void ConfigureDbContextOptions(DbContextOptionsBuilder options, DatabaseSettings dbSettings)
+    {
+        switch (dbSettings.Provider.ToUpper())
+        {
+            case "MYSQL":
+            case "MARIADB":
+                var serverVersion = ServerVersion.AutoDetect(dbSettings.ConnectionString);
+                options.UseMySql(dbSettings.ConnectionString, serverVersion);
+                break;
+            default:
+                throw new NotSupportedException($"不支持的数据库提供商: {dbSettings.Provider}。支持的数据库：MySQL、MariaDB");
+        }
+
+        if (dbSettings.EnableSensitiveDataLogging)
+        {
+            options.EnableSensitiveDataLogging();
+        }
+
+        if (dbSettings.EnableDetailedErrors)
+        {
+            options.EnableDetailedErrors();
+        }
     }
 
     /// <summary>

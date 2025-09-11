@@ -47,7 +47,9 @@ public static class ConfigurationExtensions
             {
                 Name = "VoxNest Server",
                 Version = "1.0.0",
-                Environment = "Development"
+                Environment = "Development",
+                Port = 5201,
+                HttpsPort = 7042
             },
             Database = new DatabaseSettings
             {
@@ -68,8 +70,9 @@ public static class ConfigurationExtensions
                 AllowedOrigins = new List<string>
                 {
                     "http://localhost:54976",
-                    "http://localhost:54977",
-                    "http://localhost:3000"
+                    "http://localhost:54977", 
+                    "http://localhost:3000",
+                    "http://localhost:5201"
                 },
                 AllowedMethods = new List<string>
                 {

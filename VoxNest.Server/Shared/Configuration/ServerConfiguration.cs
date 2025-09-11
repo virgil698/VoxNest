@@ -28,6 +28,18 @@ public class ServerSettings
     
     [Required]
     public string Environment { get; set; } = "Development";
+    
+    /// <summary>
+    /// HTTP监听端口
+    /// </summary>
+    [Range(1, 65535)]
+    public int Port { get; set; } = 5201;
+    
+    /// <summary>
+    /// HTTPS监听端口
+    /// </summary>
+    [Range(1, 65535)]
+    public int HttpsPort { get; set; } = 7042;
 }
 
 /// <summary>

@@ -1,4 +1,5 @@
 using VoxNest.Server.Infrastructure.Extensions;
+using VoxNest.Server.Shared.Extensions;
 
 // 检查是否为配置生成命令
 if (await SecureConfigurationExtensions.HandleConfigurationCommandsAsync(args, 
@@ -20,6 +21,24 @@ builder.Configuration
 
 // 确保安全配置存在
 builder.Services.EnsureSecureConfiguration(builder.Configuration, builder.Environment);
+
+// 读取服务器配置并设置监听端口
+if (File.Exists("server-config.yml"))
+{
+    try
+    {
+        var serverConfig = VoxNest.Server.Shared.Extensions.ConfigurationExtensions.LoadServerConfigurationFromYaml("server-config.yml");
+        var httpUrl = $"http://localhost:{serverConfig.Server.Port}";
+        var httpsUrl = $"https://localhost:{serverConfig.Server.HttpsPort}";
+        
+        builder.WebHost.UseUrls(httpUrl, httpsUrl);
+        Console.WriteLine($"✅ 服务器配置监听端口: HTTP={serverConfig.Server.Port}, HTTPS={serverConfig.Server.HttpsPort}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"读取服务器配置失败，使用默认端口: {ex.Message}");
+    }
+}
 
 // 配置服务
 builder.Services.AddVoxNestServices(builder.Configuration);

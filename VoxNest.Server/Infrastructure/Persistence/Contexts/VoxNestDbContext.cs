@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VoxNest.Server.Domain.Entities.Content;
+using VoxNest.Server.Domain.Entities.System;
 using VoxNest.Server.Domain.Entities.User;
 
 namespace VoxNest.Server.Infrastructure.Persistence.Contexts;
@@ -73,6 +74,15 @@ public class VoxNestDbContext : DbContext
     /// 评论表
     /// </summary>
     public DbSet<Comment> Comments { get; set; }
+
+    #endregion
+
+    #region System Entities
+
+    /// <summary>
+    /// 安装锁表
+    /// </summary>
+    public DbSet<InstallLock> InstallLocks { get; set; }
 
     #endregion
 

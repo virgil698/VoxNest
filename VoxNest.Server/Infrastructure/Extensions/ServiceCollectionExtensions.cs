@@ -1,5 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using VoxNest.Server.Infrastructure;
 using VoxNest.Server.Infrastructure.Services;
+using VoxNest.Server.Infrastructure.Persistence.Contexts;
 using VoxNest.Server.Application.Interfaces;
 using VoxNest.Server.Shared.Filters;
 
@@ -37,7 +39,8 @@ public static class ServiceCollectionExtensions
         else
         {
             // 安装模式：只注册必要的服务
-            services.AddScoped<IInstallService, VoxNest.Server.Application.Services.InstallService>();
+            services.AddScoped<IInstallService, VoxNest.Server.Application.Services.EnhancedInstallService>();
+            services.AddScoped<IInstallLockService, VoxNest.Server.Application.Services.SimpleInstallLockService>();
             services.AddInstallationModeServices();
         }
 
@@ -59,6 +62,9 @@ public static class ServiceCollectionExtensions
                            .AllowAnyHeader();
             });
         });
+
+        // 注册安装模式专用的 DbContext 创建服务
+        services.AddScoped<IInstallationDbContextService, InstallationDbContextService>();
 
         return services;
     }

@@ -9,13 +9,16 @@ interface SimpleLoadingProps {
   background?: 'gradient' | 'transparent' | 'white';
   /** 大小 */
   size?: 'small' | 'medium' | 'large';
+  /** 加载动画类型 */
+  loadingType?: 'spinner' | 'dots';
 }
 
 const SimpleLoading: React.FC<SimpleLoadingProps> = ({
-  text = '加载中...',
+  text = '',
   showLogo = true,
   background = 'gradient',
-  size = 'medium'
+  size = 'medium',
+  loadingType = 'spinner'
 }) => {
   const sizeConfig = {
     small: {
@@ -53,7 +56,8 @@ const SimpleLoading: React.FC<SimpleLoadingProps> = ({
       backdropFilter: 'blur(20px)',
       borderRadius: '20px',
       boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-      border: '1px solid rgba(255, 255, 255, 0.2)'
+      border: '1px solid rgba(255, 255, 255, 0.2)',
+      minHeight: '100vh'
     }
   };
 
@@ -82,50 +86,59 @@ const SimpleLoading: React.FC<SimpleLoadingProps> = ({
             ...config.logo,
             color: 'white',
             fontWeight: 'bold',
-            position: 'relative'
+            boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)'
           }}>
             V
-            {/* 动态光环效果 */}
-            <div style={{
-              position: 'absolute',
-              inset: '-4px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #4F46E5, #7C3AED, #EC4899, #F59E0B, #4F46E5)',
-              backgroundSize: '400% 400%',
-              padding: '2px',
-              zIndex: -1,
-              animation: 'gradientRotate 3s ease-in-out infinite'
-            }}>
-              <div style={{
-                width: '100%',
-                height: '100%',
-                borderRadius: '50%',
-                background: background === 'gradient' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'white'
-              }} />
-            </div>
           </div>
         )}
 
-        {/* 简洁的加载动画 */}
-        <div style={{
-          display: 'inline-block',
-          ...config.spinner,
-          border: `3px solid ${background === 'gradient' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(79, 70, 229, 0.2)'}`,
-          borderTop: `3px solid ${background === 'gradient' ? 'white' : '#4F46E5'}`,
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite',
-          marginBottom: '16px'
-        }} />
+        {/* 加载动画 */}
+        {loadingType === 'spinner' ? (
+          <div style={{
+            display: 'inline-block',
+            ...config.spinner,
+            border: `3px solid ${background === 'gradient' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(79, 70, 229, 0.2)'}`,
+            borderTop: `3px solid ${background === 'gradient' ? 'white' : '#4F46E5'}`,
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            marginBottom: text ? '16px' : showLogo ? '0' : '0'
+          }} />
+        ) : (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: size === 'small' ? '6px' : size === 'medium' ? '8px' : '10px',
+            marginBottom: text ? '16px' : showLogo ? '0' : '0'
+          }}>
+            {[1, 2, 3, 4, 5].map((index) => (
+              <div
+                key={index}
+                style={{
+                  width: size === 'small' ? '8px' : size === 'medium' ? '10px' : '12px',
+                  height: size === 'small' ? '8px' : size === 'medium' ? '10px' : '12px',
+                  borderRadius: '50%',
+                  backgroundColor: background === 'gradient' ? 'white' : 'var(--primary-color)',
+                  animation: `fadeInOut 1.4s ease-in-out infinite`,
+                  animationDelay: `${(index - 1) * 0.2}s`,
+                  opacity: 0.3
+                }}
+              />
+            ))}
+          </div>
+        )}
 
         {/* 加载文本 */}
-        <div style={{
-          color: textColor,
-          fontWeight: '500',
-          opacity: 0.9,
-          ...config.text
-        }}>
-          {text}
-        </div>
+        {text && (
+          <div style={{
+            color: textColor,
+            fontWeight: '500',
+            opacity: 0.9,
+            ...config.text
+          }}>
+            {text}
+          </div>
+        )}
       </div>
 
       <style>{`
@@ -134,11 +147,16 @@ const SimpleLoading: React.FC<SimpleLoadingProps> = ({
           100% { transform: rotate(360deg); }
         }
         
-        @keyframes gradientRotate {
-          0%, 100% { background-position: 0% 50%; }
-          25% { background-position: 100% 50%; }
-          50% { background-position: 100% 100%; }
-          75% { background-position: 0% 100%; }
+        
+        @keyframes fadeInOut {
+          0%, 80%, 100% {
+            opacity: 0.3;
+            transform: scale(0.8);
+          }
+          40% {
+            opacity: 1;
+            transform: scale(1);
+          }
         }
       `}</style>
     </div>

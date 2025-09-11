@@ -1,6 +1,7 @@
 import axios from 'axios';
 import type { AxiosResponse, AxiosError, AxiosRequestConfig } from 'axios';
 import { message } from 'antd';
+import { configManager } from '../config';
 
 // 错误响应接口
 export interface ErrorResponse {
@@ -14,8 +15,8 @@ export interface ErrorResponse {
   success: boolean;
 }
 
-// API基础配置
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+// API基础配置 - 从配置管理器获取
+const API_BASE_URL = configManager.getApiBaseUrl();
 
 // 创建axios实例
 export const apiClient = axios.create({

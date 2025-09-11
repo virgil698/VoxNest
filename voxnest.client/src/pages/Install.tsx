@@ -10,6 +10,53 @@ import SimpleLoading from '../components/common/SimpleLoading';
 import { handleApiError } from '../api/client';
 import '../styles/pages/Install.css';
 
+// 添加错误消息动画样式
+const injectErrorAnimationStyles = () => {
+  const errorAnimationCSS = `
+    @keyframes messageSlideIn {
+      0% {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    
+    @keyframes messageShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-3px); }
+      75% { transform: translateX(3px); }
+    }
+    
+    .ant-message .ant-message-notice {
+      animation: messageSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    .ant-message .ant-message-error {
+      animation: messageSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                 messageShake 0.3s ease-in-out 0.2s;
+    }
+    
+    .ant-alert {
+      animation: messageSlideIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+  `;
+  
+  if (typeof document !== 'undefined') {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = errorAnimationCSS;
+    if (!document.head.querySelector('[data-message-animations]')) {
+      styleElement.setAttribute('data-message-animations', 'true');
+      document.head.appendChild(styleElement);
+    }
+  }
+};
+
+// 注入样式
+injectErrorAnimationStyles();
+
 const Install: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [installStatus, setInstallStatus] = useState<InstallStatusDto | null>(null);
@@ -473,10 +520,10 @@ const Install: React.FC = () => {
             {(processing || !showDatabaseStatus) && (
               <div style={{ padding: '32px 0', textAlign: 'center' }}>
                 <SimpleLoading 
-                  text={processing ? '正在执行数据库初始化...' : '准备初始化数据库...'}
                   background="transparent"
                   size="small"
                   showLogo={false}
+                  loadingType="dots"
                 />
               </div>
             )}
@@ -629,10 +676,10 @@ const Install: React.FC = () => {
   if (loading) {
     return (
       <SimpleLoading 
-        text="正在检查安装状态..."
-        background="gradient"
+        background="white"
         size="medium"
         showLogo={true}
+        loadingType="dots"
       />
     );
   }

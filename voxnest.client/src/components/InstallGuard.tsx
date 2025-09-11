@@ -65,10 +65,10 @@ const InstallGuard: React.FC<InstallGuardProps> = ({ children }) => {
   if (loading) {
     return (
       <SimpleLoading 
-        text="正在检查系统状态..."
-        background="gradient"
+        background="white"
         size="medium"
         showLogo={true}
+        loadingType="dots"
       />
     );
   }
@@ -92,7 +92,8 @@ const InstallGuard: React.FC<InstallGuardProps> = ({ children }) => {
           border: '1px solid rgba(255, 255, 255, 0.2)',
           maxWidth: '500px',
           width: '100%',
-          padding: '48px 32px'
+          padding: '48px 32px',
+          animation: 'errorSlideIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
         }}>
           <Result
             status="error"
@@ -103,6 +104,12 @@ const InstallGuard: React.FC<InstallGuardProps> = ({ children }) => {
                 type="primary"
                 onClick={checkInstallStatus}
                 size="large"
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.animation = 'errorShake 0.3s ease-in-out';
+                }}
+                onAnimationEnd={(e) => {
+                  (e.currentTarget as HTMLElement).style.animation = '';
+                }}
                 style={{
                   height: '44px',
                   borderRadius: '12px',
@@ -111,7 +118,8 @@ const InstallGuard: React.FC<InstallGuardProps> = ({ children }) => {
                   background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
                   border: 'none',
                   boxShadow: '0 4px 16px rgba(79, 70, 229, 0.3)',
-                  padding: '0 32px'
+                  padding: '0 32px',
+                  transition: 'all 0.3s ease'
                 }}
               >
                 重新检查
@@ -132,5 +140,35 @@ const InstallGuard: React.FC<InstallGuardProps> = ({ children }) => {
   // 其他情况不应该到达这里，但为了安全起见返回子组件
   return <>{children}</>;
 };
+
+// 添加错误状态的动画样式
+const errorAnimationStyles = `
+  @keyframes errorSlideIn {
+    0% {
+      opacity: 0;
+      transform: translateY(40px) scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  @keyframes errorShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+`;
+
+// 将样式注入到页面
+if (typeof document !== 'undefined') {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = errorAnimationStyles;
+  if (!document.head.querySelector('[data-error-animations]')) {
+    styleElement.setAttribute('data-error-animations', 'true');
+    document.head.appendChild(styleElement);
+  }
+}
 
 export default InstallGuard;
