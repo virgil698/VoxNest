@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Steps, Button, Result, Spin, message, Alert } from 'antd';
-import { CheckCircleOutlined, LoadingOutlined } from '@ant-design/icons';
+import { Card, Steps, Button, message, Alert } from 'antd';
+import { CheckCircleOutlined } from '@ant-design/icons';
 import { InstallApi, InstallStep } from '../api/install';
 import type { InstallStatusDto, DatabaseConfigDto, CreateAdminDto, SiteConfigDto } from '../api/install';
 import DatabaseConfigStep from '../components/install/DatabaseConfigStep';
 import AdminSetupStep from '../components/install/AdminSetupStep';
 import SiteConfigStep from '../components/install/SiteConfigStep';
+import SimpleLoading from '../components/common/SimpleLoading';
 import { handleApiError } from '../api/client';
 import '../styles/pages/Install.css';
 
@@ -470,9 +471,13 @@ const Install: React.FC = () => {
 
             {/* 正常的初始化过程 */}
             {(processing || !showDatabaseStatus) && (
-              <div className="step-loading">
-                <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
-                <p>{processing ? '正在执行数据库初始化...' : '准备初始化数据库...'}</p>
+              <div style={{ padding: '32px 0', textAlign: 'center' }}>
+                <SimpleLoading 
+                  text={processing ? '正在执行数据库初始化...' : '准备初始化数据库...'}
+                  background="transparent"
+                  size="small"
+                  showLogo={false}
+                />
               </div>
             )}
 
@@ -558,57 +563,155 @@ const Install: React.FC = () => {
   // 如果已安装，显示已完成页面
   if (installStatus?.isInstalled) {
     return (
-      <div className="install-container">
-        <Card className="install-card">
-          <Result
-            status="success"
-            title="VoxNest 已安装完成"
-            subTitle="系统已成功安装并配置完成，您可以正常使用论坛功能。"
-            extra={
-              <Button type="primary" onClick={() => window.location.href = '/'}>
-                访问论坛首页
-              </Button>
-            }
-          />
-        </Card>
+      <div className="voxnest-gradient-bg" style={{ minHeight: '100vh', padding: '20px' }}>
+        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+          <Card style={{
+            borderRadius: '20px',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
+            background: 'rgba(255, 255, 255, 0.98)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            textAlign: 'center',
+            padding: '40px 20px'
+          }}>
+            <div style={{ 
+              width: '100px', 
+              height: '100px', 
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+              margin: '0 auto 24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '40px',
+              color: 'white'
+            }}>
+              ✓
+            </div>
+            <h2 style={{
+              fontSize: '28px',
+              fontWeight: '700',
+              marginBottom: '16px',
+              color: 'var(--text-primary)'
+            }}>
+              VoxNest 安装完成！
+            </h2>
+            <p style={{ 
+              fontSize: '16px', 
+              color: 'var(--text-secondary)',
+              marginBottom: '32px',
+              lineHeight: '1.6'
+            }}>
+              系统已成功安装并配置完成，您可以正常使用论坛功能
+            </p>
+            <Button 
+              type="primary" 
+              size="large"
+              onClick={() => window.location.href = '/'}
+              style={{
+                height: '48px',
+                fontSize: '16px',
+                fontWeight: '600',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+                border: 'none',
+                padding: '0 32px'
+              }}
+            >
+              访问论坛首页
+            </Button>
+          </Card>
+        </div>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="install-container">
-        <div className="install-loading">
-          <Spin size="large" />
-          <p>正在检查安装状态...</p>
-        </div>
-      </div>
+      <SimpleLoading 
+        text="正在检查安装状态..."
+        background="gradient"
+        size="medium"
+        showLogo={true}
+      />
     );
   }
 
   return (
-    <div className="install-container">
-      <Card className="install-card">
-        <div className="install-header">
-          <h1>VoxNest 论坛安装向导</h1>
-          <p>欢迎使用 VoxNest 论坛系统，请按照以下步骤完成系统安装。</p>
+    <div className="voxnest-gradient-bg" style={{ minHeight: '100vh', padding: '20px' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <Card style={{
+          borderRadius: '20px',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
+          background: 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.3)'
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+            <div style={{ 
+              width: '100px', 
+              height: '100px', 
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+              margin: '0 auto 24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '40px',
+              color: 'white',
+              fontWeight: 'bold'
+            }}>
+              V
+            </div>
+            <h1 style={{
+              fontSize: '32px',
+              fontWeight: '700',
+              marginBottom: '12px',
+              background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>
+              VoxNest 安装向导
+            </h1>
+            <p style={{ 
+              fontSize: '18px', 
+              color: 'var(--text-secondary)',
+              lineHeight: '1.6'
+            }}>
+              欢迎使用 VoxNest 论坛系统，请按照以下步骤完成系统安装
+            </p>
+          </div>
+
+        <div style={{ marginBottom: '40px' }}>
+          <Steps
+            current={currentStep}
+            style={{ 
+              padding: '20px',
+              background: 'var(--bg-secondary)',
+              borderRadius: '16px',
+              border: '1px solid var(--border-color)'
+            }}
+            items={installSteps.map((step, index) => ({
+              title: <span style={{ fontWeight: '600', fontSize: '16px' }}>{step.title}</span>,
+              description: <span style={{ color: 'var(--text-secondary)' }}>{step.description}</span>,
+              icon: index < currentStep ? <CheckCircleOutlined style={{ color: 'var(--success-color)' }} /> : undefined,
+              status: index === currentStep && processing ? 'process' : undefined
+            }))}
+          />
         </div>
 
-        <Steps
-          current={currentStep}
-          className="install-steps"
-          items={installSteps.map((step, index) => ({
-            title: step.title,
-            description: step.description,
-            icon: index < currentStep ? <CheckCircleOutlined /> : undefined,
-            status: index === currentStep && processing ? 'process' : undefined
-          }))}
-        />
-
-        <div className="install-content">
+        <div style={{
+          background: 'white',
+          borderRadius: '16px',
+          padding: '32px',
+          minHeight: '400px',
+          border: '1px solid var(--border-color)'
+        }}>
           {renderStepContent()}
         </div>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 };

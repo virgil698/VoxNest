@@ -361,3 +361,62 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# ====================
+# VoxNest 安全和敏感信息文件
+# ====================
+
+# 环境变量文件
+.env
+.env.local
+.env.production
+.env.development
+*.env
+
+# 敏感配置文件
+**/appsettings.Local.json
+**/appsettings.Secret.json
+**/server-config.local.yml
+**/config.local.*
+
+# SSL证书和密钥文件
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 安装锁定文件
+install.lock
+
+# 日志文件
+*.log
+logs/
+*.log.*
+
+# IDE和编辑器文件
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# 前端依赖和构建
+**/node_modules/
+**/dist/
+**/.env
+**/.env.local
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 备份文件
+*.bak
+*.backup
+*.old

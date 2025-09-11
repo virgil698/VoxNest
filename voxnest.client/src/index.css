@@ -13,25 +13,43 @@ body,
 }
 
 body {
-  line-height: 1.5715;
-  color: rgba(0, 0, 0, 0.85);
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.87);
   font-size: 14px;
-  background-color: #f5f5f5;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* VoxNest 主题色 */
+:root {
+  --primary-color: #4F46E5;
+  --primary-hover: #6366F1;
+  --primary-active: #3730A3;
+  --secondary-color: #818CF8;
+  --success-color: #10B981;
+  --warning-color: #F59E0B;
+  --error-color: #EF4444;
+  --text-primary: rgba(0, 0, 0, 0.87);
+  --text-secondary: rgba(0, 0, 0, 0.65);
+  --border-color: #E5E7EB;
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F9FAFB;
 }
 
 /* 链接样式 */
 a {
-  color: #1890ff;
+  color: var(--primary-color);
   text-decoration: none;
-  transition: color 0.3s;
+  transition: all 0.3s ease;
 }
 
 a:hover {
-  color: #40a9ff;
+  color: var(--primary-hover);
 }
 
 a:active {
-  color: #096dd9;
+  color: var(--primary-active);
 }
 
 /* 滚动条样式 */
@@ -55,26 +73,56 @@ a:active {
 
 /* Ant Design 组件定制 */
 .ant-card {
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .ant-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  transition: box-shadow 0.3s;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.ant-btn-primary {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.ant-btn-primary:hover {
+  background: var(--primary-hover) !important;
+  border-color: var(--primary-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
 
 .ant-btn {
-  border-radius: 6px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .ant-input,
 .ant-input-password .ant-input {
-  border-radius: 6px;
+  border-radius: 8px;
+  border: 2px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.ant-input:focus,
+.ant-input-password .ant-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
 }
 
 .ant-select-selector {
-  border-radius: 6px !important;
+  border-radius: 8px !important;
+  border: 2px solid var(--border-color) !important;
 }
 
 /* 响应式设计 */
@@ -90,6 +138,47 @@ a:active {
   .ant-layout-content {
     padding: 16px !important;
   }
+}
+
+/* VoxNest 专用样式 */
+.voxnest-banner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  color: white;
+  padding: 40px 32px;
+  margin-bottom: 24px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.voxnest-stats-card {
+  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3);
+}
+
+.voxnest-stats-card .ant-card-body {
+  padding: 20px;
+}
+
+.voxnest-post-card {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.voxnest-post-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+.voxnest-gradient-bg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
 }
 
 /* 工具类 */

@@ -21,16 +21,27 @@ public class Post
     public string Title { get; set; } = string.Empty;
 
     /// <summary>
-    /// 帖子内容
+    /// 帖子内容 (Markdown格式)
     /// </summary>
     [Required]
     public string Content { get; set; } = string.Empty;
 
     /// <summary>
-    /// 帖子摘要
+    /// 帖子HTML内容 (由Markdown转换而来)
+    /// </summary>
+    public string HtmlContent { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 帖子摘要 (Markdown格式)
     /// </summary>
     [StringLength(500)]
     public string? Summary { get; set; }
+
+    /// <summary>
+    /// 帖子纯文本摘要 (由HTML内容提取)
+    /// </summary>
+    [StringLength(300)]
+    public string? PlainTextSummary { get; set; }
 
     /// <summary>
     /// 帖子状态

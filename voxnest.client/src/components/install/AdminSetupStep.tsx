@@ -46,10 +46,22 @@ const AdminSetupStep: React.FC<AdminSetupStepProps> = ({ onSubmit, loading }) =>
   };
 
   return (
-    <div className="step-content">
-      <div className="step-description">
-        <h3><UserOutlined /> 创建管理员账户</h3>
-        <p>请创建系统管理员账户，该账户将拥有系统的最高权限。</p>
+    <div style={{ padding: '8px' }}>
+      <div style={{ 
+        textAlign: 'center', 
+        marginBottom: '32px',
+        padding: '24px',
+        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+        borderRadius: '16px',
+        color: 'white'
+      }}>
+        <UserOutlined style={{ fontSize: '48px', marginBottom: '16px', display: 'block' }} />
+        <h3 style={{ color: 'white', fontSize: '24px', fontWeight: '600', margin: '0 0 12px 0' }}>
+          创建管理员账户
+        </h3>
+        <p style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '16px', margin: 0, lineHeight: '1.6' }}>
+          请创建系统管理员账户，该账户将拥有系统的最高权限
+        </p>
       </div>
 
       <Alert
@@ -64,8 +76,14 @@ const AdminSetupStep: React.FC<AdminSetupStepProps> = ({ onSubmit, loading }) =>
         form={form}
         layout="vertical"
         onFinish={handleSubmit}
-        className="install-form"
         autoComplete="off"
+        style={{
+          background: 'white',
+          padding: '32px',
+          borderRadius: '16px',
+          border: '1px solid var(--border-color)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
+        }}
       >
         <Form.Item
           label="用户名"
@@ -77,9 +95,15 @@ const AdminSetupStep: React.FC<AdminSetupStepProps> = ({ onSubmit, loading }) =>
           ]}
         >
           <Input 
-            prefix={<UserOutlined />}
+            prefix={<UserOutlined style={{ color: 'var(--primary-color)' }} />}
             placeholder="管理员用户名"
             autoComplete="new-username"
+            style={{
+              height: '48px',
+              borderRadius: '12px',
+              fontSize: '16px'
+            }}
+            size="large"
           />
         </Form.Item>
 
@@ -92,9 +116,15 @@ const AdminSetupStep: React.FC<AdminSetupStepProps> = ({ onSubmit, loading }) =>
           ]}
         >
           <Input 
-            prefix={<MailOutlined />}
+            prefix={<MailOutlined style={{ color: 'var(--primary-color)' }} />}
             placeholder="admin@example.com"
             autoComplete="new-email"
+            style={{
+              height: '48px',
+              borderRadius: '12px',
+              fontSize: '16px'
+            }}
+            size="large"
           />
         </Form.Item>
 
@@ -105,9 +135,15 @@ const AdminSetupStep: React.FC<AdminSetupStepProps> = ({ onSubmit, loading }) =>
           hasFeedback
         >
           <Input.Password 
-            prefix={<LockOutlined />}
+            prefix={<LockOutlined style={{ color: 'var(--primary-color)' }} />}
             placeholder="请输入密码"
             autoComplete="new-password"
+            style={{
+              height: '48px',
+              borderRadius: '12px',
+              fontSize: '16px'
+            }}
+            size="large"
           />
         </Form.Item>
 
@@ -118,9 +154,15 @@ const AdminSetupStep: React.FC<AdminSetupStepProps> = ({ onSubmit, loading }) =>
           hasFeedback
         >
           <Input.Password 
-            prefix={<LockOutlined />}
+            prefix={<LockOutlined style={{ color: 'var(--primary-color)' }} />}
             placeholder="请再次输入密码"
             autoComplete="new-password"
+            style={{
+              height: '48px',
+              borderRadius: '12px',
+              fontSize: '16px'
+            }}
+            size="large"
           />
         </Form.Item>
 
@@ -130,18 +172,33 @@ const AdminSetupStep: React.FC<AdminSetupStepProps> = ({ onSubmit, loading }) =>
           tooltip="可选，如不填写将使用用户名作为显示名称"
         >
           <Input 
-            prefix={<IdcardOutlined />}
+            prefix={<IdcardOutlined style={{ color: 'var(--primary-color)' }} />}
             placeholder="管理员"
             autoComplete="off"
+            style={{
+              height: '48px',
+              borderRadius: '12px',
+              fontSize: '16px'
+            }}
+            size="large"
           />
         </Form.Item>
 
-        <Form.Item style={{ marginTop: 32 }}>
+        <Form.Item style={{ marginTop: 32, textAlign: 'center' }}>
           <Button
             type="primary"
             htmlType="submit"
             loading={loading}
-            block
+            style={{
+              width: '100%',
+              height: '48px',
+              borderRadius: '12px',
+              fontSize: '16px',
+              fontWeight: '600',
+              background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+              border: 'none',
+              boxShadow: '0 4px 20px rgba(16, 185, 129, 0.3)'
+            }}
             size="large"
           >
             创建管理员账户

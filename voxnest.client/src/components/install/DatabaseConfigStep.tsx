@@ -77,10 +77,22 @@ const DatabaseConfigStep: React.FC<DatabaseConfigStepProps> = ({ onSubmit, loadi
   };
 
   return (
-    <div className="step-content">
-      <div className="step-description">
-        <h3><DatabaseOutlined /> 数据库配置</h3>
-        <p>请配置数据库连接信息，系统将在此数据库中创建必要的表结构。</p>
+    <div style={{ padding: '8px' }}>
+      <div style={{ 
+        textAlign: 'center', 
+        marginBottom: '32px',
+        padding: '24px',
+        background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+        borderRadius: '16px',
+        color: 'white'
+      }}>
+        <DatabaseOutlined style={{ fontSize: '48px', marginBottom: '16px', display: 'block' }} />
+        <h3 style={{ color: 'white', fontSize: '24px', fontWeight: '600', margin: '0 0 12px 0' }}>
+          数据库配置
+        </h3>
+        <p style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '16px', margin: 0, lineHeight: '1.6' }}>
+          请配置数据库连接信息，系统将在此数据库中创建必要的表结构
+        </p>
       </div>
 
       <Form
@@ -88,7 +100,13 @@ const DatabaseConfigStep: React.FC<DatabaseConfigStepProps> = ({ onSubmit, loadi
         layout="vertical"
         initialValues={defaultConfig}
         onFinish={handleSubmit}
-        className="install-form"
+        style={{
+          background: 'white',
+          padding: '32px',
+          borderRadius: '16px',
+          border: '1px solid var(--border-color)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
+        }}
       >
         <Form.Item
           label="数据库类型"
@@ -99,6 +117,11 @@ const DatabaseConfigStep: React.FC<DatabaseConfigStepProps> = ({ onSubmit, loadi
             options={providerOptions}
             onChange={handleProviderChange}
             placeholder="选择数据库类型"
+            style={{
+              borderRadius: '12px',
+              height: '48px'
+            }}
+            size="large"
           />
         </Form.Item>
 
@@ -109,7 +132,14 @@ const DatabaseConfigStep: React.FC<DatabaseConfigStepProps> = ({ onSubmit, loadi
               name="server"
               rules={[{ required: true, message: '请输入服务器地址' }]}
             >
-              <Input placeholder="localhost" />
+              <Input 
+                placeholder="localhost" 
+                style={{
+                  borderRadius: '12px',
+                  height: '48px'
+                }}
+                size="large"
+              />
             </Form.Item>
           </Col>
           <Col xs={24} sm={8}>
@@ -122,10 +152,15 @@ const DatabaseConfigStep: React.FC<DatabaseConfigStepProps> = ({ onSubmit, loadi
               ]}
             >
               <InputNumber
-                style={{ width: '100%' }}
+                style={{ 
+                  width: '100%',
+                  borderRadius: '12px',
+                  height: '48px'
+                }}
                 placeholder="3306"
                 min={1}
                 max={65535}
+                size="large"
               />
             </Form.Item>
           </Col>
@@ -136,7 +171,14 @@ const DatabaseConfigStep: React.FC<DatabaseConfigStepProps> = ({ onSubmit, loadi
           name="database"
           rules={[{ required: true, message: '请输入数据库名称' }]}
         >
-          <Input placeholder="voxnest" />
+          <Input 
+            placeholder="voxnest" 
+            style={{
+              borderRadius: '12px',
+              height: '48px'
+            }}
+            size="large"
+          />
         </Form.Item>
 
         <Row gutter={16}>
@@ -146,7 +188,14 @@ const DatabaseConfigStep: React.FC<DatabaseConfigStepProps> = ({ onSubmit, loadi
               name="username"
               rules={[{ required: true, message: '请输入用户名' }]}
             >
-              <Input placeholder="root" />
+              <Input 
+                placeholder="root" 
+                style={{
+                  borderRadius: '12px',
+                  height: '48px'
+                }}
+                size="large"
+              />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
@@ -155,7 +204,14 @@ const DatabaseConfigStep: React.FC<DatabaseConfigStepProps> = ({ onSubmit, loadi
               name="password"
               rules={[{ required: true, message: '请输入密码' }]}
             >
-              <Input.Password placeholder="数据库密码" />
+              <Input.Password 
+                placeholder="数据库密码" 
+                style={{
+                  borderRadius: '12px',
+                  height: '48px'
+                }}
+                size="large"
+              />
             </Form.Item>
           </Col>
         </Row>
@@ -165,7 +221,14 @@ const DatabaseConfigStep: React.FC<DatabaseConfigStepProps> = ({ onSubmit, loadi
           name="charSet"
           tooltip="建议使用 utf8mb4 以支持完整的 Unicode 字符集"
         >
-          <Input placeholder="utf8mb4" />
+          <Input 
+            placeholder="utf8mb4" 
+            style={{
+              borderRadius: '12px',
+              height: '48px'
+            }}
+            size="large"
+          />
         </Form.Item>
 
         {/* 测试结果显示 */}
@@ -178,14 +241,21 @@ const DatabaseConfigStep: React.FC<DatabaseConfigStepProps> = ({ onSubmit, loadi
           />
         )}
 
-        <Form.Item>
-          <Space size="middle">
+        <Form.Item style={{ marginTop: '32px', textAlign: 'center' }}>
+          <Space size="large">
             <Button
               type="default"
               icon={<ExperimentOutlined />}
               loading={testLoading}
               onClick={handleTestConnection}
-              className="test-button"
+              style={{
+                height: '48px',
+                borderRadius: '12px',
+                padding: '0 32px',
+                fontWeight: '600',
+                fontSize: '16px'
+              }}
+              size="large"
             >
               测试连接
             </Button>
@@ -194,7 +264,17 @@ const DatabaseConfigStep: React.FC<DatabaseConfigStepProps> = ({ onSubmit, loadi
               htmlType="submit"
               loading={loading}
               disabled={!testResult?.success}
-              style={{ minWidth: 120 }}
+              style={{ 
+                minWidth: 120,
+                height: '48px',
+                borderRadius: '12px',
+                padding: '0 32px',
+                fontWeight: '600',
+                fontSize: '16px',
+                background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+                border: 'none'
+              }}
+              size="large"
             >
               下一步
             </Button>

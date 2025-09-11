@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Input, Button, Result, Space } from 'antd';
+import { Form, Input, Button } from 'antd';
 import { GlobalOutlined, MailOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import type { SiteConfigDto } from '../../api/install';
 
@@ -24,24 +24,54 @@ const SiteConfigStep: React.FC<SiteConfigStepProps> = ({ onSubmit, loading }) =>
   };
 
   return (
-    <div className="step-content">
-      <div className="step-description">
-        <h3><GlobalOutlined /> 站点配置</h3>
-        <p>最后一步！请配置站点基本信息，完成安装。</p>
+    <div style={{ padding: '8px' }}>
+      <div style={{ 
+        textAlign: 'center', 
+        marginBottom: '32px',
+        padding: '24px',
+        background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+        borderRadius: '16px',
+        color: 'white'
+      }}>
+        <GlobalOutlined style={{ fontSize: '48px', marginBottom: '16px', display: 'block' }} />
+        <h3 style={{ color: 'white', fontSize: '24px', fontWeight: '600', margin: '0 0 12px 0' }}>
+          站点配置
+        </h3>
+        <p style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '16px', margin: 0, lineHeight: '1.6' }}>
+          最后一步！请配置站点基本信息，完成安装
+        </p>
       </div>
 
-      <Result
-        icon={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
-        title="恭喜！系统安装即将完成"
-        subTitle="数据库已成功初始化，管理员账户已创建，现在只需要完成站点配置即可开始使用。"
-      />
+      <div style={{
+        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+        borderRadius: '16px',
+        padding: '32px',
+        textAlign: 'center',
+        marginBottom: '32px',
+        color: 'white'
+      }}>
+        <CheckCircleOutlined style={{ fontSize: '64px', marginBottom: '16px', display: 'block', color: 'white' }} />
+        <h3 style={{ color: 'white', fontSize: '24px', fontWeight: '600', margin: '0 0 12px 0' }}>
+          恭喜！系统安装即将完成
+        </h3>
+        <p style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '16px', margin: 0, lineHeight: '1.6' }}>
+          数据库已成功初始化，管理员账户已创建，现在只需要完成站点配置即可开始使用
+        </p>
+      </div>
 
       <Form
         form={form}
         layout="vertical"
         initialValues={defaultConfig}
         onFinish={handleSubmit}
-        className="install-form"
+        style={{
+          background: 'white',
+          padding: '32px',
+          borderRadius: '16px',
+          border: '1px solid var(--border-color)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+          marginBottom: '24px'
+        }}
       >
         <Form.Item
           label="站点名称"
@@ -52,8 +82,14 @@ const SiteConfigStep: React.FC<SiteConfigStepProps> = ({ onSubmit, loading }) =>
           ]}
         >
           <Input 
-            prefix={<GlobalOutlined />}
+            prefix={<GlobalOutlined style={{ color: 'var(--primary-color)' }} />}
             placeholder="VoxNest 论坛"
+            style={{
+              height: '48px',
+              borderRadius: '12px',
+              fontSize: '16px'
+            }}
+            size="large"
           />
         </Form.Item>
 
@@ -69,6 +105,11 @@ const SiteConfigStep: React.FC<SiteConfigStepProps> = ({ onSubmit, loading }) =>
             placeholder="请输入站点描述（可选）"
             showCount
             maxLength={500}
+            style={{
+              borderRadius: '12px',
+              fontSize: '16px'
+            }}
+            size="large"
           />
         </Form.Item>
 
@@ -82,51 +123,70 @@ const SiteConfigStep: React.FC<SiteConfigStepProps> = ({ onSubmit, loading }) =>
           tooltip="用于系统通知和重要信息接收"
         >
           <Input 
-            prefix={<MailOutlined />}
+            prefix={<MailOutlined style={{ color: 'var(--primary-color)' }} />}
             placeholder="admin@example.com"
+            style={{
+              height: '48px',
+              borderRadius: '12px',
+              fontSize: '16px'
+            }}
+            size="large"
           />
         </Form.Item>
 
-        <Form.Item style={{ marginTop: 40 }}>
-          <Space direction="vertical" style={{ width: '100%' }} size="large">
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={loading}
-              block
-              size="large"
-              style={{ 
-                height: 50, 
-                fontSize: 18,
-                background: 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)',
-                border: 'none'
-              }}
-            >
-              {loading ? '正在完成安装...' : '完成安装'}
-            </Button>
-            
-            {loading && (
-              <div style={{ textAlign: 'center', color: '#666' }}>
-                <p>安装即将完成，系统将自动重启...</p>
-                <p>请稍候，不要关闭浏览器窗口。</p>
-              </div>
-            )}
-          </Space>
+        <Form.Item style={{ marginTop: 40, textAlign: 'center' }}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={loading}
+            style={{ 
+              width: '100%',
+              height: '56px', 
+              fontSize: '18px',
+              fontWeight: '600',
+              borderRadius: '16px',
+              background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+              border: 'none',
+              boxShadow: '0 4px 20px rgba(16, 185, 129, 0.3)'
+            }}
+            size="large"
+          >
+            {loading ? '正在完成安装...' : '🎉 完成安装'}
+          </Button>
+          
+          {loading && (
+            <div style={{ 
+              textAlign: 'center', 
+              marginTop: '24px',
+              padding: '20px',
+              background: 'var(--bg-secondary)',
+              borderRadius: '12px',
+              border: '1px solid var(--border-color)'
+            }}>
+              <p style={{ margin: '0 0 8px 0', color: 'var(--text-primary)', fontWeight: '500' }}>
+                安装即将完成，系统将自动重启...
+              </p>
+              <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
+                请稍候，不要关闭浏览器窗口
+              </p>
+            </div>
+          )}
         </Form.Item>
       </Form>
 
       <div style={{ 
-        marginTop: 40, 
-        padding: 20, 
-        background: '#f6ffed',
-        border: '1px solid #b7eb8f',
-        borderRadius: 8,
-        textAlign: 'center'
+        padding: '24px', 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        borderRadius: '16px',
+        textAlign: 'center',
+        color: 'white'
       }}>
-        <h4 style={{ color: '#389e0d', marginBottom: 8 }}>安装完成后</h4>
-        <p style={{ margin: 0, color: '#666' }}>
-          系统将自动重启并跳转到论坛首页。<br />
-          您可以使用刚才创建的管理员账户登录并开始管理您的论坛。
+        <h4 style={{ color: 'white', marginBottom: '12px', fontSize: '18px', fontWeight: '600' }}>
+          🎆 安装完成后
+        </h4>
+        <p style={{ margin: 0, color: 'rgba(255, 255, 255, 0.9)', lineHeight: '1.6' }}>
+          系统将自动重启并跳转到论坛首页<br />
+          您可以使用刚才创建的管理员账户登录并开始管理您的论坛
         </p>
       </div>
     </div>

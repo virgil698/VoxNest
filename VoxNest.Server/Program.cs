@@ -1,5 +1,12 @@
 using VoxNest.Server.Infrastructure.Extensions;
 
+// 检查是否为配置生成命令
+if (await SecureConfigurationExtensions.HandleConfigurationCommandsAsync(args, 
+    Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development"))
+{
+    return; // 处理了配置命令，退出程序
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // 配置appsettings文件路径
@@ -7,8 +14,12 @@ builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())
     .AddJsonFile("Configuration/appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"Configuration/appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-    .AddEnvironmentVariables()
+    .AddJsonFile("Configuration/appsettings.Local.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentConfiguration() // 支持.env文件和环境变量
     .AddCommandLine(args);
+
+// 确保安全配置存在
+builder.Services.EnsureSecureConfiguration(builder.Configuration, builder.Environment);
 
 // 配置服务
 builder.Services.AddVoxNestServices(builder.Configuration);

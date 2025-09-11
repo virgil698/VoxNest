@@ -1,11 +1,14 @@
 import React, { useEffect } from 'react';
-import { Card, List, Avatar, Tag, Space, Typography, Button, Spin, Empty, message } from 'antd';
+import { Card, List, Avatar, Tag, Space, Typography, Button, Spin, Empty, message, Row, Col, Statistic } from 'antd';
 import { 
   EyeOutlined, 
   LikeOutlined, 
   MessageOutlined,
   PushpinOutlined,
-  LockOutlined
+  LockOutlined,
+  UserOutlined,
+  FileTextOutlined,
+  TeamOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { usePostStore } from '../stores/postStore';
@@ -90,9 +93,10 @@ const Home: React.FC = () => {
     <List.Item key={post.id}>
       <Card 
         hoverable 
+        className="voxnest-post-card"
         style={{ width: '100%' }}
         onClick={() => handlePostClick(post.id)}
-        bodyStyle={{ padding: '16px' }}
+        bodyStyle={{ padding: '20px' }}
       >
         <div style={{ marginBottom: '12px' }}>
           <Space wrap>
@@ -171,10 +175,19 @@ const Home: React.FC = () => {
 
   return (
     <div>
-      <div style={{ marginBottom: '24px', textAlign: 'center' }}>
-        <Title level={2}>VoxNest 论坛</Title>
-        <Text type="secondary">分享知识，交流思想，建设更好的社区</Text>
+      {/* 欢迎横幅 */}
+      <div className="voxnest-banner">
+        <Title level={1} style={{ color: 'white', marginBottom: '16px', fontSize: '32px' }}>
+          欢迎来到VoxNest
+        </Title>
+        <Text style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '16px' }}>
+          分享你的奇思妙想
+        </Text>
       </div>
+
+      <Row gutter={[24, 24]}>
+        {/* 主内容区 */}
+        <Col xs={24} lg={16}>
 
       {isLoadingList && posts.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px' }}>
@@ -211,6 +224,77 @@ const Home: React.FC = () => {
           )}
         </>
       )}
+        </Col>
+
+        {/* 侧边栏 */}
+        <Col xs={24} lg={8}>
+          {/* 站点统计 */}
+          <Card className="voxnest-stats-card" style={{ marginBottom: '24px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <Title level={4} style={{ color: 'white', margin: 0 }}>
+                📊 站点统计
+              </Title>
+            </div>
+            <Row gutter={[16, 16]}>
+              <Col span={8}>
+                <Statistic
+                  title="总用户数"
+                  value={5}
+                  valueStyle={{ color: 'white', fontSize: '24px', fontWeight: 'bold' }}
+                  prefix={<UserOutlined />}
+                />
+              </Col>
+              <Col span={8}>
+                <Statistic
+                  title="在线用户"
+                  value={0}
+                  valueStyle={{ color: 'white', fontSize: '24px', fontWeight: 'bold' }}
+                  prefix={<TeamOutlined />}
+                />
+              </Col>
+              <Col span={8}>
+                <Statistic
+                  title="注册用户"
+                  value={2}
+                  valueStyle={{ color: 'white', fontSize: '24px', fontWeight: 'bold' }}
+                  prefix={<FileTextOutlined />}
+                />
+              </Col>
+            </Row>
+          </Card>
+
+          {/* 热门话题 */}
+          <Card style={{ marginBottom: '24px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                🔥 热门话题
+              </Title>
+            </div>
+            <div>
+              <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '20px 0' }}>
+                还没有评论，快来抢沙发吧！
+              </p>
+            </div>
+          </Card>
+
+          {/* 随机标签 */}
+          <Card>
+            <div style={{ marginBottom: '16px' }}>
+              <Title level={4} style={{ margin: 0 }}>
+                🏷️ 随机标签
+              </Title>
+            </div>
+            <Space wrap>
+              <Tag color="#4F46E5">#VoxNest</Tag>
+              <Tag color="#7C3AED">#论坛</Tag>
+              <Tag color="#0EA5E9">#技术</Tag>
+              <Tag color="#10B981">#分享</Tag>
+              <Tag color="#F59E0B">#交流</Tag>
+              <Tag color="#EF4444">#讨论</Tag>
+            </Space>
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 };

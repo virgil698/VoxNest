@@ -14,7 +14,8 @@ public class VoxNestDbContextFactory : IDesignTimeDbContextFactory<VoxNestDbCont
         var optionsBuilder = new DbContextOptionsBuilder<VoxNestDbContext>();
         
         // 使用MySQL配置进行设计时操作（仅用于迁移生成）
-        var connectionString = "Server=localhost;Database=VoxNest_Migration;User=root;Password=dummy;Port=3306;CharSet=utf8mb4;";
+        var connectionString = Environment.GetEnvironmentVariable("MIGRATION_CONNECTION_STRING") 
+            ?? "Server=localhost;Database=VoxNest_Migration;User=root;Password=;Port=3306;CharSet=utf8mb4;";
         
         // 设置MySQL版本，不需要实际连接数据库来生成迁移
         optionsBuilder.UseMySql(connectionString, 

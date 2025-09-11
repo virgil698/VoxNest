@@ -18,15 +18,18 @@ public class PostService : IPostService
     private readonly VoxNestDbContext _dbContext;
     private readonly IMapper _mapper;
     private readonly ILogger<PostService> _logger;
+    private readonly IMarkdownService _markdownService;
 
     public PostService(
         VoxNestDbContext dbContext,
         IMapper mapper,
-        ILogger<PostService> logger)
+        ILogger<PostService> logger,
+        IMarkdownService markdownService)
     {
         _dbContext = dbContext;
         _mapper = mapper;
         _logger = logger;
+        _markdownService = markdownService;
     }
 
     public async Task<Result<PostDto>> CreatePostAsync(CreatePostRequestDto request, int authorId)
@@ -57,12 +60,24 @@ public class PostService : IPostService
                 return Result<PostDto>.Failure($"标签不存在: {string.Join(", ", invalidTagIds)}");
             }
 
+            // 验证Markdown内容安全性
+            if (!_markdownService.ValidateContent(request.Content))
+            {
+                return Result<PostDto>.Failure("帖子内容包含不安全的元素");
+            }
+
+            // 转换Markdown为HTML
+            var htmlContent = _markdownService.ConvertToHtml(request.Content);
+            var plainTextSummary = _markdownService.ExtractPlainText(htmlContent, 200);
+
             // 创建帖子
             var post = new Post
             {
                 Title = request.Title,
-                Content = request.Content,
-                Summary = request.Summary ?? GenerateSummary(request.Content),
+                Content = request.Content, // 存储原始Markdown内容
+                HtmlContent = htmlContent, // 存储转换后的HTML
+                Summary = request.Summary,
+                PlainTextSummary = plainTextSummary, // 自动生成的纯文本摘要
                 Status = PostStatus.Published,
                 AuthorId = authorId,
                 CategoryId = request.CategoryId,

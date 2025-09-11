@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Spin, Result } from 'antd';
-import { LoadingOutlined } from '@ant-design/icons';
+import { Button, Result } from 'antd';
 import { InstallApi } from '../api/install';
 import type { InstallStatusDto } from '../api/install';
+import SimpleLoading from './common/SimpleLoading';
 
 interface InstallGuardProps {
   children: React.ReactNode;
@@ -64,30 +64,12 @@ const InstallGuard: React.FC<InstallGuardProps> = ({ children }) => {
   // 加载中状态
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-      }}>
-        <Spin 
-          indicator={<LoadingOutlined style={{ fontSize: 48, color: 'white' }} spin />} 
-          size="large"
-        />
-        <div style={{ 
-          marginTop: 24, 
-          color: 'white', 
-          fontSize: 18,
-          textAlign: 'center'
-        }}>
-          <div>正在检查系统状态...</div>
-          <div style={{ fontSize: 14, marginTop: 8, opacity: 0.8 }}>
-            请稍候，系统正在初始化
-          </div>
-        </div>
-      </div>
+      <SimpleLoading 
+        text="正在检查系统状态..."
+        background="gradient"
+        size="medium"
+        showLogo={true}
+      />
     );
   }
 
@@ -99,27 +81,41 @@ const InstallGuard: React.FC<InstallGuardProps> = ({ children }) => {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        padding: '24px'
       }}>
-        <div style={{ maxWidth: 500, padding: 40 }}>
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '20px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          maxWidth: '500px',
+          width: '100%',
+          padding: '48px 32px'
+        }}>
           <Result
             status="error"
-            title="系统检查失败"
-            subTitle={error}
+            title={<span style={{ fontSize: '20px', fontWeight: '600', color: 'var(--text-primary)' }}>系统检查失败</span>}
+            subTitle={<span style={{ fontSize: '16px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>{error}</span>}
             extra={
-              <button
+              <Button
+                type="primary"
                 onClick={checkInstallStatus}
+                size="large"
                 style={{
-                  background: '#1890ff',
-                  color: 'white',
+                  height: '44px',
+                  borderRadius: '12px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
                   border: 'none',
-                  padding: '8px 16px',
-                  borderRadius: '6px',
-                  cursor: 'pointer'
+                  boxShadow: '0 4px 16px rgba(79, 70, 229, 0.3)',
+                  padding: '0 32px'
                 }}
               >
-                重试
-              </button>
+                重新检查
+              </Button>
             }
           />
         </div>

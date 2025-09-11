@@ -21,10 +21,22 @@ public class PostConfiguration : IEntityTypeConfiguration<Post>
 
         builder.Property(p => p.Content)
             .IsRequired()
-            .HasColumnType("TEXT");
+            .HasColumnType("TEXT")
+            .HasComment("帖子内容 (Markdown格式)");
+            
+        builder.Property(p => p.HtmlContent)
+            .IsRequired()
+            .HasColumnType("TEXT")
+            .HasDefaultValue(string.Empty)
+            .HasComment("帖子HTML内容 (由Markdown转换而来)");
 
         builder.Property(p => p.Summary)
-            .HasMaxLength(500);
+            .HasMaxLength(500)
+            .HasComment("帖子摘要 (Markdown格式)");
+            
+        builder.Property(p => p.PlainTextSummary)
+            .HasMaxLength(300)
+            .HasComment("帖子纯文本摘要 (由HTML内容提取)");
 
         builder.Property(p => p.Status)
             .HasConversion<int>();

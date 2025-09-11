@@ -73,20 +73,50 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div style={{
+    <div className="voxnest-gradient-bg" style={{
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
       minHeight: 'calc(100vh - 140px)',
-      background: '#f5f5f5'
+      padding: '20px'
     }}>
-      <Card style={{ width: '100%', maxWidth: '400px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <Title level={2} style={{ marginBottom: '8px' }}>
-            创建账户
+      <Card style={{ 
+        width: '100%', 
+        maxWidth: '480px',
+        borderRadius: '20px',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
+        background: 'rgba(255, 255, 255, 0.98)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.3)'
+      }}>
+        {/* Logo 区域 */}
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <div style={{ 
+            width: '80px', 
+            height: '80px', 
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+            margin: '0 auto 24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '32px',
+            color: 'white',
+            fontWeight: 'bold'
+          }}>
+            V
+          </div>
+          <Title level={2} style={{ 
+            marginBottom: '8px',
+            background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}>
+            加入 VoxNest
           </Title>
-          <Text type="secondary">
-            加入 VoxNest 社区
+          <Text style={{ color: 'var(--text-secondary)', fontSize: '16px' }}>
+            创建您的账户，开始您的论坛之旅
           </Text>
         </div>
 
@@ -96,6 +126,7 @@ const Register: React.FC = () => {
           onFinish={handleSubmit}
           autoComplete="off"
           size="large"
+          style={{ marginBottom: '24px' }}
         >
           <Form.Item
             name="username"
@@ -113,10 +144,15 @@ const Register: React.FC = () => {
             validateDebounce={800}
           >
             <Input
-              prefix={<UserOutlined />}
+              prefix={<UserOutlined style={{ color: 'var(--primary-color)' }} />}
               placeholder="用户名"
               autoComplete="username"
               suffix={checkingUsername ? <div>检查中...</div> : null}
+              style={{ 
+                height: '48px',
+                fontSize: '16px',
+                borderRadius: '12px'
+              }}
             />
           </Form.Item>
 
@@ -132,10 +168,15 @@ const Register: React.FC = () => {
             validateDebounce={800}
           >
             <Input
-              prefix={<MailOutlined />}
+              prefix={<MailOutlined style={{ color: 'var(--primary-color)' }} />}
               placeholder="邮箱地址"
               autoComplete="email"
               suffix={checkingEmail ? <div>检查中...</div> : null}
+              style={{ 
+                height: '48px',
+                fontSize: '16px',
+                borderRadius: '12px'
+              }}
             />
           </Form.Item>
 
@@ -149,9 +190,14 @@ const Register: React.FC = () => {
             hasFeedback
           >
             <Input.Password
-              prefix={<LockOutlined />}
+              prefix={<LockOutlined style={{ color: 'var(--primary-color)' }} />}
               placeholder="密码"
               autoComplete="new-password"
+              style={{ 
+                height: '48px',
+                fontSize: '16px',
+                borderRadius: '12px'
+              }}
             />
           </Form.Item>
 
@@ -172,31 +218,53 @@ const Register: React.FC = () => {
             hasFeedback
           >
             <Input.Password
-              prefix={<LockOutlined />}
+              prefix={<LockOutlined style={{ color: 'var(--primary-color)' }} />}
               placeholder="确认密码"
               autoComplete="new-password"
+              style={{ 
+                height: '48px',
+                fontSize: '16px',
+                borderRadius: '12px'
+              }}
             />
           </Form.Item>
 
-          <Form.Item>
+          <Form.Item style={{ marginBottom: '24px', marginTop: '8px' }}>
             <Button
               type="primary"
               htmlType="submit"
               block
               loading={isLoading}
               size="large"
+              style={{
+                height: '48px',
+                fontSize: '16px',
+                fontWeight: '600',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+                border: 'none',
+                boxShadow: '0 4px 20px rgba(79, 70, 229, 0.3)'
+              }}
             >
               注册
             </Button>
           </Form.Item>
         </Form>
 
-        <Divider />
+        <Divider style={{ margin: '24px 0' }} />
 
         <div style={{ textAlign: 'center' }}>
-          <Text>
+          <Text style={{ fontSize: '15px' }}>
             已有账户？
-            <Link to="/auth/login" style={{ marginLeft: '8px' }}>
+            <Link 
+              to="/auth/login" 
+              style={{ 
+                marginLeft: '8px',
+                color: 'var(--primary-color)',
+                fontWeight: '600',
+                textDecoration: 'none'
+              }}
+            >
               立即登录
             </Link>
           </Text>

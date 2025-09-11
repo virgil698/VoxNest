@@ -91,24 +91,32 @@ export const Layout: React.FC = () => {
   const selectedKeys = [location.pathname];
 
   return (
-    <AntdLayout style={{ minHeight: '100vh' }}>
+    <AntdLayout style={{ minHeight: '100vh', background: 'transparent' }}>
       <Header style={{ 
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'space-between',
-        padding: '0 24px',
-        background: '#fff',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+        padding: '0 32px',
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(10px)',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000
       }}>
         {/* Logo和主导航 */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <div 
             style={{ 
-              fontSize: '20px', 
-              fontWeight: 'bold', 
-              marginRight: '32px',
+              fontSize: '24px', 
+              fontWeight: '700', 
+              marginRight: '48px',
               cursor: 'pointer',
-              color: '#1890ff'
+              background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
             }}
             onClick={() => navigate('/')}
           >
@@ -119,7 +127,12 @@ export const Layout: React.FC = () => {
             selectedKeys={selectedKeys}
             items={mainMenuItems}
             onClick={handleMenuClick}
-            style={{ border: 'none', background: 'transparent' }}
+            style={{ 
+              border: 'none', 
+              background: 'transparent',
+              fontSize: '15px',
+              fontWeight: '500'
+            }}
           />
         </div>
 
@@ -173,18 +186,18 @@ export const Layout: React.FC = () => {
         </Space>
       </Header>
 
-      <Content style={{ padding: '24px' }}>
+      <Content style={{ padding: '32px 24px', background: 'transparent' }}>
         <div style={{ 
-          maxWidth: '1200px', 
+          maxWidth: '1400px', 
           margin: '0 auto',
-          minHeight: 'calc(100vh - 140px)'
+          minHeight: 'calc(100vh - 160px)'
         }}>
           <Suspense fallback={
             <div style={{ 
               display: 'flex', 
               justifyContent: 'center', 
               alignItems: 'center', 
-              minHeight: '200px' 
+              minHeight: '300px' 
             }}>
               <Spin size="large" />
             </div>
@@ -196,10 +209,16 @@ export const Layout: React.FC = () => {
 
       <Footer style={{ 
         textAlign: 'center', 
-        background: '#fafafa',
-        borderTop: '1px solid #f0f0f0'
+        background: 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: 'blur(10px)',
+        borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+        color: 'var(--text-secondary)',
+        fontSize: '14px',
+        padding: '20px 24px'
       }}>
-        VoxNest ©2024 - 下一代CSM网络交流程序
+        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+          VoxNest ©2024 - 下一代论坛交流平台 | 分享知识，交流思想
+        </div>
       </Footer>
     </AntdLayout>
   );

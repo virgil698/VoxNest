@@ -52,7 +52,7 @@ public static class ConfigurationExtensions
             Database = new DatabaseSettings
             {
                 Provider = "MySQL",
-                ConnectionString = "Server=localhost;Database=voxnest_dev;User=root;Password=123456;Port=3306;CharSet=utf8mb4;",
+                ConnectionString = "Server=localhost;Database=voxnest_dev;User=root;Password=;Port=3306;CharSet=utf8mb4;",
                 EnableSensitiveDataLogging = true,
                 EnableDetailedErrors = true
             },
@@ -113,16 +113,16 @@ public static class ConfigurationExtensions
     }
 
     /// <summary>
-    /// 生成安全的密钥
+    /// 生成安全的密钥（使用加密安全的随机数生成器）
     /// </summary>
     /// <returns></returns>
     private static string GenerateSecretKey()
     {
-        // 生成一个64字符长的随机密钥
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        var random = new Random();
-        return new string(Enumerable.Repeat(chars, 64)
-            .Select(s => s[random.Next(s.Length)]).ToArray());
+        // 使用加密安全的随机数生成器生成64字节的密钥，然后转换为Base64
+        using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+        var keyBytes = new byte[64];
+        rng.GetBytes(keyBytes);
+        return Convert.ToBase64String(keyBytes);
     }
 
     /// <summary>
