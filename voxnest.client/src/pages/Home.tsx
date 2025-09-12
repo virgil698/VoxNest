@@ -11,6 +11,7 @@ import { Users, UserCheck, FileText, BarChart3, Megaphone, Flame, Tags } from 'l
 import { useNavigate } from 'react-router-dom';
 import { usePostStore } from '../stores/postStore';
 import { useAuthStore } from '../stores/authStore';
+import { useFrameworkStatus } from '../extensions';
 
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
@@ -25,6 +26,7 @@ const { Title, Text, Paragraph } = Typography;
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
+  const { status, stats, isReady } = useFrameworkStatus();
   const { 
     posts, 
     isLoadingList, 
@@ -242,6 +244,42 @@ const Home: React.FC = () => {
 
         {/* 侧边栏 */}
         <Col xs={24} lg={8}>
+          {/* 扩展框架状态 */}
+          <Card style={{ marginBottom: '24px', border: '1px solid #52c41a' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: '#52c41a' }}>🔧</span>
+                扩展框架
+                <Tag color="success">已激活</Tag>
+              </Title>
+            </div>
+            <div style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+              <p style={{ margin: '0 0 8px 0' }}>
+                ✅ 框架状态: <Tag color={isReady ? "green" : "orange"}>{status}</Tag>
+              </p>
+              <p style={{ margin: '0 0 8px 0' }}>
+                🔌 集成数量: <strong>{stats?.integrations?.total || 0}个</strong>
+              </p>
+              <p style={{ margin: '0 0 8px 0' }}>
+                🎯 活跃槽位: <strong>{stats?.slots?.total || 0}个</strong>
+              </p>
+              <p style={{ margin: '0 0 8px 0' }}>
+                📦 组件数量: <strong>{stats?.slots?.components || 0}个</strong>
+              </p>
+              <p style={{ margin: '0 0 8px 0' }}>
+                📊 日志系统: <Tag color="cyan">已激活</Tag>
+              </p>
+              <p style={{ margin: '0', fontSize: '12px', color: '#666' }}>
+                📍 查看头部右侧演示按钮，点击后将生成日志记录
+              </p>
+              {process.env.NODE_ENV === 'development' && (
+                <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#999' }}>
+                  🛠️ 开发模式：按 Ctrl+Shift+V 查看详细统计
+                </p>
+              )}
+            </div>
+          </Card>
+
           {/* 站点公告 */}
           <Card style={{ marginBottom: '24px' }}>
             <div style={{ marginBottom: '16px' }}>

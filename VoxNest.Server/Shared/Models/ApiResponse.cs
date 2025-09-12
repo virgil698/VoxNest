@@ -13,6 +13,12 @@ public class ApiResponse<T>
     /// </summary>
     [JsonPropertyName("success")]
     public bool Success { get; set; }
+    
+    /// <summary>
+    /// 是否成功（别名，兼容旧代码）
+    /// </summary>
+    [JsonIgnore]
+    public bool IsSuccess => Success;
 
     /// <summary>
     /// 响应消息

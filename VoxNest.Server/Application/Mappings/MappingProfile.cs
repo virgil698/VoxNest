@@ -1,8 +1,10 @@
 using AutoMapper;
 using VoxNest.Server.Application.DTOs.Auth;
 using VoxNest.Server.Application.DTOs.Post;
+using VoxNest.Server.Application.DTOs.Log;
 using VoxNest.Server.Domain.Entities.Content;
 using VoxNest.Server.Domain.Entities.User;
+using VoxNest.Server.Domain.Entities.System;
 
 namespace VoxNest.Server.Application.Mappings;
 
@@ -15,6 +17,7 @@ public class MappingProfile : Profile
     {
         CreateUserMappings();
         CreatePostMappings();
+        CreateLogMappings();
     }
 
     private void CreateUserMappings()
@@ -50,5 +53,14 @@ public class MappingProfile : Profile
 
         // Tag -> TagDto
         CreateMap<Tag, TagDto>();
+    }
+
+    private void CreateLogMappings()
+    {
+        // LogEntry -> LogEntryDto
+        CreateMap<LogEntry, LogEntryDto>()
+            .ForMember(dest => dest.LevelName, opt => opt.MapFrom(src => src.Level.ToString()))
+            .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.ToString()))
+            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User != null ? src.User.Username : null));
     }
 }

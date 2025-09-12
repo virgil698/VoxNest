@@ -1,0 +1,18 @@
+{
+  "id": "example-plugin",
+  "name": "示例插件",
+  "version": "1.0.0",
+  "author": "VoxNest Team",
+  "description": "这是一个演示插件，展示如何创建和集成前端插件",
+  "type": "plugin",
+  "entry": "index.js",
+  "styles": ["styles.css"],
+  "scripts": ["plugin.js"],
+  "dependencies": [],
+  "config": {
+    "title": "示例插件",
+    "showWelcomeMessage": true,
+    "color": "#1890ff"
+  },
+  "enabled": true
+}

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VoxNest.Server.Domain.Entities.Content;
+using VoxNest.Server.Domain.Entities.Extension;
 using VoxNest.Server.Domain.Entities.System;
 using VoxNest.Server.Domain.Entities.User;
 
@@ -83,6 +84,40 @@ public class VoxNestDbContext : DbContext
     /// 安装锁表
     /// </summary>
     public DbSet<InstallLock> InstallLocks { get; set; }
+
+    /// <summary>
+    /// 日志条目表
+    /// </summary>
+    public DbSet<LogEntry> LogEntries { get; set; }
+
+    /// <summary>
+    /// 站点设置表
+    /// </summary>
+    public DbSet<SiteSetting> SiteSettings { get; set; }
+
+    /// <summary>
+    /// 用户统计表
+    /// </summary>
+    public DbSet<UserStats> UserStats { get; set; }
+
+    #endregion
+
+    #region Extension Entities
+
+    /// <summary>
+    /// 插件表
+    /// </summary>
+    public DbSet<Plugin> Plugins { get; set; }
+
+    /// <summary>
+    /// 插件版本表
+    /// </summary>
+    public DbSet<PluginVersion> PluginVersions { get; set; }
+
+    /// <summary>
+    /// 主题表
+    /// </summary>
+    public DbSet<Theme> Themes { get; set; }
 
     #endregion
 

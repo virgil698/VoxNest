@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { Layout } from '../components/layout/Layout';
+import { EnhancedLayout } from '../components/layout/EnhancedLayout';
 import { AuthGuard } from '../components/auth/AuthGuard';
+import AdminLayout from '../components/admin/AdminLayout';
 
 // 页面组件（懒加载）
 import { lazy } from 'react';
@@ -14,15 +15,70 @@ const MyPostsPage = lazy(() => import('../pages/post/MyPosts'));
 const ProfilePage = lazy(() => import('../pages/user/Profile'));
 const InstallPage = lazy(() => import('../pages/Install'));
 
+// Admin 页面（懒加载）
+const AdminDashboard = lazy(() => import('../pages/admin/Dashboard'));
+const AdminSiteSettings = lazy(() => import('../pages/admin/SiteSettings'));
+const AdminLogManagement = lazy(() => import('../pages/admin/LogManagement'));
+const AdminPluginManagement = lazy(() => import('../pages/admin/PluginManagement'));
+const AdminThemeManagement = lazy(() => import('../pages/admin/ThemeManagement'));
+
 export const router = createBrowserRouter([
   // 安装页面（不需要Layout）
   {
     path: '/install',
     element: <InstallPage />,
   },
+  // Admin 管理面板
+  {
+    path: '/admin',
+    element: (
+      <AuthGuard>
+        <AdminLayout />
+      </AuthGuard>
+    ),
+    children: [
+      {
+        index: true,
+        element: <AdminDashboard />,
+      },
+      {
+        path: 'settings',
+        element: <AdminSiteSettings />,
+      },
+      {
+        path: 'logs',
+        element: <AdminLogManagement />,
+      },
+      // 其他管理页面将在后续添加
+      {
+        path: 'users',
+        element: <div>用户管理页面 - 开发中</div>,
+      },
+      {
+        path: 'posts',
+        element: <div>帖子管理页面 - 开发中</div>,
+      },
+      {
+        path: 'tags',
+        element: <div>标签管理页面 - 开发中</div>,
+      },
+      {
+        path: 'extensions',
+        element: <div>扩展管理页面 - 开发中</div>,
+      },
+      {
+        path: 'plugins',
+        element: <AdminPluginManagement />,
+      },
+      {
+        path: 'themes',
+        element: <AdminThemeManagement />,
+      },
+    ],
+  },
   {
     path: '/',
-    element: <Layout />,
+    element: <EnhancedLayout />,
     children: [
       {
         index: true,

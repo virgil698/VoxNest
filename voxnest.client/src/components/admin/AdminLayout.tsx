@@ -1,0 +1,308 @@
+import React, { useState } from 'react';
+import { Layout, Menu, Avatar, Dropdown, Space, Button, Badge, Typography } from 'antd';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import {
+  DashboardOutlined,
+  SettingOutlined,
+  UserOutlined,
+  FileTextOutlined,
+  TagsOutlined,
+  AppstoreOutlined,
+  LogoutOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  BellOutlined,
+  HomeOutlined
+} from '@ant-design/icons';
+import { useAuthStore } from '../../stores/authStore';
+
+const { Header, Sider, Content } = Layout;
+const { Text } = Typography;
+
+interface AdminLayoutProps {}
+
+const AdminLayout: React.FC<AdminLayoutProps> = () => {
+  const [collapsed, setCollapsed] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, logout } = useAuthStore();
+
+  // 菜单项配置
+  const menuItems = [
+    {
+      key: '/admin',
+      icon: <DashboardOutlined />,
+      label: '概览面板',
+    },
+    {
+      key: '/admin/settings',
+      icon: <SettingOutlined />,
+      label: '站点设置',
+    },
+    {
+      key: '/admin/users',
+      icon: <UserOutlined />,
+      label: '用户管理',
+    },
+    {
+      key: '/admin/posts',
+      icon: <FileTextOutlined />,
+      label: '帖子管理',
+    },
+    {
+      key: '/admin/tags',
+      icon: <TagsOutlined />,
+      label: '标签管理',
+    },
+    {
+      key: 'extensions',
+      icon: <AppstoreOutlined />,
+      label: '扩展管理',
+      children: [
+        {
+          key: '/admin/plugins',
+          label: '插件管理',
+        },
+        {
+          key: '/admin/themes',
+          label: '主题管理',
+        },
+      ],
+    },
+    {
+      key: '/admin/logs',
+      icon: <FileTextOutlined />,
+      label: '日志管理',
+    },
+  ];
+
+  // 获取当前选中的菜单项和展开的菜单项
+  const getSelectedAndOpenKeys = () => {
+    const path = location.pathname;
+    
+    // 检查一级菜单项
+    for (const item of menuItems) {
+      // 如果有子菜单，检查子菜单项
+      if (item.children) {
+        for (const child of item.children) {
+          if (path === child.key) {
+            return { 
+              selectedKeys: [child.key], 
+              openKeys: [item.key] 
+            };
+          }
+        }
+      } else {
+        // 精确匹配或前缀匹配
+        if (path === item.key || (item.key !== '/admin' && path.startsWith(item.key))) {
+          return { 
+            selectedKeys: [item.key], 
+            openKeys: [] 
+          };
+        }
+      }
+    }
+    
+    return { 
+      selectedKeys: ['/admin'], 
+      openKeys: [] 
+    };
+  };
+
+  // 处理菜单点击
+  const handleMenuClick = (key: string) => {
+    navigate(key);
+  };
+
+  // 获取菜单状态
+  const menuState = getSelectedAndOpenKeys();
+
+  // 处理用户菜单点击
+  const handleUserMenuClick = ({ key }: { key: string }) => {
+    switch (key) {
+      case 'home':
+        navigate('/');
+        break;
+      case 'logout':
+        logout();
+        navigate('/auth/login');
+        break;
+    }
+  };
+
+  // 用户下拉菜单
+  const userMenuItems = [
+    {
+      key: 'home',
+      icon: <HomeOutlined />,
+      label: '返回首页',
+    },
+    {
+      type: 'divider' as const,
+    },
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: '退出登录',
+    },
+  ];
+
+  return (
+    <Layout style={{ minHeight: '100vh' }}>
+      {/* 侧边栏 */}
+      <Sider
+        trigger={null}
+        collapsible
+        collapsed={collapsed}
+        width={250}
+        style={{
+          overflow: 'auto',
+          height: '100vh',
+          position: 'fixed',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          boxShadow: '2px 0 8px rgba(0, 0, 0, 0.1)',
+        }}
+        theme="light"
+      >
+        {/* Logo区域 */}
+        <div
+          style={{
+            height: '64px',
+            padding: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: collapsed ? 'center' : 'flex-start',
+            borderBottom: '1px solid #f0f0f0',
+            marginBottom: '16px',
+          }}
+        >
+          {collapsed ? (
+            <div
+              style={{
+                fontSize: '20px',
+                fontWeight: 'bold',
+                color: '#4F46E5',
+              }}
+            >
+              V
+            </div>
+          ) : (
+            <div>
+              <div
+                style={{
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                  background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  marginBottom: '2px',
+                }}
+              >
+                VoxNest
+              </div>
+              <Text type="secondary" style={{ fontSize: '12px' }}>
+                管理面板
+              </Text>
+            </div>
+          )}
+        </div>
+
+        {/* 菜单 */}
+        <Menu
+          mode="inline"
+          selectedKeys={menuState.selectedKeys}
+          openKeys={menuState.openKeys}
+          items={menuItems}
+          onClick={({ key }) => handleMenuClick(key)}
+          style={{
+            border: 'none',
+          }}
+        />
+      </Sider>
+
+      {/* 主要内容区 */}
+      <Layout style={{ marginLeft: collapsed ? 80 : 250 }}>
+        {/* 顶部导航栏 */}
+        <Header
+          style={{
+            padding: '0 24px',
+            background: '#fff',
+            borderBottom: '1px solid #f0f0f0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            position: 'sticky',
+            top: 0,
+            zIndex: 1000,
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+          }}
+        >
+          {/* 左侧控制区 */}
+          <Space>
+            <Button
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => setCollapsed(!collapsed)}
+              style={{
+                fontSize: '16px',
+                width: 40,
+                height: 40,
+              }}
+            />
+          </Space>
+
+          {/* 右侧用户区 */}
+          <Space size="middle">
+            {/* 通知铃铛 */}
+            <Badge count={0} showZero={false}>
+              <Button type="text" icon={<BellOutlined />} />
+            </Badge>
+
+            {/* 用户信息 */}
+            <Dropdown
+              menu={{
+                items: userMenuItems,
+                onClick: handleUserMenuClick,
+              }}
+              placement="bottomRight"
+            >
+              <Space style={{ cursor: 'pointer' }}>
+                <Avatar
+                  src={user?.avatar}
+                  icon={<UserOutlined />}
+                  size="default"
+                />
+                <div style={{ display: collapsed ? 'none' : 'block' }}>
+                  <div style={{ fontSize: '14px', fontWeight: '500' }}>
+                    {user?.displayName || user?.username}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#999' }}>
+                    管理员
+                  </div>
+                </div>
+              </Space>
+            </Dropdown>
+          </Space>
+        </Header>
+
+        {/* 内容区域 */}
+        <Content
+          style={{
+            margin: '24px',
+            padding: '24px',
+            background: '#fff',
+            borderRadius: '8px',
+            minHeight: 'calc(100vh - 112px)',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          <Outlet />
+        </Content>
+      </Layout>
+    </Layout>
+  );
+};
+
+export default AdminLayout;
