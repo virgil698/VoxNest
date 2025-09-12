@@ -5,11 +5,9 @@ import {
   LikeOutlined, 
   MessageOutlined,
   PushpinOutlined,
-  LockOutlined,
-  UserOutlined,
-  FileTextOutlined,
-  TeamOutlined
+  LockOutlined
 } from '@ant-design/icons';
+import { Users, UserCheck, FileText, BarChart3, Megaphone, Flame, Tags } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePostStore } from '../stores/postStore';
 import { useAuthStore } from '../stores/authStore';
@@ -181,19 +179,20 @@ const Home: React.FC = () => {
 
   return (
     <div>
-      {/* 欢迎横幅 */}
-      <div className="voxnest-banner">
-        <Title level={1} style={{ color: 'var(--text-primary)', marginBottom: '16px', fontSize: '32px' }}>
-          欢迎来到VoxNest
-        </Title>
-        <Text style={{ color: 'var(--text-secondary)', fontSize: '16px' }}>
-          分享你的奇思妙想
-        </Text>
-      </div>
-
       <Row gutter={[24, 24]}>
         {/* 主内容区 */}
         <Col xs={24} lg={16}>
+          {/* 欢迎横幅 */}
+          <div className="voxnest-compact-banner">
+            <div className="voxnest-compact-content">
+              <Title level={2} className="voxnest-compact-title">
+                欢迎来到VoxNest论坛
+              </Title>
+              <Text className="voxnest-compact-subtitle">
+                分享你的想法和故事
+              </Text>
+            </div>
+          </div>
 
       {isLoadingList && posts.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px' }}>
@@ -201,7 +200,16 @@ const Home: React.FC = () => {
         </div>
       ) : posts.length === 0 ? (
         <Empty 
-          description="暂无帖子"
+          description={
+            <div>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '16px', marginBottom: '8px' }}>
+                还没有任何帖子
+              </p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: 0 }}>
+                成为第一个分享想法的人吧！
+              </p>
+            </div>
+          }
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           style={{ margin: '48px 0' }}
         >
@@ -234,11 +242,28 @@ const Home: React.FC = () => {
 
         {/* 侧边栏 */}
         <Col xs={24} lg={8}>
+          {/* 站点公告 */}
+          <Card style={{ marginBottom: '24px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Megaphone size={18} style={{ color: 'var(--primary-color)' }} />
+                站点公告
+              </Title>
+            </div>
+            <div style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+              <p style={{ margin: '0 0 12px 0' }}>欢迎来到VoxNest论坛！</p>
+              <p style={{ margin: '0 0 12px 0' }}>• 请遵守社区规则，友好交流</p>
+              <p style={{ margin: '0 0 12px 0' }}>• 发帖前请搜索是否有相似话题</p>
+              <p style={{ margin: 0 }}>• 有问题请联系管理员</p>
+            </div>
+          </Card>
+
           {/* 站点统计 */}
           <Card className="voxnest-stats-card" style={{ marginBottom: '24px' }}>
-            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-              <Title level={4} style={{ color: 'var(--text-primary)', margin: 0 }}>
-                📊 站点统计
+            <div style={{ marginBottom: '20px' }}>
+              <Title level={4} style={{ color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <BarChart3 size={20} style={{ color: 'var(--purple-primary)' }} />
+                站点统计
               </Title>
             </div>
             <Row gutter={[16, 16]}>
@@ -246,24 +271,24 @@ const Home: React.FC = () => {
                 <Statistic
                   title="总用户数"
                   value={5}
-                  valueStyle={{ color: 'var(--text-primary)', fontSize: '24px', fontWeight: 'bold' }}
-                  prefix={<UserOutlined />}
+                  valueStyle={{ color: 'var(--purple-primary)', fontSize: '24px', fontWeight: 'bold' }}
+                  prefix={<Users size={20} style={{ color: 'var(--purple-primary)' }} />}
                 />
               </Col>
               <Col span={8}>
                 <Statistic
                   title="在线用户"
                   value={0}
-                  valueStyle={{ color: 'var(--text-primary)', fontSize: '24px', fontWeight: 'bold' }}
-                  prefix={<TeamOutlined />}
+                  valueStyle={{ color: 'var(--purple-primary)', fontSize: '24px', fontWeight: 'bold' }}
+                  prefix={<UserCheck size={20} style={{ color: 'var(--purple-primary)' }} />}
                 />
               </Col>
               <Col span={8}>
                 <Statistic
                   title="注册用户"
                   value={2}
-                  valueStyle={{ color: 'var(--text-primary)', fontSize: '24px', fontWeight: 'bold' }}
-                  prefix={<FileTextOutlined />}
+                  valueStyle={{ color: 'var(--purple-primary)', fontSize: '24px', fontWeight: 'bold' }}
+                  prefix={<FileText size={20} style={{ color: 'var(--purple-primary)' }} />}
                 />
               </Col>
             </Row>
@@ -273,7 +298,8 @@ const Home: React.FC = () => {
           <Card style={{ marginBottom: '24px' }}>
             <div style={{ marginBottom: '16px' }}>
               <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                🔥 热门话题
+                <Flame size={18} style={{ color: '#F59E0B' }} />
+                热门话题
               </Title>
             </div>
             <div>
@@ -286,8 +312,9 @@ const Home: React.FC = () => {
           {/* 随机标签 */}
           <Card>
             <div style={{ marginBottom: '16px' }}>
-              <Title level={4} style={{ margin: 0 }}>
-                🏷️ 随机标签
+              <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Tags size={18} style={{ color: '#10B981' }} />
+                随机标签
               </Title>
             </div>
             <Space wrap>

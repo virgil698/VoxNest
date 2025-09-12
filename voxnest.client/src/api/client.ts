@@ -87,12 +87,18 @@ apiClient.interceptors.response.use(
     });
 
     if (error.response?.status === 401) {
-      // Token过期或无效，清除本地存储并跳转到登录页
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('user_info');
-      message.error('认证失效，请重新登录');
-      window.location.href = '/auth/login';
-      return Promise.reject(error);
+      // 检查是否是登录接口的401错误
+      const isLoginRequest = error.config?.url?.includes('/auth/login');
+      
+      if (!isLoginRequest) {
+        // 非登录接口的401错误，说明token过期或无效
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user_info');
+        message.error('认证失效，请重新登录');
+        window.location.href = '/auth/login';
+        return Promise.reject(error);
+      }
+      // 登录接口的401错误，不跳转，让组件处理
     }
 
     // 增强错误对象，包含后端返回的详细信息

@@ -49,9 +49,20 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           set({ isLoading: false });
           
-          // 获取错误信息
-          const errorMessage = error.response?.data?.message || error.message || '登录失败';
-          throw new Error(errorMessage);
+          // 构建详细的错误信息
+          const errorInfo = {
+            status: error.response?.status || 'UNKNOWN',
+            statusText: error.response?.statusText || '未知错误',
+            message: error.response?.data?.message || error.message || '登录失败',
+            errorCode: error.response?.data?.errorCode || 'UNKNOWN_ERROR',
+            details: error.response?.data?.details || '',
+            traceId: error.response?.data?.traceId || '',
+          };
+          
+          // 抛出包含完整错误信息的错误
+          const enhancedError = new Error(errorInfo.message);
+          (enhancedError as any).errorInfo = errorInfo;
+          throw enhancedError;
         }
       },
 
@@ -69,9 +80,20 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           set({ isLoading: false });
           
-          // 获取错误信息
-          const errorMessage = error.response?.data?.message || error.message || '注册失败';
-          throw new Error(errorMessage);
+          // 构建详细的错误信息
+          const errorInfo = {
+            status: error.response?.status || 'UNKNOWN',
+            statusText: error.response?.statusText || '未知错误',
+            message: error.response?.data?.message || error.message || '注册失败',
+            errorCode: error.response?.data?.errorCode || 'UNKNOWN_ERROR',
+            details: error.response?.data?.details || '',
+            traceId: error.response?.data?.traceId || '',
+          };
+          
+          // 抛出包含完整错误信息的错误
+          const enhancedError = new Error(errorInfo.message);
+          (enhancedError as any).errorInfo = errorInfo;
+          throw enhancedError;
         }
       },
 

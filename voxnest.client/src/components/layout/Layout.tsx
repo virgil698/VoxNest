@@ -1,5 +1,5 @@
-import React, { useEffect, Suspense } from 'react';
-import { Layout as AntdLayout, Menu, Avatar, Dropdown, Button, Space, Spin } from 'antd';
+import React, { useEffect, Suspense, useState } from 'react';
+import { Layout as AntdLayout, Menu, Avatar, Dropdown, Button, Space, Spin, Input } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { 
   HomeOutlined, 
@@ -7,7 +7,8 @@ import {
   LogoutOutlined, 
   LoginOutlined,
   FileTextOutlined,
-  PlusOutlined
+  PlusOutlined,
+  SearchOutlined
 } from '@ant-design/icons';
 import { useAuthStore } from '../../stores/authStore';
 import type { MenuProps } from 'antd';
@@ -18,6 +19,7 @@ export const Layout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated, logout, getCurrentUser, token } = useAuthStore();
+  const [searchValue, setSearchValue] = useState('');
 
   // 页面加载时检查认证状态
   useEffect(() => {
@@ -87,6 +89,15 @@ export const Layout: React.FC = () => {
     navigate('/auth/login');
   };
 
+  // 处理搜索
+  const handleSearch = (value: string) => {
+    if (value.trim()) {
+      // TODO: 实现搜索功能，这里可以导航到搜索结果页面
+      console.log('搜索内容:', value);
+      // navigate(`/search?q=${encodeURIComponent(value)}`);
+    }
+  };
+
   // 获取当前选中的菜单项
   const selectedKeys = [location.pathname];
 
@@ -103,10 +114,11 @@ export const Layout: React.FC = () => {
         borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
         position: 'sticky',
         top: 0,
-        zIndex: 1000
+        zIndex: 1000,
+        gap: '24px'
       }}>
         {/* Logo和主导航 */}
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', flex: '0 0 auto' }}>
           <div 
             style={{ 
               fontSize: '24px', 
@@ -133,6 +145,35 @@ export const Layout: React.FC = () => {
               fontSize: '15px',
               fontWeight: '500'
             }}
+          />
+        </div>
+
+        {/* 搜索框 */}
+        <div style={{ 
+          flex: '1 1 auto', 
+          maxWidth: '400px', 
+          minWidth: '200px', 
+          display: 'flex',
+          justifyContent: 'center'
+        }}>
+          <Input
+            placeholder="搜索话题、内容或用户..."
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            onPressEnter={() => handleSearch(searchValue)}
+            className="voxnest-search-box"
+            size="middle"
+            allowClear
+            style={{ width: '100%' }}
+            suffix={
+              <Button
+                type="text" 
+                icon={<SearchOutlined />}
+                onClick={() => handleSearch(searchValue)}
+                className="voxnest-search-button"
+                size="small"
+              />
+            }
           />
         </div>
 

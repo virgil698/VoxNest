@@ -121,14 +121,23 @@ public class AuthService : IAuthService
             }
 
             // 验证密码
-            if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            _logger.LogInformation("开始验证用户 {UsernameOrEmail} 的密码", request.UsernameOrEmail);
+            _logger.LogDebug("输入密码长度: {PasswordLength}, 密码哈希: {PasswordHashPrefix}", 
+                request.Password.Length, user.PasswordHash.Substring(0, Math.Min(20, user.PasswordHash.Length)) + "...");
+                
+            var isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+            _logger.LogInformation("用户 {UsernameOrEmail} 密码验证结果: {IsValid}", request.UsernameOrEmail, isPasswordValid);
+            
+            if (!isPasswordValid)
             {
+                _logger.LogWarning("用户 {UsernameOrEmail} 密码验证失败", request.UsernameOrEmail);
                 return Result<LoginResponseDto>.Failure("用户名或密码错误");
             }
 
             // 检查用户状态
             if (user.Status != UserStatus.Active)
             {
+                _logger.LogWarning("用户 {UsernameOrEmail} 账户状态异常: {Status}", request.UsernameOrEmail, user.Status);
                 return Result<LoginResponseDto>.Failure("账户已被禁用");
             }
 
@@ -222,5 +231,50 @@ public class AuthService : IAuthService
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.Id == userId);
+    }
+
+    /// <summary>
+    /// 重置管理员密码（仅开发环境）
+    /// </summary>
+    /// <param name="email">管理员邮箱</param>
+    /// <param name="newPassword">新密码</param>
+    /// <returns>重置结果</returns>
+    public async Task<Result<string>> ResetAdminPasswordAsync(string email, string newPassword)
+    {
+        try
+        {
+            // 查找用户
+            var user = await _dbContext.Users
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null)
+            {
+                return Result<string>.Failure("用户不存在");
+            }
+
+            // 检查是否是管理员
+            var isAdmin = user.UserRoles.Any(ur => ur.Role.Name == "Admin");
+            if (!isAdmin)
+            {
+                return Result<string>.Failure("该用户不是管理员");
+            }
+
+            // 更新密码
+            var newPasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            user.PasswordHash = newPasswordHash;
+
+            await _dbContext.SaveChangesAsync();
+
+            _logger.LogWarning("管理员密码已重置: {Email}", email);
+
+            return Result<string>.Success($"管理员 {email} 密码重置成功");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "重置管理员密码失败: {Email}", email);
+            return Result<string>.Failure($"密码重置失败: {ex.Message}");
+        }
     }
 }

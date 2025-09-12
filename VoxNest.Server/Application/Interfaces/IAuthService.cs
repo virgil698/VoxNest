@@ -49,4 +49,12 @@ public interface IAuthService
     /// <param name="email"></param>
     /// <returns></returns>
     Task<bool> IsEmailExistsAsync(string email);
+
+    /// <summary>
+    /// 重置管理员密码（仅开发环境）
+    /// </summary>
+    /// <param name="email">管理员邮箱</param>
+    /// <param name="newPassword">新密码</param>
+    /// <returns>重置结果</returns>
+    Task<Result<string>> ResetAdminPasswordAsync(string email, string newPassword);
 }

@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <SpaRoot>..\voxnest.client</SpaRoot>
     <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
-    <SpaProxyServerUrl>http://localhost:54977</SpaProxyServerUrl>
+    <SpaProxyServerUrl>http://localhost:54976</SpaProxyServerUrl>
   </PropertyGroup>
 
   <ItemGroup>

@@ -217,4 +217,38 @@ public class AuthController : ControllerBase
             message = "注销成功"
         });
     }
+
+    /// <summary>
+    /// 重置管理员密码（仅开发环境）
+    /// </summary>
+    /// <param name="request">重置请求</param>
+    /// <returns>重置结果</returns>
+    [HttpPost("reset-admin-password")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetAdminPassword([FromBody] ResetAdminPasswordRequest request)
+    {
+        var result = await _authService.ResetAdminPasswordAsync(request.Email, request.NewPassword);
+
+        if (result.IsSuccess)
+        {
+            return Ok(new
+            {
+                success = true,
+                message = result.Data
+            });
+        }
+
+        return BadRequest(new
+        {
+            success = false,
+            message = result.ErrorMessage
+        });
+    }
+}
+
+public class ResetAdminPasswordRequest
+{
+    public string Email { get; set; } = string.Empty;
+    public string NewPassword { get; set; } = string.Empty;
 }

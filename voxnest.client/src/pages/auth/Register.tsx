@@ -68,7 +68,52 @@ const Register: React.FC = () => {
       message.success('注册成功！请登录您的账户');
       navigate('/auth/login');
     } catch (error: any) {
-      message.error(error.message || '注册失败，请稍后重试');
+      const errorInfo = (error as any).errorInfo;
+      
+      if (errorInfo) {
+        // 构建详细错误消息
+        let errorMessage = `❌ 注册失败\n\n`;
+        errorMessage += `错误信息: ${errorInfo.message}\n`;
+        errorMessage += `状态码: ${errorInfo.status}`;
+        if (errorInfo.statusText) errorMessage += ` (${errorInfo.statusText})`;
+        errorMessage += `\n`;
+        
+        if (errorInfo.errorCode && errorInfo.errorCode !== 'UNKNOWN_ERROR') {
+          errorMessage += `错误代码: ${errorInfo.errorCode}\n`;
+        }
+        
+        if (errorInfo.details) {
+          errorMessage += `详细信息: ${errorInfo.details}\n`;
+        }
+        
+        if (errorInfo.traceId) {
+          errorMessage += `追踪ID: ${errorInfo.traceId}\n`;
+        }
+        
+        errorMessage += `\n💡 请检查您的输入信息，或稍后重试`;
+        
+        // 显示详细错误信息
+        console.error('🔍 详细注册错误信息:', errorInfo);
+        message.error({
+          content: errorMessage,
+          duration: 8,
+          style: { whiteSpace: 'pre-line' }
+        });
+        
+        // 同时在控制台输出详细信息供调试
+        console.group('🚨 注册失败详细信息');
+        console.log('状态码:', errorInfo.status);
+        console.log('错误信息:', errorInfo.message);
+        console.log('错误代码:', errorInfo.errorCode);
+        console.log('详细信息:', errorInfo.details);
+        console.log('追踪ID:', errorInfo.traceId);
+        console.log('完整错误对象:', errorInfo);
+        console.groupEnd();
+      } else {
+        // 降级处理：使用简单的message提示
+        message.error(error.message || '注册失败，请稍后重试');
+        console.error('注册错误（无详细信息）:', error);
+      }
     }
   };
 
