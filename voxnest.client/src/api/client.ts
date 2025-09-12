@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { AxiosResponse, AxiosError, AxiosRequestConfig } from 'axios';
 import { message } from 'antd';
-import { configManager } from '../config';
+import { getApiBaseUrl, getAppConfig } from '../config/index';
 
 // 错误响应接口
 export interface ErrorResponse {
@@ -15,13 +15,13 @@ export interface ErrorResponse {
   success: boolean;
 }
 
-// API基础配置 - 从配置管理器获取
-const API_BASE_URL = configManager.getApiBaseUrl();
+// API基础配置 - 从配置函数获取
+const API_BASE_URL = getApiBaseUrl();
 
 // 创建axios实例
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 15000, // 增加超时时间
+  timeout: getAppConfig().api.timeout,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -30,16 +30,18 @@ export const apiClient = axios.create({
 // 请求拦截器 - 添加认证令牌和请求追踪
 apiClient.interceptors.request.use(
   (config) => {
+    const appConfig = getAppConfig();
+    
     // 添加请求追踪ID
     config.headers['X-Request-Id'] = `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem(appConfig.storage.tokenKey);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    // 记录请求开始（仅在开发模式）
-    if (import.meta.env.DEV) {
+    // 记录请求开始（根据配置决定是否记录）
+    if (appConfig.features.enableLogging && appConfig.features.logLevel === 'debug') {
       console.log(`🔄 API请求: ${config.method?.toUpperCase()} ${config.url}`, {
         requestId: config.headers['X-Request-Id'],
         data: config.data,
@@ -58,8 +60,10 @@ apiClient.interceptors.request.use(
 // 响应拦截器 - 处理通用错误和详细日志
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
-    // 记录成功响应（仅在开发模式）
-    if (import.meta.env.DEV) {
+    const appConfig = getAppConfig();
+    
+    // 记录成功响应（根据配置决定是否记录）
+    if (appConfig.features.enableLogging && appConfig.features.logLevel === 'debug') {
       console.log(`✅ API响应成功: ${response.config.method?.toUpperCase()} ${response.config.url}`, {
         status: response.status,
         requestId: response.config.headers['X-Request-Id'],
@@ -92,8 +96,9 @@ apiClient.interceptors.response.use(
       
       if (!isLoginRequest) {
         // 非登录接口的401错误，说明token过期或无效
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('user_info');
+        const appConfig = getAppConfig();
+        localStorage.removeItem(appConfig.storage.tokenKey);
+        localStorage.removeItem(appConfig.storage.userKey);
         message.error('认证失效，请重新登录');
         window.location.href = '/auth/login';
         return Promise.reject(error);

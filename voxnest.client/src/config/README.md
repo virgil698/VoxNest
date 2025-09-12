@@ -1,104 +1,201 @@
-# VoxNest 前端配置管理系统
+# VoxNest 前端配置系统
 
-## 功能概述
-
-这个配置管理系统实现了前后端端口配置的统一管理，解决了之前CORS错误和端口不匹配的问题。
+重构后的前端配置系统，将配置定义与处理逻辑清晰分离。
 
 ## 文件结构
 
 ```
-src/config/
-├── index.ts       # 核心配置管理类
-├── init.ts        # 配置初始化和健康检查
-└── README.md      # 说明文档
+src/
+├── config.ts           # 纯配置定义（新增）
+└── config/
+    ├── index.ts         # 配置管理逻辑
+    ├── init.ts          # 配置初始化
+    └── README.md        # 此文档
 ```
 
-## 主要功能
+## 主要改进
 
-### 1. 统一配置管理 (`index.ts`)
+### 1. 分离关注点
+- **`config.ts`**: 纯配置定义，不包含业务逻辑
+- **`config/index.ts`**: 配置管理逻辑，支持加载、验证、同步
+- **`config/init.ts`**: 简化的初始化逻辑
 
-- **FrontendConfig**: 前端配置接口，包含端口配置
-- **ConfigManager**: 单例配置管理器
-- **自动端口检测**: 根据配置自动生成API基础URL
-- **配置验证**: 检查端口范围和冲突
-
-### 2. 配置初始化 (`init.ts`)
-
-- **启动时初始化**: 应用启动时自动验证和同步配置
-- **健康检查**: 定期检查配置有效性
-- **错误处理**: 配置失败时的降级策略
+### 2. 统一配置接口
+```typescript
+interface AppConfig {
+  app: { name, version, environment, debug }
+  api: { baseUrl, timeout, retryAttempts, retryDelay }
+  server: { devPort, backendHttpPort, backendHttpsPort, useHttps }
+  ui: { theme, locale, pageSize, enableAnimations }
+  features: { enableDevTools, enableHealthCheck, enableLogging, logLevel }
+  storage: { tokenKey, userKey, configKey }
+}
+```
 
 ### 3. 环境变量支持
-
-通过 `.env.development` 文件配置：
 ```env
 VITE_API_BASE_URL=http://localhost:5201
 VITE_BACKEND_HTTP_PORT=5201
 VITE_BACKEND_HTTPS_PORT=7042
 VITE_USE_HTTPS=false
-DEV_SERVER_PORT=54976
+VITE_THEME=light
+VITE_LOG_LEVEL=debug
 ```
 
 ## 使用方法
 
-### 基本用法
-
+### 基本使用
 ```typescript
-import { configManager, getApiBaseUrl } from '@/config';
-
-// 获取API基础URL
-const apiUrl = getApiBaseUrl();
+import { getAppConfig, getApiBaseUrl } from './config';
 
 // 获取完整配置
-const config = configManager.config;
+const config = getAppConfig();
 
-// 手动同步配置
-await configManager.syncWithBackend();
+// 获取特定配置
+const apiUrl = getApiBaseUrl();
 ```
 
-### 配置状态检查
+### 更新配置
+```typescript
+import { updateAppConfig, saveConfig } from './config';
+
+// 更新配置
+updateAppConfig({
+  ui: {
+    theme: 'dark',
+    pageSize: 20
+  }
+});
+
+// 手动保存（updateAppConfig 会自动保存）
+saveConfig();
+```
+
+### 向后兼容
+```typescript
+import { getConfig, configManager } from './config';
+
+// 旧的 API 仍然可用
+const oldConfig = getConfig(); // FrontendConfig
+const manager = configManager;
+```
+
+### 配置验证
+```typescript
+import { validateConfig } from './config';
+
+const validation = validateConfig();
+if (!validation.isValid) {
+  console.error('配置错误:', validation.errors);
+}
+```
+
+## 配置初始化
+
+在应用启动时调用：
 
 ```typescript
-import { getConfigStatus } from '@/config/init';
+import { initializeConfig, startConfigHealthCheck } from './config/init';
 
-const status = getConfigStatus();
-console.log('配置状态:', status);
+// 初始化配置
+await initializeConfig();
+
+// 启动健康检查（可选）
+startConfigHealthCheck();
 ```
 
-## 配置流程
+## 配置特性
 
-1. **应用启动** → 加载环境变量
-2. **配置验证** → 检查端口范围和冲突
-3. **后端同步** → 尝试从后端获取配置
-4. **配置合并** → 合并前后端配置
-5. **健康检查** → 定期验证配置有效性
+### 1. 智能默认值
+- 开发环境默认启用调试和日志
+- 生产环境默认禁用敏感功能
+- 自动构建 API 基础 URL
 
-## 故障排除
+### 2. 配置层级
+优先级（从高到低）：
+1. 保存的用户配置（localStorage）
+2. 环境变量
+3. 默认配置
 
-### 常见问题
+### 3. 类型安全
+- 完整的 TypeScript 类型定义
+- 配置验证规则
+- 运行时类型检查
 
-1. **CORS错误**: 检查前后端端口配置是否一致
-2. **连接失败**: 确认后端服务正在运行
-3. **端口冲突**: 检查端口是否被其他服务占用
+### 4. 可配置特性
+- 日志记录可开关
+- 健康检查可配置间隔
+- 开发工具可控制启用
 
-### 调试信息
+## 迁移指南
 
-配置管理器会在控制台输出详细的调试信息：
-- ✅ 成功状态
-- ⚠️ 警告信息  
-- ❌ 错误状态
+### 从旧配置系统迁移
 
-## 集成说明
+1. **导入更改**：
+```typescript
+// 旧的
+import { configManager } from './config';
 
-配置系统已自动集成到：
-- `main.tsx`: 应用启动时初始化
-- `api/client.ts`: 自动使用配置的API URL
-- `vite.config.ts`: 开发代理使用环境变量
+// 新的（推荐）
+import { getAppConfig, getApiBaseUrl } from './config';
 
-## 配置优先级
+// 向后兼容（仍可用）
+import { configManager, getConfig } from './config';
+```
 
-1. 环境变量 (`.env` 文件)
-2. 后端同步配置
-3. 默认配置值
+2. **API 更改**：
+```typescript
+// 旧的
+const config = configManager.config;
+const apiUrl = configManager.getApiBaseUrl();
 
-这确保了灵活的配置管理和良好的向后兼容性。
+// 新的
+const config = getAppConfig();
+const apiUrl = getApiBaseUrl();
+```
+
+3. **新功能**：
+```typescript
+// 访问新的配置节
+const features = getAppConfig().features;
+const ui = getAppConfig().ui;
+
+// 批量更新配置
+updateAppConfig({
+  features: { enableLogging: false },
+  ui: { theme: 'dark' }
+});
+```
+
+## 配置示例
+
+### 开发环境配置
+```typescript
+{
+  app: {
+    name: 'VoxNest',
+    environment: 'development',
+    debug: true
+  },
+  features: {
+    enableDevTools: true,
+    enableLogging: true,
+    logLevel: 'debug'
+  }
+}
+```
+
+### 生产环境配置
+```typescript
+{
+  app: {
+    environment: 'production',
+    debug: false
+  },
+  features: {
+    enableDevTools: false,
+    enableLogging: true,
+    logLevel: 'info'
+  }
+}
+```

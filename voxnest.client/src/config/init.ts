@@ -1,9 +1,9 @@
 /**
  * 配置初始化模块
- * 在应用启动时自动检查和同步前后端配置
+ * 简化的配置初始化逻辑
  */
 
-import { configManager } from './index';
+import { configManager, getAppConfig } from './index';
 
 /**
  * 初始化配置
@@ -11,7 +11,11 @@ import { configManager } from './index';
  */
 export async function initializeConfig(): Promise<boolean> {
   try {
-    console.log('🔧 正在初始化配置...');
+    const appConfig = getAppConfig();
+    
+    if (appConfig.features.enableLogging) {
+      console.log('🔧 正在初始化配置...');
+    }
     
     // 验证配置
     const validation = configManager.validateConfig();
@@ -20,18 +24,27 @@ export async function initializeConfig(): Promise<boolean> {
       return false;
     }
 
-    console.log('✅ 配置验证通过');
+    if (appConfig.features.enableLogging) {
+      console.log('✅ 配置验证通过');
+    }
     
-    // 尝试同步后端配置
-    console.log('🔄 正在同步后端配置...');
-    const syncSuccess = await configManager.syncWithBackend();
-    
-    if (syncSuccess) {
-      console.log('✅ 配置同步成功');
-      console.log('📋 当前配置:', configManager.config);
-    } else {
-      console.warn('⚠️ 配置同步失败，将使用默认配置');
-      console.log('📋 当前配置:', configManager.config);
+    // 仅在开发环境或明确启用时同步后端配置
+    if (appConfig.app.environment === 'development' || appConfig.features.enableHealthCheck) {
+      if (appConfig.features.enableLogging) {
+        console.log('🔄 正在同步后端配置...');
+      }
+      
+      const syncSuccess = await configManager.syncWithBackend();
+      
+      if (appConfig.features.enableLogging) {
+        if (syncSuccess) {
+          console.log('✅ 配置同步成功');
+          console.log('📋 当前配置:', configManager.config);
+        } else {
+          console.warn('⚠️ 配置同步失败，将使用默认配置');
+          console.log('📋 当前配置:', configManager.config);
+        }
+      }
     }
 
     return true;
@@ -43,21 +56,29 @@ export async function initializeConfig(): Promise<boolean> {
 
 /**
  * 配置健康检查
- * 定期检查配置是否仍然有效
+ * 定期检查配置是否仍然有效（仅在启用时运行）
  */
 export function startConfigHealthCheck(): void {
-  // 每5分钟检查一次配置
+  const appConfig = getAppConfig();
+  
+  if (!appConfig.features.enableHealthCheck) {
+    return;
+  }
+
+  // 使用配置中定义的检查间隔
   setInterval(async () => {
     try {
       const validation = configManager.validateConfig();
       if (!validation.isValid) {
-        console.warn('⚠️ 配置验证失败，需要重新同步:', validation.errors);
+        if (appConfig.features.enableLogging) {
+          console.warn('⚠️ 配置验证失败，需要重新同步:', validation.errors);
+        }
         await configManager.syncWithBackend();
       }
     } catch (error) {
       console.error('配置健康检查失败:', error);
     }
-  }, 5 * 60 * 1000); // 5分钟
+  }, appConfig.features.healthCheckInterval);
 }
 
 /**
@@ -67,6 +88,7 @@ export function getConfigStatus(): {
   isValid: boolean;
   errors: string[];
   config: any;
+  appConfig: any;
   backendConfig: any;
 } {
   const validation = configManager.validateConfig();
@@ -74,6 +96,7 @@ export function getConfigStatus(): {
     isValid: validation.isValid,
     errors: validation.errors,
     config: configManager.config,
+    appConfig: configManager.appConfig,
     backendConfig: configManager.backendConfig
   };
 }

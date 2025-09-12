@@ -230,7 +230,7 @@ public class ConfigurationGenerator
             },
             ConnectionStrings = new
             {
-                DefaultConnection = "Server=localhost;Database=VoxNest;User=root;Password=;Port=3306;CharSet=utf8mb4;"
+                DefaultConnection = "Server=localhost;Database=voxnest;User=root;Password=virgil698;Port=3307;CharSet=utf8mb4;ConnectionTimeout=60;CommandTimeout=300;Pooling=true;MinimumPoolSize=5;MaximumPoolSize=50;ConnectionLifeTime=3600;"
             },
             Jwt = new
             {

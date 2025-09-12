@@ -1,8 +1,19 @@
 /**
  * VoxNest 前端配置管理
- * 统一管理前后端端口配置和其他环境配置
+ * 负责加载、验证和管理应用配置
  */
 
+import { 
+  type AppConfig, 
+  defaultConfig, 
+  createConfigFromEnv, 
+  mergeConfig, 
+  configValidationRules,
+  getConfigValue,
+  buildApiBaseUrl 
+} from '../config';
+
+// 向后兼容的类型定义
 export interface FrontendConfig {
   /** 前端开发服务器端口 */
   devServerPort: number;
@@ -30,26 +41,15 @@ export interface BackendServerConfig {
 }
 
 /**
- * 默认配置
- */
-export const defaultConfig: FrontendConfig = {
-  devServerPort: 54976,
-  apiBaseUrl: 'http://localhost:5201',
-  backendHttpPort: 5201,
-  backendHttpsPort: 7042,
-  useHttps: false // 默认使用HTTP，不使用HTTPS
-};
-
-/**
  * 配置管理类
  */
 export class ConfigManager {
   private static _instance: ConfigManager;
-  private _config: FrontendConfig;
+  private _appConfig: AppConfig;
   private _backendConfig: BackendServerConfig | null = null;
 
   private constructor() {
-    this._config = this.loadConfig();
+    this._appConfig = this.loadAppConfig();
   }
 
   public static get instance(): ConfigManager {
@@ -60,10 +60,17 @@ export class ConfigManager {
   }
 
   /**
-   * 获取当前配置
+   * 获取完整应用配置
+   */
+  public get appConfig(): AppConfig {
+    return this._appConfig;
+  }
+
+  /**
+   * 获取当前配置（向后兼容）
    */
   public get config(): FrontendConfig {
-    return this._config;
+    return this.toFrontendConfig(this._appConfig);
   }
 
   /**
@@ -74,29 +81,51 @@ export class ConfigManager {
   }
 
   /**
-   * 加载配置
+   * 加载应用配置
    */
-  private loadConfig(): FrontendConfig {
-    // 从环境变量加载配置
-    const envConfig: Partial<FrontendConfig> = {
-      apiBaseUrl: import.meta.env.VITE_API_BASE_URL,
-      devServerPort: parseInt(import.meta.env.DEV_SERVER_PORT || '54976'),
-      backendHttpPort: parseInt(import.meta.env.VITE_BACKEND_HTTP_PORT || '5201'),
-      backendHttpsPort: parseInt(import.meta.env.VITE_BACKEND_HTTPS_PORT || '7042'),
-      useHttps: import.meta.env.VITE_USE_HTTPS === 'true'
-    };
-
-    // 合并配置
-    const config = { ...defaultConfig, ...envConfig };
-
-    // 如果没有指定API基础URL，根据端口自动生成
-    if (!config.apiBaseUrl) {
-      const protocol = config.useHttps ? 'https' : 'http';
-      const port = config.useHttps ? config.backendHttpsPort : config.backendHttpPort;
-      config.apiBaseUrl = `${protocol}://localhost:${port}`;
+  private loadAppConfig(): AppConfig {
+    // 从环境变量创建配置覆盖
+    const envConfig = createConfigFromEnv();
+    
+    // 从本地存储加载保存的配置
+    const savedConfig = this.loadSavedConfig();
+    
+    // 合并配置：默认配置 < 环境变量 < 保存的配置
+    let config = mergeConfig(defaultConfig, envConfig);
+    if (savedConfig) {
+      config = mergeConfig(config, savedConfig);
     }
-
+    
+    // 确保API基础URL正确
+    config.api.baseUrl = buildApiBaseUrl(config);
+    
     return config;
+  }
+
+  /**
+   * 从本地存储加载保存的配置
+   */
+  private loadSavedConfig(): Partial<AppConfig> | null {
+    try {
+      const saved = localStorage.getItem(defaultConfig.storage.configKey);
+      return saved ? JSON.parse(saved) : null;
+    } catch (error) {
+      console.warn('加载保存的配置失败:', error);
+      return null;
+    }
+  }
+
+  /**
+   * 将新配置格式转换为向后兼容的格式
+   */
+  private toFrontendConfig(appConfig: AppConfig): FrontendConfig {
+    return {
+      devServerPort: appConfig.server.devPort,
+      apiBaseUrl: appConfig.api.baseUrl,
+      backendHttpPort: appConfig.server.backendHttpPort,
+      backendHttpsPort: appConfig.server.backendHttpsPort,
+      useHttps: appConfig.server.useHttps,
+    };
   }
 
   /**
@@ -106,18 +135,19 @@ export class ConfigManager {
     try {
       // 这里可以调用后端API获取配置
       // 暂时使用模拟数据
+      const frontendConfig = this.toFrontendConfig(this._appConfig);
       const mockConfig: BackendServerConfig = {
         server: {
-          name: "VoxNest Server",
-          version: "1.0.0",
-          environment: "Development",
-          port: this._config.backendHttpPort,
-          https_port: this._config.backendHttpsPort
+          name: this._appConfig.app.name + " Server",
+          version: this._appConfig.app.version,
+          environment: this._appConfig.app.environment,
+          port: frontendConfig.backendHttpPort,
+          https_port: frontendConfig.backendHttpsPort
         },
         cors: {
           allowed_origins: [
-            `http://localhost:${this._config.devServerPort}`,
-            `http://localhost:${this._config.backendHttpPort}`,
+            `http://localhost:${frontendConfig.devServerPort}`,
+            `http://localhost:${frontendConfig.backendHttpPort}`,
             "http://localhost:3000"
           ]
         }
@@ -141,15 +171,32 @@ export class ConfigManager {
         return false;
       }
 
-      // 更新前端配置以匹配后端配置
-      const protocol = this._config.useHttps ? 'https' : 'http';
-      const port = this._config.useHttps ? backendConfig.server.https_port : backendConfig.server.port;
-      
-      this._config.backendHttpPort = backendConfig.server.port;
-      this._config.backendHttpsPort = backendConfig.server.https_port;
-      this._config.apiBaseUrl = `${protocol}://localhost:${port}`;
+      // 更新应用配置以匹配后端配置
+      const updatedConfig: Partial<AppConfig> = {
+        server: {
+          ...this._appConfig.server,
+          backendHttpPort: backendConfig.server.port,
+          backendHttpsPort: backendConfig.server.https_port,
+        },
+        api: {
+          ...this._appConfig.api,
+          baseUrl: buildApiBaseUrl({
+            ...this._appConfig,
+            server: {
+              ...this._appConfig.server,
+              backendHttpPort: backendConfig.server.port,
+              backendHttpsPort: backendConfig.server.https_port,
+            }
+          })
+        }
+      };
 
-      console.log('配置已同步:', this._config);
+      this._appConfig = mergeConfig(this._appConfig, updatedConfig);
+      this.saveConfig();
+
+      if (this._appConfig.features.enableLogging) {
+        console.log('配置已同步:', this.toFrontendConfig(this._appConfig));
+      }
       return true;
     } catch (error) {
       console.error('配置同步失败:', error);
@@ -161,42 +208,78 @@ export class ConfigManager {
    * 更新配置
    */
   public updateConfig(partialConfig: Partial<FrontendConfig>): void {
-    this._config = { ...this._config, ...partialConfig };
+    // 转换为新配置格式
+    const appConfigUpdate: Partial<AppConfig> = {
+      server: {
+        ...this._appConfig.server,
+        devPort: partialConfig.devServerPort ?? this._appConfig.server.devPort,
+        backendHttpPort: partialConfig.backendHttpPort ?? this._appConfig.server.backendHttpPort,
+        backendHttpsPort: partialConfig.backendHttpsPort ?? this._appConfig.server.backendHttpsPort,
+        useHttps: partialConfig.useHttps ?? this._appConfig.server.useHttps,
+      },
+      api: {
+        ...this._appConfig.api,
+        baseUrl: partialConfig.apiBaseUrl ?? this._appConfig.api.baseUrl,
+      }
+    };
+
+    this._appConfig = mergeConfig(this._appConfig, appConfigUpdate);
+    this.saveConfig();
+  }
+
+  /**
+   * 更新应用配置
+   */
+  public updateAppConfig(partialConfig: Partial<AppConfig>): void {
+    this._appConfig = mergeConfig(this._appConfig, partialConfig);
+    this.saveConfig();
+  }
+
+  /**
+   * 保存配置到本地存储
+   */
+  public saveConfig(): void {
+    try {
+      localStorage.setItem(
+        this._appConfig.storage.configKey, 
+        JSON.stringify(this._appConfig)
+      );
+    } catch (error) {
+      console.warn('保存配置失败:', error);
+    }
   }
 
   /**
    * 获取API基础URL
    */
   public getApiBaseUrl(): string {
-    return this._config.apiBaseUrl;
+    return this._appConfig.api.baseUrl;
   }
 
   /**
    * 获取前端开发服务器端口
    */
   public getDevServerPort(): number {
-    return this._config.devServerPort;
+    return this._appConfig.server.devPort;
   }
 
   /**
-   * 检查端口配置是否有效
+   * 验证配置
    */
   public validateConfig(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
-    if (this._config.backendHttpPort < 1 || this._config.backendHttpPort > 65535) {
-      errors.push('后端HTTP端口必须在1-65535范围内');
+    // 使用配置验证规则
+    for (const rule of configValidationRules) {
+      const value = getConfigValue(this._appConfig, rule.path);
+      if (!rule.validator(value)) {
+        errors.push(rule.message);
+      }
     }
 
-    if (this._config.backendHttpsPort < 1 || this._config.backendHttpsPort > 65535) {
-      errors.push('后端HTTPS端口必须在1-65535范围内');
-    }
-
-    if (this._config.devServerPort < 1 || this._config.devServerPort > 65535) {
-      errors.push('前端开发服务器端口必须在1-65535范围内');
-    }
-
-    if (this._config.backendHttpPort === this._config.devServerPort) {
+    // 检查端口冲突
+    const frontendConfig = this.toFrontendConfig(this._appConfig);
+    if (frontendConfig.backendHttpPort === frontendConfig.devServerPort) {
       errors.push('后端端口不能与前端开发服务器端口相同');
     }
 
@@ -210,7 +293,24 @@ export class ConfigManager {
 // 导出配置管理器实例
 export const configManager = ConfigManager.instance;
 
-// 导出便捷方法
+// 导出便捷方法（向后兼容）
 export const getConfig = () => configManager.config;
 export const getApiBaseUrl = () => configManager.getApiBaseUrl();
 export const getDevServerPort = () => configManager.getDevServerPort();
+
+// 新的便捷方法
+export const getAppConfig = () => configManager.appConfig;
+export const updateAppConfig = (config: Partial<AppConfig>) => configManager.updateAppConfig(config);
+export const validateConfig = () => configManager.validateConfig();
+export const saveConfig = () => configManager.saveConfig();
+
+// 重新导出配置定义中的其他实用函数
+export {
+  type AppConfig,
+  defaultConfig,
+  createConfigFromEnv,
+  mergeConfig,
+  configValidationRules,
+  getConfigValue,
+  buildApiBaseUrl
+} from '../config';

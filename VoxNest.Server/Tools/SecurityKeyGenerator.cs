@@ -115,7 +115,7 @@ public static class SecurityKeyGenerator
     /// <returns>环境配置字典</returns>
     public static Dictionary<string, string> GenerateEnvironmentConfig(
         string environment = "Development", 
-        string databaseName = "VoxNest")
+        string databaseName = "voxnest")
     {
         return new Dictionary<string, string>
         {
@@ -123,8 +123,8 @@ public static class SecurityKeyGenerator
             ["JWT_SECRET_KEY"] = GenerateJwtKey(),
             ["JWT_ISSUER"] = "VoxNest.Server",
             ["JWT_AUDIENCE"] = "VoxNest.Client",
-            ["DATABASE_CONNECTION_STRING"] = $"Server=localhost;Database={databaseName};User=root;Password=;Port=3306;CharSet=utf8mb4;",
-            ["MIGRATION_CONNECTION_STRING"] = $"Server=localhost;Database={databaseName}_Migration;User=root;Password=;Port=3306;CharSet=utf8mb4;",
+            ["DATABASE_CONNECTION_STRING"] = $"Server=localhost;Database={databaseName};User=root;Password=virgil698;Port=3307;CharSet=utf8mb4;ConnectionTimeout=60;CommandTimeout=300;Pooling=true;MinimumPoolSize=5;MaximumPoolSize=50;ConnectionLifeTime=3600;",
+            ["MIGRATION_CONNECTION_STRING"] = $"Server=localhost;Database={databaseName}_Migration;User=root;Password=virgil698;Port=3307;CharSet=utf8mb4;ConnectionTimeout=60;CommandTimeout=300;Pooling=true;MinimumPoolSize=5;MaximumPoolSize=50;ConnectionLifeTime=3600;",
             ["SECURITY_REQUIRE_HTTPS_METADATA"] = environment == "Production" ? "true" : "false",
             ["LOG_LEVEL"] = environment == "Production" ? "Warning" : "Information"
         };
