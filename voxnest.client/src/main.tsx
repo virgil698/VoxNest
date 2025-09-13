@@ -7,8 +7,7 @@ import './index.css'
 import { router } from './router'
 import InstallGuard from './components/InstallGuard'
 import { ExtensionProvider, initializeFramework, getFramework } from './extensions'
-import { initializeDemoPlugin } from './extensions/demo/DemoPlugin'
-import { ExampleIntegration } from './extensions/examples/ExampleIntegration'
+import { publicExtensionLoader } from './extensions/manager/PublicExtensionLoader'
 import { logger } from './utils/logger'
 
 // VoxNest 白色主题配置
@@ -58,6 +57,8 @@ const whiteTheme = {
 // 初始化应用
 setTimeout(async () => {
   try {
+    console.log('🚀 开始初始化 VoxNest 应用...');
+    
     // 初始化扩展框架
     await initializeFramework({
       appName: 'VoxNest',
@@ -67,22 +68,83 @@ setTimeout(async () => {
       dev: process.env.NODE_ENV === 'development'
     });
     
-    // 注册示例集成
     const framework = getFramework();
-    framework.register(ExampleIntegration);
     
     // 初始化日志系统
     await logger.initialize();
+    console.log('📊 日志系统初始化完成');
     
-    // 初始化演示插件
-    initializeDemoPlugin();
+    // === 新的扩展加载机制 ===
+    console.log('🔍 开始发现和加载 public/extensions 中的扩展...');
+    
+    // 发现所有可用的扩展
+    const availableExtensions = await publicExtensionLoader.discoverExtensions();
+    console.log(`📦 发现 ${availableExtensions.length} 个扩展:`, availableExtensions.map(e => `${e.name} (${e.type})`));
+    
+    // 加载并初始化每个扩展
+    for (const manifest of availableExtensions) {
+      try {
+        console.log(`⏳ 正在加载扩展: ${manifest.name}...`);
+        
+        // 加载扩展模块
+        const loadedExtension = await publicExtensionLoader.loadExtension(manifest);
+        
+        if (loadedExtension.error) {
+          console.error(`❌ 扩展 ${manifest.name} 加载失败:`, loadedExtension.error);
+          continue;
+        }
+        
+        // 初始化扩展
+        const initialized = await publicExtensionLoader.initializeExtension(manifest.id, framework);
+        
+        if (initialized) {
+          console.log(`✅ 扩展 ${manifest.name} 初始化成功`);
+        } else {
+          console.error(`❌ 扩展 ${manifest.name} 初始化失败`);
+        }
+      } catch (error) {
+        console.error(`扩展 ${manifest.name} 处理失败:`, error);
+      }
+    }
+    
+    // 打印扩展统计信息
+    const extensionStats = publicExtensionLoader.getStats();
+    console.group('📈 扩展加载统计');
+    console.log('总扩展数:', extensionStats.total);
+    console.log('插件数量:', extensionStats.plugins);
+    console.log('主题数量:', extensionStats.themes);
+    console.log('已初始化:', extensionStats.initialized);
+    console.log('失败数量:', extensionStats.failed);
+    console.table(extensionStats.extensions);
+    console.groupEnd();
     
     // 记录性能指标
     setTimeout(() => {
       logger.logPerformanceMetrics();
     }, 2000);
+    
+    console.log('🎉 VoxNest 应用初始化完成！');
   } catch (error) {
-    console.error('应用初始化失败:', error);
+    console.error('❌ 应用初始化失败:', error);
+    // 显示用户友好的错误信息
+    if (typeof window !== 'undefined' && window.document) {
+      const errorDiv = document.createElement('div');
+      errorDiv.innerHTML = `
+        <div style="
+          position: fixed; top: 50%; left: 50%; 
+          transform: translate(-50%, -50%);
+          background: #ff4d4f; color: white; 
+          padding: 20px; border-radius: 8px; 
+          font-family: Arial, sans-serif;
+          z-index: 10000;
+        ">
+          <h3>应用初始化失败</h3>
+          <p>VoxNest 无法正常启动，请刷新页面重试。</p>
+          <p><small>错误详情: ${error instanceof Error ? error.message : '未知错误'}</small></p>
+        </div>
+      `;
+      document.body.appendChild(errorDiv);
+    }
   }
 }, 500);
 

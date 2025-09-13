@@ -1,0 +1,52 @@
+{
+  "id": "DemoPlugin",
+  "name": "VoxNest 演示插件",
+  "version": "1.0.0",
+  "type": "plugin",
+  "description": "展示VoxNest扩展框架基本功能的演示插件",
+  "author": "VoxNest Team",
+  "homepage": "https://voxnest.com",
+  "repository": "https://github.com/voxnest/extensions",
+  
+  "main": "DemoPlugin.tsx",
+  "files": [
+    "DemoPlugin.tsx",
+    "manifest.json"
+  ],
+  
+  "framework": {
+    "minVersion": "1.0.0",
+    "maxVersion": "2.0.0"
+  },
+  
+  "permissions": [
+    "slots:register",
+    "logs:write",
+    "ui:message"
+  ],
+  
+  "slots": [
+    "header.right",
+    "footer.right"
+  ],
+  
+  "enabled": true,
+  "dependencies": [],
+  
+  "config": {
+    "showVersionInfo": true,
+    "showSettingsButton": true
+  },
+  
+  "tags": [
+    "demo",
+    "plugin",
+    "extension",
+    "voxnest"
+  ],
+  "capabilities": {
+    "ui": true,
+    "api": false,
+    "storage": false
+  }
+}

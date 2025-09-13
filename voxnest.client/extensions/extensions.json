@@ -1,0 +1,63 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "VoxNest 统一扩展清单",
+    "lastUpdated": "2025-09-13T20:00:00Z",
+    "totalExtensions": 2
+  },
+  "extensions": [
+    {
+      "id": "DemoPlugin", 
+      "name": "VoxNest 演示插件",
+      "version": "1.0.0",
+      "type": "plugin",
+      "description": "展示扩展框架基本功能的演示插件",
+      "author": "VoxNest Team",
+      "main": "DemoPlugin.tsx",
+      "enabled": true,
+      "dependencies": [],
+      "permissions": ["slots.header", "slots.footer"],
+      "tags": ["demo", "example", "framework"],
+      "slots": [
+        "header.right",
+        "footer.right"
+      ],
+      "capabilities": {
+        "ui": true,
+        "api": false,
+        "storage": false
+      }
+    },
+    {
+      "id": "ExampleIntegration",
+      "name": "VoxNest 示例主题",
+      "version": "1.0.0", 
+      "type": "theme",
+      "description": "展示主题扩展系统功能的示例主题",
+      "author": "VoxNest Team",
+      "main": "ExampleIntegration.tsx",
+      "enabled": true,
+      "dependencies": [],
+      "permissions": ["slots.*", "hooks.*"],
+      "tags": ["theme", "example", "ui", "integration"],
+      "slots": [
+        "header.right",
+        "sidebar.top",
+        "content.before", 
+        "footer.right"
+      ],
+      "hooks": [
+        "app:init",
+        "app:ready",
+        "app:start", 
+        "app:started",
+        "app:destroy"
+      ],
+      "capabilities": {
+        "ui": true,
+        "theming": true,
+        "layout": true
+      }
+    }
+  ]
+}

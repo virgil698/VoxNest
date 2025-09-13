@@ -101,19 +101,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
       label: '标签管理',
     },
     {
-      key: 'extensions',
+      key: '/admin/extensions',
       icon: <AppstoreOutlined />,
       label: '扩展管理',
-      children: [
-        {
-          key: '/admin/plugins',
-          label: '插件管理',
-        },
-        {
-          key: '/admin/themes',
-          label: '主题管理',
-        },
-      ],
     },
     {
       key: '/admin/logs',
@@ -129,7 +119,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
     // 检查一级菜单项
     for (const item of menuItems) {
       // 如果有子菜单，检查子菜单项
-      if (item.children) {
+      if ('children' in item && Array.isArray(item.children)) {
         for (const child of item.children) {
           if (path === child.key) {
             // 确保父菜单在openKeys中

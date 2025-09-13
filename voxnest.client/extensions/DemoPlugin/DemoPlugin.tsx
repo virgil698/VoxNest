@@ -6,26 +6,22 @@
 import React from 'react';
 import { Button, Tag, message } from 'antd';
 import { SettingOutlined, BulbOutlined } from '@ant-design/icons';
-import { registerToSlot, createComponentIntegration } from '../index';
-import { useLogger } from '../../hooks/useLogger';
 
 // 演示组件 - Header Right 区域的设置按钮
 const SettingsButton: React.FC = () => {
-  const logger = useLogger('DemoPlugin.SettingsButton');
-
   const handleSettingsClick = () => {
     console.log('演示插件：设置按钮被点击');
     
-    // 记录用户操作日志
-    logger.logUserAction('Click demo settings button', 'User clicked on demo plugin settings button');
+    // 展示消息
+    message.success('演示插件体验已开打开！');
     
-    // 展示消息和记录信息日志
-    message.success('演示插件设置已打开！');
-    logger.info('Demo plugin settings opened', 'User successfully opened demo plugin settings');
+    // 记录日志到控制台
+    console.log('Demo plugin: Settings button clicked');
+    console.log('Demo plugin: User action logged');
     
     // 模拟一个警告场景
     setTimeout(() => {
-      logger.warning('Demo warning', 'This is a demo warning message from the demo plugin');
+      console.warn('Demo plugin: This is a demo warning message');
     }, 1000);
   };
 
@@ -59,21 +55,22 @@ const VersionInfo: React.FC = () => {
   );
 };
 
-
 // 注册演示组件到不同的槽位
-export function initializeDemoPlugin() {
-  console.log('🔌 正在初始化演示插件...');
+export function initializeDemoPlugin(framework: any) {
+  console.log('🔌 正在初始化演示插件（从 public/extensions 加载）...');
   
   try {
     // 注册设置按钮到header.right槽位
-    registerToSlot('header.right', SettingsButton, {
+    framework.slots.register('header.right', {
+      component: SettingsButton,
       source: 'demo-plugin',
       priority: 10,
       name: 'Demo Settings Button'
     });
     
     // 注册版本信息到footer.right槽位  
-    registerToSlot('footer.right', VersionInfo, {
+    framework.slots.register('footer.right', {
+      component: VersionInfo,
       source: 'demo-plugin',
       priority: 5,
       name: 'Framework Version Info'
@@ -88,12 +85,13 @@ export function initializeDemoPlugin() {
   }
 }
 
-// 导出插件定义（用于更高级的插件系统）
+// 导出插件定义（用于扩展系统）
 export const DemoPlugin = {
   id: 'voxnest-demo-plugin',
   name: '演示插件',
   version: '1.0.0',
   description: '展示VoxNest扩展框架基本功能的演示插件',
+  type: 'plugin',
   
   // 初始化插件
   initialize: initializeDemoPlugin,

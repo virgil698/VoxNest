@@ -1,0 +1,81 @@
+{
+  "id": "ExampleIntegration",
+  "name": "VoxNest 示例主题",
+  "version": "1.0.0",
+  "type": "theme",
+  "description": "展示VoxNest扩展框架主题功能的示例主题",
+  "author": "VoxNest Team",
+  "homepage": "https://voxnest.com",
+  "repository": "https://github.com/voxnest/extensions",
+  
+  "main": "ExampleIntegration.tsx",
+  "files": [
+    "ExampleIntegration.tsx",
+    "manifest.json"
+  ],
+  
+  "framework": {
+    "minVersion": "1.0.0",
+    "maxVersion": "2.0.0"
+  },
+  
+  "permissions": [
+    "slots:register",
+    "storage:local",
+    "ui:message",
+    "lifecycle:hooks"
+  ],
+  
+  "slots": [
+    "header.right",
+    "footer.right",
+    "content.before",
+    "sidebar.top"
+  ],
+  
+  "enabled": true,
+  "dependencies": [],
+  
+  "config": {
+    "enableNotifications": true,
+    "showQuickActions": true,
+    "showFeatureHighlight": true,
+    "showStatusIndicator": true
+  },
+  
+  "theme": {
+    "primaryColor": "#1890ff",
+    "borderRadius": "12px",
+    "gradientColors": ["#667eea", "#764ba2"],
+    "supports": [
+      "dark-mode",
+      "responsive",
+      "animations"
+    ]
+  },
+  
+  "preview": {
+    "screenshots": [],
+    "description": "现代化的示例主题，展示扩展框架的强大功能"
+  },
+  
+  "tags": [
+    "theme",
+    "example",
+    "extension",
+    "voxnest",
+    "ui"
+  ],
+  "hooks": [
+    "app:init",
+    "app:ready",
+    "app:start",
+    "app:started",
+    "app:destroy"
+  ],
+  "capabilities": {
+    "ui": true,
+    "theming": true,
+    "layout": true
+  }
+}

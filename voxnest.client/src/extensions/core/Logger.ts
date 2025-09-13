@@ -79,6 +79,6 @@ export class ExtensionLogger implements Logger {
 export function createLogger(name?: string, logLevel?: string): Logger {
   return new ExtensionLogger(
     name,
-    logLevel as keyof typeof ExtensionLogger.levels
+    logLevel as keyof typeof ExtensionLogger['levels'] // 使用索引访问
   );
 }

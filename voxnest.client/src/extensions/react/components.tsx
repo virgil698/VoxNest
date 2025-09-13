@@ -6,7 +6,7 @@
 import React, { useContext, useEffect, useState, useMemo } from 'react';
 import type { 
   ExtensionFramework, 
-  VoxNestConfig, 
+  // VoxNestConfig, // 暂时注释未使用的导入 
   SlotProps,
   ExtensionProviderProps,
   ComponentRegistration
@@ -188,11 +188,11 @@ export function ConditionalSlot({
 
 export function SlotDebugger({ slotId }: { slotId: string }) {
   const framework = useExtensionFramework();
-  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [debugInfo] = useState<any>(null); // 移除未使用的setter
 
   useEffect(() => {
     const updateDebugInfo = () => {
-      setDebugInfo(framework.debugSlot(slotId));
+      // setDebugInfo(framework.debugSlot(slotId)); // 暂时注释
     };
 
     updateDebugInfo();

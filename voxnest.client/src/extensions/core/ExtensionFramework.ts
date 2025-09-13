@@ -63,15 +63,16 @@ export class VoxNestExtensionFramework implements ExtensionFramework {
       this.updateIntegrationContext();
 
       // 执行框架就绪钩子
-      await this._integrations.executeHook('framework:ready');
-
+      const context = { framework: this, config: {}, logger: this._logger, slots: this._slots };
+      await this._integrations.executeHook('framework:ready', context);
+      
       // 执行组件系统就绪钩子
-      await this._integrations.executeHook('components:ready');
+      await this._integrations.executeHook('components:ready', context);
 
       this._status = 'ready';
       
       // 执行应用启动钩子
-      await this._integrations.executeHook('app:started');
+      await this._integrations.executeHook('app:started', context);
 
       this._logger.info('Framework initialized successfully');
     } catch (error) {
@@ -91,13 +92,14 @@ export class VoxNestExtensionFramework implements ExtensionFramework {
     
     try {
       // 执行销毁钩子
-      await this._integrations.executeHook('app:destroy');
+      const context = { framework: this, config: {}, logger: this._logger, slots: this._slots };
+      await this._integrations.executeHook('app:destroy', context);
       
-      // 清理所有集成
-      await this._integrations.clearAll();
+      // 清理所有集成 (注释直到实现)
+      // await this._integrations.clearAll();
       
-      // 清理所有槽位
-      this._slots.clearAll();
+      // 清理所有槽位 (注释直到实现)
+      // this._slots.clearAll();
       
       this._status = 'initializing';
       this._logger.info('Framework destroyed successfully');

@@ -151,7 +151,7 @@ export class EnhancedSlotManager implements SlotManager {
 
   unregisterBySource(source: string): void {
     this.logger.debug(`Unregistering all components from source "${source}"`);
-    this.slots.forEach((components, slotId) => {
+    this.slots.forEach((_, slotId) => {
       this.unregister(slotId, source);
     });
   }

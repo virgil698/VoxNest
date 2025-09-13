@@ -13,7 +13,8 @@ import {
   LoginOutlined,
   FileTextOutlined,
   PlusOutlined,
-  SearchOutlined
+  SearchOutlined,
+  SettingOutlined
 } from '@ant-design/icons';
 import { useAuthStore } from '../../stores/authStore';
 import { ConditionalSlot } from '../../extensions';
@@ -50,28 +51,45 @@ export const EnhancedLayout: React.FC = () => {
     },
   ];
 
-  // 用户下拉菜单
-  const userMenuItems: MenuProps['items'] = [
-    {
-      key: '/user/profile',
-      icon: <UserOutlined />,
-      label: '个人资料',
-    },
-    {
-      key: '/user/posts',
-      icon: <FileTextOutlined />,
-      label: '我的帖子',
-    },
-    {
-      type: 'divider',
-    },
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: '退出登录',
-      danger: true,
-    },
-  ];
+  // 动态生成用户下拉菜单（根据角色显示不同选项）
+  const getUserMenuItems = (): MenuProps['items'] => {
+    const baseItems: MenuProps['items'] = [
+      {
+        key: '/user/profile',
+        icon: <UserOutlined />,
+        label: '个人资料',
+      },
+      {
+        key: '/user/posts',
+        icon: <FileTextOutlined />,
+        label: '我的帖子',
+      },
+    ];
+
+    // 如果是管理员，添加管理面板选项
+    if (user?.roles?.includes('Admin')) {
+      baseItems.push({
+        key: '/admin',
+        icon: <SettingOutlined />,
+        label: '管理面板',
+      });
+    }
+
+    // 添加分隔线和退出登录
+    baseItems.push(
+      {
+        type: 'divider',
+      },
+      {
+        key: 'logout',
+        icon: <LogoutOutlined />,
+        label: '退出登录',
+        danger: true,
+      }
+    );
+
+    return baseItems;
+  };
 
   // 处理主菜单点击
   const handleMenuClick = ({ key }: { key: string }) => {
@@ -83,6 +101,8 @@ export const EnhancedLayout: React.FC = () => {
     if (key === 'logout') {
       logout();
       navigate('/');
+    } else if (key === '/admin') {
+      navigate('/admin');
     } else {
       navigate(key);
     }
@@ -116,7 +136,7 @@ export const EnhancedLayout: React.FC = () => {
 
   return (
     <AntdLayout style={{ minHeight: '100vh', background: 'transparent' }}>
-      <Header style={{ 
+      <Header className="voxnest-mobile-header" style={{ 
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'space-between',
@@ -131,14 +151,15 @@ export const EnhancedLayout: React.FC = () => {
         gap: '24px'
       }}>
         {/* Logo和主导航 */}
-        <div style={{ display: 'flex', alignItems: 'center', flex: '0 0 auto' }}>
+        <div className="voxnest-header-left" style={{ display: 'flex', alignItems: 'center', flex: '0 0 auto' }}>
           {/* Header Left Slot - 可以用于扩展Logo区域 */}
           <ConditionalSlot
             id="header.left"
-            style={{ marginRight: '24px' }}
+            className="voxnest-header-slot-left"
           />
           
           <div 
+            className="voxnest-logo"
             style={{ 
               fontSize: '24px', 
               fontWeight: '700', 
@@ -154,6 +175,7 @@ export const EnhancedLayout: React.FC = () => {
             VoxNest
           </div>
           <Menu
+            className="voxnest-header-menu"
             mode="horizontal"
             selectedKeys={selectedKeys}
             items={mainMenuItems}
@@ -168,10 +190,10 @@ export const EnhancedLayout: React.FC = () => {
         </div>
 
         {/* 搜索框 */}
-        <div style={{ 
+        <div className="voxnest-header-search" style={{ 
           flex: '1 1 auto', 
           maxWidth: '400px', 
-          minWidth: '200px', 
+          minWidth: '120px', 
           display: 'flex',
           justifyContent: 'center'
         }}>
@@ -204,7 +226,7 @@ export const EnhancedLayout: React.FC = () => {
         </div>
 
         {/* 右侧操作区 */}
-        <Space size="middle">
+        <Space className="voxnest-header-actions" size="middle">
           {/* Header Right Slot - 可以添加额外的按钮 */}
           <ConditionalSlot id="header.right" />
           
@@ -216,62 +238,59 @@ export const EnhancedLayout: React.FC = () => {
                 type="primary"
                 icon={<PlusOutlined />}
                 onClick={handleCreatePost}
+                className="voxnest-create-post-btn"
               >
-                发帖
+                <span className="voxnest-btn-text">发帖</span>
               </Button>
-              
-                    {/* 管理面板入口（仅管理员可见） */}
-                    {user.roles?.includes('Admin') && (
-                      <Button
-                        type="link"
-                        onClick={() => navigate('/admin')}
-                        style={{ padding: '4px 8px' }}
-                      >
-                        管理面板
-                      </Button>
-                    )}
 
-                    {/* 用户信息下拉菜单 */}
-                    <Dropdown
-                      menu={{
-                        items: userMenuItems,
-                        onClick: handleUserMenuClick,
-                      }}
-                      placement="bottomRight"
-                    >
+              {/* 用户信息下拉菜单 */}
+              <Dropdown
+                menu={{
+                  items: getUserMenuItems(),
+                  onClick: handleUserMenuClick,
+                }}
+                placement="bottomRight"
+                className="voxnest-user-dropdown"
+              >
                       <Space style={{ cursor: 'pointer' }}>
                         <Avatar
                           src={user.avatar}
                           icon={<UserOutlined />}
                           size="default"
                         />
-                        <span>{user.displayName || user.username}</span>
+                        <span className="voxnest-username">{user.displayName || user.username}</span>
                       </Space>
                     </Dropdown>
             </>
           ) : (
             /* 用户未登录时显示注册和登录按钮 */
             <>
-              <Button onClick={() => navigate('/auth/register')}>
-                注册
+              <Button 
+                onClick={() => navigate('/auth/register')}
+                className="voxnest-register-btn"
+              >
+                <span className="voxnest-btn-text">注册</span>
               </Button>
               <Button 
                 type="primary"
                 icon={<LoginOutlined />}
                 onClick={handleLogin}
+                className="voxnest-login-btn"
               >
-                登录
+                <span className="voxnest-btn-text">登录</span>
               </Button>
             </>
           )}
         </Space>
       </Header>
 
-      <Content style={{ padding: '32px 24px', background: 'transparent' }}>
+      <Content className="voxnest-main-content" style={{ padding: '32px 24px', background: 'transparent' }}>
         <div style={{ 
           maxWidth: '1400px', 
           margin: '0 auto',
-          minHeight: 'calc(100vh - 160px)'
+          minHeight: 'calc(100vh - 160px)',
+          width: '100%',
+          overflowX: 'hidden'
         }}>
           {/* Content Before Slot - 在主内容之前显示 */}
           <ConditionalSlot id="content.before" />

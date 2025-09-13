@@ -123,8 +123,8 @@ public static class SecurityKeyGenerator
             ["JWT_SECRET_KEY"] = GenerateJwtKey(),
             ["JWT_ISSUER"] = "VoxNest.Server",
             ["JWT_AUDIENCE"] = "VoxNest.Client",
-            ["DATABASE_CONNECTION_STRING"] = $"Server=localhost;Database={databaseName};User=root;Password=virgil698;Port=3307;CharSet=utf8mb4;ConnectionTimeout=60;CommandTimeout=300;Pooling=true;MinimumPoolSize=5;MaximumPoolSize=50;ConnectionLifeTime=3600;",
-            ["MIGRATION_CONNECTION_STRING"] = $"Server=localhost;Database={databaseName}_Migration;User=root;Password=virgil698;Port=3307;CharSet=utf8mb4;ConnectionTimeout=60;CommandTimeout=300;Pooling=true;MinimumPoolSize=5;MaximumPoolSize=50;ConnectionLifeTime=3600;",
+            ["DATABASE_CONNECTION_STRING"] = $"# 数据库连接字符串由 server-config.yml 统一管理，数据库名: {databaseName}",
+            ["MIGRATION_CONNECTION_STRING"] = $"# 迁移数据库连接字符串由 server-config.yml 统一管理，数据库名: {databaseName}_Migration",
             ["SECURITY_REQUIRE_HTTPS_METADATA"] = environment == "Production" ? "true" : "false",
             ["LOG_LEVEL"] = environment == "Production" ? "Warning" : "Information"
         };

@@ -90,13 +90,49 @@ const Home: React.FC = () => {
     }
   };
 
-  // 简单的在线用户计算逻辑
+  // 优化的在线用户计算逻辑
   const calculateOnlineUsers = () => {
-    // 基于当前访问的用户数量进行估算
-    // 这是一个简化的实现，实际应用中可以使用WebSocket或其他实时技术
-    const baseOnlineUsers = Math.max(1, Math.floor((siteStats?.activeUsers || 0) * 0.1));
-    const randomVariation = Math.floor(Math.random() * 3); // 添加一些随机变化
-    setOnlineUsers(baseOnlineUsers + randomVariation);
+    // 生成或获取设备唯一标识
+    const getDeviceId = () => {
+      let deviceId = localStorage.getItem('voxnest_device_id');
+      if (!deviceId) {
+        deviceId = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem('voxnest_device_id', deviceId);
+      }
+      return deviceId;
+    };
+
+    // 更新当前会话的最后活跃时间
+    const updateActiveSession = () => {
+      const deviceId = getDeviceId();
+      const now = Date.now();
+      const activeSessions = JSON.parse(localStorage.getItem('voxnest_active_sessions') || '{}');
+      
+      // 清除超过5分钟未活跃的会话
+      const fiveMinutesAgo = now - (5 * 60 * 1000);
+      Object.keys(activeSessions).forEach(sessionId => {
+        if (activeSessions[sessionId] < fiveMinutesAgo) {
+          delete activeSessions[sessionId];
+        }
+      });
+
+      // 更新当前设备的活跃时间
+      activeSessions[deviceId] = now;
+      localStorage.setItem('voxnest_active_sessions', JSON.stringify(activeSessions));
+      
+      return Object.keys(activeSessions).length;
+    };
+
+    // 计算当前活跃会话数
+    const activeSessionCount = updateActiveSession();
+    
+    // 基于真实数据和模拟数据的混合计算
+    const baseOnlineUsers = Math.max(1, Math.floor((siteStats?.activeUsers || 0) * 0.08)); // 降低基础比例
+    const sessionBasedUsers = Math.min(activeSessionCount, 10); // 限制最大会话贡献
+    const randomVariation = Math.floor(Math.random() * 2); // 减少随机波动
+    
+    const totalOnlineUsers = baseOnlineUsers + sessionBasedUsers + randomVariation;
+    setOnlineUsers(Math.max(1, totalOnlineUsers)); // 确保至少显示1个在线用户
   };
 
   // 页面加载时获取帖子列表
@@ -121,11 +157,50 @@ const Home: React.FC = () => {
     }
   }, [siteStats]);
 
-  // 定期更新在线用户数（每30秒）
+  // 定期更新在线用户数和活跃状态
   useEffect(() => {
     if (siteStats) {
-      const interval = setInterval(calculateOnlineUsers, 30000);
-      return () => clearInterval(interval);
+      // 立即计算一次
+      calculateOnlineUsers();
+      
+      // 每15秒更新一次在线用户数
+      const interval = setInterval(calculateOnlineUsers, 15000);
+      
+      // 页面可见性变化时更新活跃状态
+      const handleVisibilityChange = () => {
+        if (!document.hidden) {
+          // 页面变为可见时立即更新
+          calculateOnlineUsers();
+        }
+      };
+      
+      // 页面获得焦点时更新
+      const handleFocus = () => {
+        calculateOnlineUsers();
+      };
+      
+      // 鼠标移动或键盘活动时更新（节流）
+      let activityTimeout: NodeJS.Timeout;
+      const handleActivity = () => {
+        clearTimeout(activityTimeout);
+        activityTimeout = setTimeout(calculateOnlineUsers, 1000);
+      };
+      
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      window.addEventListener('focus', handleFocus);
+      document.addEventListener('mousemove', handleActivity);
+      document.addEventListener('keydown', handleActivity);
+      document.addEventListener('scroll', handleActivity);
+      
+      return () => {
+        clearInterval(interval);
+        clearTimeout(activityTimeout);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        window.removeEventListener('focus', handleFocus);
+        document.removeEventListener('mousemove', handleActivity);
+        document.removeEventListener('keydown', handleActivity);
+        document.removeEventListener('scroll', handleActivity);
+      };
     }
   }, [siteStats]);
 

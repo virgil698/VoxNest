@@ -195,6 +195,269 @@
   border-color: var(--primary-color);
 }
 
+/* MDEditor 工具栏图标样式 */
+.w-md-editor-toolbar {
+  border-bottom: 1px solid var(--border-color) !important;
+  background: var(--bg-secondary) !important;
+  min-height: 50px !important;
+  padding: 8px 12px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.w-md-editor-toolbar button {
+  padding: 10px 12px !important;
+  margin: 3px !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+  min-height: 36px !important;
+  min-width: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+}
+
+.w-md-editor-toolbar button:hover {
+  background: var(--primary-color) !important;
+  color: white !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3) !important;
+}
+
+/* 放大工具栏图标 */
+.w-md-editor-toolbar button svg {
+  width: 18px !important;
+  height: 18px !important;
+  font-size: 18px !important;
+}
+
+.w-md-editor-toolbar .w-md-editor-toolbar-child {
+  margin-left: 8px !important;
+}
+
+.w-md-editor-toolbar .w-md-editor-toolbar-child button {
+  padding: 8px 10px !important;
+  min-height: 32px !important;
+  min-width: 32px !important;
+}
+
+.w-md-editor-toolbar .w-md-editor-toolbar-child button svg {
+  width: 16px !important;
+  height: 16px !important;
+  font-size: 16px !important;
+}
+
+/* 工具栏按钮中文工具提示 */
+.w-md-editor-toolbar button {
+  position: relative !important;
+}
+
+.w-md-editor-toolbar button[data-tooltip]::after {
+  content: attr(data-tooltip) !important;
+  position: absolute !important;
+  bottom: -50px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: rgba(0, 0, 0, 0.9) !important;
+  color: white !important;
+  padding: 8px 12px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  white-space: nowrap !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: all 0.3s ease !important;
+  z-index: 1000 !important;
+  pointer-events: none !important;
+  max-width: 200px !important;
+  text-align: center !important;
+}
+
+.w-md-editor-toolbar button[data-tooltip]::before {
+  content: '' !important;
+  position: absolute !important;
+  bottom: -42px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  border: 4px solid transparent !important;
+  border-bottom-color: rgba(0, 0, 0, 0.9) !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: all 0.3s ease !important;
+  z-index: 1001 !important;
+}
+
+.w-md-editor-toolbar button[data-tooltip]:hover::after,
+.w-md-editor-toolbar button[data-tooltip]:hover::before {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transition-delay: 0.5s !important;
+}
+
+/* 修复预览模式按钮组样式 - 使用更具体的选择器 */
+div.w-md-editor div.w-md-editor-toolbar > div.w-md-editor-toolbar-child:not(:first-child) {
+  display: flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 8px !important;
+  padding: 2px !important;
+  border: 1px solid var(--border-color) !important;
+  margin-left: 8px !important;
+}
+
+/* 预览模式按钮样式 */
+div.w-md-editor div.w-md-editor-toolbar > div.w-md-editor-toolbar-child:not(:first-child) button {
+  margin: 0 !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+  padding: 6px 8px !important;
+  min-height: 32px !important;
+  min-width: 32px !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+/* 预览模式按钮激活状态 */
+div.w-md-editor div.w-md-editor-toolbar > div.w-md-editor-toolbar-child:not(:first-child) button.active,
+div.w-md-editor div.w-md-editor-toolbar > div.w-md-editor-toolbar-child:not(:first-child) button[data-active="true"] {
+  background: var(--primary-color) !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3) !important;
+}
+
+/* 预览模式按钮悬停效果 */
+div.w-md-editor div.w-md-editor-toolbar > div.w-md-editor-toolbar-child:not(:first-child) button:hover {
+  background: rgba(79, 70, 229, 0.1) !important;
+  transform: none !important;
+}
+
+/* 预览模式按钮工具提示位置优化 */
+.w-md-editor-toolbar .w-md-editor-toolbar-child button[data-tooltip]::after {
+  bottom: -55px !important;
+  font-size: 11px !important;
+  padding: 6px 10px !important;
+  max-width: 180px !important;
+}
+
+/* 使用最高优先级选择器彻底隐藏标题下拉菜单 */
+div.w-md-editor div.w-md-editor-toolbar div.w-md-editor-toolbar-child ul.w-md-editor-toolbar-child-list,
+.w-md-editor-toolbar-child-list,
+ul.w-md-editor-toolbar-child-list,
+[class*="w-md-editor-toolbar-child-list"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  left: -10000px !important;
+  top: -10000px !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 0 !important;
+  height: 0 !important;
+  max-width: 0 !important;
+  max-height: 0 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  z-index: -999 !important;
+  transform: scale(0) !important;
+  transition: none !important;
+  animation: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(100%) !important;
+}
+
+/* 防止任何状态显示菜单 - 使用更具体的选择器 */
+div.w-md-editor div.w-md-editor-toolbar div.w-md-editor-toolbar-child:hover ul.w-md-editor-toolbar-child-list,
+div.w-md-editor div.w-md-editor-toolbar div.w-md-editor-toolbar-child:focus ul.w-md-editor-toolbar-child-list,
+div.w-md-editor div.w-md-editor-toolbar div.w-md-editor-toolbar-child:active ul.w-md-editor-toolbar-child-list,
+div.w-md-editor div.w-md-editor-toolbar div.w-md-editor-toolbar-child.active ul.w-md-editor-toolbar-child-list,
+div.w-md-editor div.w-md-editor-toolbar div.w-md-editor-toolbar-child.w-md-editor-toolbar-child-open ul.w-md-editor-toolbar-child-list,
+div.w-md-editor div.w-md-editor-toolbar div.w-md-editor-toolbar-child[aria-expanded="true"] ul.w-md-editor-toolbar-child-list {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  left: -10000px !important;
+  top: -10000px !important;
+  width: 0 !important;
+  height: 0 !important;
+  transform: scale(0) !important;
+}
+
+/* 移除下拉箭头 */
+div.w-md-editor div.w-md-editor-toolbar div.w-md-editor-toolbar-child > button::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* 重置标题按钮样式，确保不受影响（仅针对第一个标题按钮组） */
+div.w-md-editor div.w-md-editor-toolbar > div.w-md-editor-toolbar-child:first-child > button {
+  position: relative !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 8px 12px !important;
+  margin: 3px !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+  min-height: 36px !important;
+  min-width: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 确保主工具栏按钮样式正确 */
+div.w-md-editor div.w-md-editor-toolbar > button {
+  position: relative !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 8px 12px !important;
+  margin: 3px !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+  min-height: 36px !important;
+  min-width: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 工具栏按钮悬停效果 */
+div.w-md-editor div.w-md-editor-toolbar > button:hover,
+div.w-md-editor div.w-md-editor-toolbar > div.w-md-editor-toolbar-child:first-child > button:hover {
+  background: var(--primary-color) !important;
+  color: white !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3) !important;
+}
+
+
+/* MDEditor 编辑器区域样式 */
+.w-md-editor {
+  background: var(--bg-primary) !important;
+  border: none !important;
+}
+
+.w-md-editor-text-area {
+  color: var(--text-primary) !important;
+  background: var(--bg-primary) !important;
+  border: none !important;
+}
+
+.w-md-editor-text-area:focus {
+  box-shadow: none !important;
+  border: none !important;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .post-item {
@@ -220,4 +483,376 @@
   .post-form {
     padding: 20px;
   }
+  
+  /* 移动端工具栏图标稍小一些 */
+  .w-md-editor-toolbar button svg {
+    width: 16px !important;
+    height: 16px !important;
+    font-size: 16px !important;
+  }
+  
+  .w-md-editor-toolbar .w-md-editor-toolbar-child button svg {
+    width: 14px !important;
+    height: 14px !important;
+    font-size: 14px !important;
+  }
+  
+  /* 移动端工具提示位置调整 */
+  .w-md-editor-toolbar button[data-tooltip]::after {
+    font-size: 11px !important;
+    padding: 6px 10px !important;
+    bottom: -45px !important;
+  }
+  
+  .w-md-editor-toolbar button[data-tooltip]::before {
+    bottom: -37px !important;
+  }
+
+  /* 移动端 MDEditor 整体布局优化 */
+  .w-md-editor {
+    min-height: 400px !important;
+    border-radius: 8px !important;
+  }
+
+  /* 移动端工具栏优化 */
+  .w-md-editor-toolbar {
+    padding: 8px !important;
+    min-height: 50px !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important; /* Firefox */
+    -ms-overflow-style: none !important; /* IE/Edge */
+  }
+
+  .w-md-editor-toolbar::-webkit-scrollbar {
+    display: none !important; /* Chrome/Safari/Opera */
+  }
+  
+  /* 移动端工具栏按钮优化 */
+  .w-md-editor-toolbar > button {
+    min-width: 40px !important;
+    min-height: 40px !important;
+    padding: 8px !important;
+    margin: 2px !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    flex-shrink: 0 !important;
+    touch-action: manipulation !important;
+  }
+
+  /* 预览模式按钮组移动端优化 */
+  .w-md-editor-toolbar .w-md-editor-toolbar-child {
+    margin-left: 8px !important;
+    gap: 4px !important;
+  }
+
+  .w-md-editor-toolbar .w-md-editor-toolbar-child > button {
+    min-width: 44px !important;
+    min-height: 40px !important;
+    padding: 8px 10px !important;
+  }
+
+  /* 移动端文本区域优化 */
+  .w-md-editor-text-area,
+  .w-md-editor-text-input,
+  .w-md-editor-text {
+    font-size: 16px !important; /* 防止iOS缩放 */
+    line-height: 1.6 !important;
+    padding: 16px !important;
+  }
+
+  /* 移动端预览区域优化 */
+  .w-md-editor-preview {
+    padding: 16px !important;
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+  }
+
+  /* 创建帖子表单移动端优化 */
+  .voxnest-gradient-bg {
+    padding: 16px 0 !important;
+  }
+
+  .voxnest-gradient-bg > div {
+    padding: 0 16px !important;
+  }
+
+  /* 表单卡片移动端优化 */
+  .ant-card.voxnest-post-card {
+    margin: 8px 0 !important;
+    border-radius: 12px !important;
+  }
+
+  /* 表单项间距优化 */
+  .ant-form-item {
+    margin-bottom: 20px !important;
+  }
+
+  /* 移动端发布按钮优化 */
+  .ant-btn[type="submit"],
+  .ant-form-item:last-child .ant-btn {
+    width: 100% !important;
+    height: 48px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+  }
+}
+
+/* 超小屏幕优化 (480px以下) */
+@media (max-width: 479px) {
+  .post-form {
+    padding: 12px !important;
+  }
+
+  .voxnest-gradient-bg > div {
+    padding: 0 12px !important;
+  }
+
+  .w-md-editor {
+    min-height: 350px !important;
+  }
+
+  .w-md-editor-toolbar {
+    padding: 6px !important;
+    min-height: 48px !important;
+  }
+
+  .w-md-editor-toolbar > button {
+    min-width: 36px !important;
+    min-height: 36px !important;
+    padding: 6px !important;
+    margin: 1px !important;
+    font-size: 12px !important;
+  }
+
+  .w-md-editor-toolbar button svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .w-md-editor-toolbar .w-md-editor-toolbar-child button svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+
+  .w-md-editor-text-area,
+  .w-md-editor-text-input,
+  .w-md-editor-text {
+    font-size: 16px !important;
+    padding: 12px !important;
+  }
+
+  .w-md-editor-preview {
+    padding: 12px !important;
+    font-size: 14px !important;
+  }
+
+  /* 工具提示在超小屏幕隐藏，避免干扰 */
+  .w-md-editor-toolbar button[data-tooltip]::after,
+  .w-md-editor-toolbar button[data-tooltip]::before {
+    display: none !important;
+  }
+
+  .post-detail-title {
+    font-size: 20px !important;
+  }
+
+  .post-detail-content,
+  .post-detail-header {
+    padding: 16px !important;
+  }
+}
+
+/* 全局强制隐藏规则 - 放在文件末尾确保最高优先级 */
+* .w-md-editor-toolbar-child-list,
+*[class*="toolbar-child-list"],
+*[class*="header-list"],
+*[class*="title-list"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  left: -10000px !important;
+  top: -10000px !important;
+  pointer-events: none !important;
+  z-index: -999 !important;
+  transform: scale(0) !important;
+  clip: rect(0, 0, 0, 0) !important;
+}
+
+/* ====== 视频嵌入样式 ====== */
+
+/* 基础视频iframe样式 */
+.voxnest-video-embed {
+  max-width: 100%;
+  width: 100%;
+  height: 315px;
+  border: none;
+  border-radius: 12px;
+  margin: 20px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  display: block;
+}
+
+.voxnest-video-embed:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* 响应式视频容器 */
+.voxnest-video-container {
+  position: relative;
+  width: 100%;
+  margin: 20px 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.voxnest-video-container:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.voxnest-video-container::before {
+  content: '';
+  display: block;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 宽高比 */
+}
+
+.voxnest-video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* 针对B站视频的特殊处理 */
+iframe[src*="bilibili.com"],
+iframe[src*="player.bilibili.com"] {
+  width: 100% !important;
+  height: 315px !important;
+  min-height: 315px !important;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  margin: 20px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* 针对YouTube视频的特殊处理 */
+iframe[src*="youtube.com"],
+iframe[src*="youtu.be"] {
+  width: 100% !important;
+  height: 315px !important;
+  min-height: 315px !important;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  margin: 20px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* 视频悬停效果 */
+iframe[src*="bilibili.com"]:hover,
+iframe[src*="player.bilibili.com"]:hover,
+iframe[src*="youtube.com"]:hover,
+iframe[src*="youtu.be"]:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .voxnest-video-embed,
+  iframe[src*="bilibili.com"],
+  iframe[src*="player.bilibili.com"],
+  iframe[src*="youtube.com"],
+  iframe[src*="youtu.be"] {
+    margin: 16px 0 !important;
+    border-radius: 8px !important;
+    height: 200px !important;
+    min-height: 200px !important;
+  }
+  
+  .voxnest-video-container {
+    margin: 16px 0;
+    border-radius: 8px;
+  }
+  
+  .voxnest-video-container::before {
+    padding-top: 75%; /* 移动端使用4:3比例 */
+  }
+}
+
+/* MDEditor预览区域中的视频样式 */
+.w-md-editor-preview iframe,
+.w-md-editor-preview-live iframe,
+.wmde-markdown iframe {
+  max-width: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 315px !important;
+  display: block !important;
+  margin: 20px auto !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
+}
+
+/* 确保在帖子详情页中正确显示 */
+.post-detail-content iframe {
+  max-width: 100% !important;
+  width: 100% !important;
+  height: 315px !important;
+  min-height: 315px !important;
+  display: block !important;
+  margin: 20px auto !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  border: none !important;
+}
+
+/* 视频加载状态 */
+iframe[data-loading="true"] {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0f0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: videoLoading 1.5s infinite;
+}
+
+@keyframes videoLoading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 确保iframe在所有容器中都能正确显示 */
+div iframe[src*="bilibili.com"],
+div iframe[src*="player.bilibili.com"],
+div iframe[src*="youtube.com"],
+div iframe[src*="youtu.be"],
+.ant-card iframe,
+.post-content iframe {
+  width: 100% !important;
+  height: auto !important;
+  min-height: 315px !important;
+  aspect-ratio: 16 / 9 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  margin: 20px 0 !important;
+  border: none !important;
+  display: block !important;
 }

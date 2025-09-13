@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Form, Input, Button, Card, message, Select, Space } from 'antd';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Form, Input, Button, Card, message, Space } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
 import { usePostStore } from '../../stores/postStore';
@@ -8,6 +8,8 @@ import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 import '@uiw/react-markdown-preview/markdown.css';
 import rehypeSanitize from 'rehype-sanitize';
+import { videoEmbedSchema, processAllVideoEmbeds } from '../../utils/videoEmbedConfig';
+import '../../styles/components/Post.css';
 
 const { TextArea } = Input;
 
@@ -17,6 +19,159 @@ const CreatePost: React.FC = () => {
   const [form] = Form.useForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [markdownContent, setMarkdownContent] = useState<string | undefined>('');
+
+  // 优化MDEditor的onChange处理，避免循环引用
+  const handleMarkdownChange = useCallback((val: string | undefined) => {
+    // 处理视频嵌入优化
+    const processedContent = val ? processAllVideoEmbeds(val) : val;
+    setMarkdownContent(processedContent);
+    // 使用异步更新避免循环引用
+    setTimeout(() => {
+      form.setFieldValue('content', processedContent);
+    }, 0);
+  }, [form]);
+
+
+  // 设置工具栏按钮的中文提示（性能优化版本）
+  useEffect(() => {
+    const setToolbarTooltips = () => {
+      const toolbar = document.querySelector('.w-md-editor-toolbar');
+      if (!toolbar) return;
+      
+      // 强制隐藏所有标题下拉菜单
+      const hideHeaderMenus = () => {
+        const menus = document.querySelectorAll('.w-md-editor-toolbar-child-list');
+        menus.forEach(menu => {
+          (menu as HTMLElement).style.display = 'none';
+          (menu as HTMLElement).style.visibility = 'hidden';
+          (menu as HTMLElement).style.opacity = '0';
+          (menu as HTMLElement).style.position = 'absolute';
+          (menu as HTMLElement).style.left = '-10000px';
+          (menu as HTMLElement).style.top = '-10000px';
+          (menu as HTMLElement).style.pointerEvents = 'none';
+          (menu as HTMLElement).style.zIndex = '-999';
+          
+          // 移除可能导致显示的事件监听器
+          menu.removeEventListener('mouseenter', () => {});
+          menu.removeEventListener('click', () => {});
+        });
+        
+        // 禁用标题按钮的下拉功能
+        const headerButtons = document.querySelectorAll('.w-md-editor-toolbar-child:first-child button');
+        headerButtons.forEach(button => {
+          button.removeAttribute('aria-expanded');
+          button.removeAttribute('data-state');
+          (button as HTMLElement).onclick = null; // 移除点击事件
+        });
+      };
+      
+      // 立即执行和延迟执行隐藏
+      hideHeaderMenus();
+      setTimeout(hideHeaderMenus, 100);
+      
+      // 使用更高效的选择器，避免过度查询
+      const buttons = toolbar.querySelectorAll('button:not([data-tooltip-set])');
+      
+      buttons.forEach((button) => {
+        let tooltipText = '';
+        
+        // 简化工具提示逻辑，优先处理常用按钮
+        const ariaLabel = button.getAttribute('aria-label');
+        if (ariaLabel) {
+          if (ariaLabel.includes('bold')) tooltipText = '粗体';
+          else if (ariaLabel.includes('italic')) tooltipText = '斜体';
+          else if (ariaLabel.includes('header') || ariaLabel.includes('title')) tooltipText = '添加标题';
+          else if (ariaLabel.includes('strikethrough')) tooltipText = '删除线';
+          else if (ariaLabel.includes('hr')) tooltipText = '分割线';
+          else if (ariaLabel.includes('unordered') || ariaLabel.includes('ul')) tooltipText = '无序列表';
+          else if (ariaLabel.includes('ordered') || ariaLabel.includes('ol')) tooltipText = '有序列表';
+          else if (ariaLabel.includes('link')) tooltipText = '添加链接';
+          else if (ariaLabel.includes('quote')) tooltipText = '引用';
+          else if (ariaLabel.includes('code')) tooltipText = ariaLabel.includes('block') ? '代码块' : '行内代码';
+          else if (ariaLabel.includes('image')) tooltipText = '添加图片';
+          else if (ariaLabel.includes('table')) tooltipText = '添加表格';
+          else if (ariaLabel.includes('preview')) tooltipText = '预览模式（只显示渲染结果）';
+          else if (ariaLabel.includes('edit')) tooltipText = '编辑模式（只显示Markdown源代码）';
+          else if (ariaLabel.includes('live')) tooltipText = '分屏模式（左侧代码右侧预览）';
+        }
+        
+        // 特殊处理预览模式按钮（简化版本）
+        if (!tooltipText && button.closest('.w-md-editor-toolbar-child')) {
+          const parentGroup = button.closest('.w-md-editor-toolbar-child');
+          if (parentGroup) {
+            const groupButtons = parentGroup.querySelectorAll('button');
+            const buttonIndex = Array.from(groupButtons).indexOf(button as HTMLButtonElement);
+            
+            if (groupButtons.length === 3 && buttonIndex >= 0) {
+              const previewModes = [
+                '编辑模式（只显示Markdown源代码）',
+                '分屏模式（左侧代码右侧预览）',
+                '预览模式（只显示渲染结果）'
+              ];
+              tooltipText = previewModes[buttonIndex] || '';
+            }
+          }
+        }
+        
+        if (tooltipText) {
+          button.setAttribute('data-tooltip', tooltipText);
+          button.setAttribute('title', tooltipText);
+          button.setAttribute('data-tooltip-set', 'true'); // 标记已设置，避免重复处理
+        }
+      });
+    };
+
+    // 延迟执行以确保MDEditor已经完全渲染
+    const timer = setTimeout(setToolbarTooltips, 200);
+    
+    // 使用更轻量的监听器，只在必要时重新设置提示
+    const observer = new MutationObserver((mutations) => {
+      // 只在工具栏变化时处理
+      const hasToolbarChanges = mutations.some(mutation => {
+        const target = mutation.target as Element;
+        return target.classList?.contains('w-md-editor-toolbar') || 
+               target.querySelector?.('.w-md-editor-toolbar') ||
+               target.classList?.contains('w-md-editor-toolbar-child-list');
+      });
+      
+      if (hasToolbarChanges) {
+        // 使用requestAnimationFrame优化性能
+        requestAnimationFrame(() => {
+          setToolbarTooltips();
+        });
+      }
+    });
+    
+    // 定时强制隐藏菜单（兜底机制）
+    const forceHideInterval = setInterval(() => {
+      const menus = document.querySelectorAll('.w-md-editor-toolbar-child-list');
+      menus.forEach(menu => {
+        if ((menu as HTMLElement).style.display !== 'none') {
+          (menu as HTMLElement).style.display = 'none';
+          (menu as HTMLElement).style.visibility = 'hidden';
+          (menu as HTMLElement).style.opacity = '0';
+          (menu as HTMLElement).style.position = 'absolute';
+          (menu as HTMLElement).style.left = '-10000px';
+          (menu as HTMLElement).style.pointerEvents = 'none';
+        }
+      });
+    }, 500); // 每500ms检查一次
+    
+    const editorContainer = document.querySelector('.w-md-editor');
+    if (editorContainer) {
+      observer.observe(editorContainer, { 
+        childList: true, 
+        subtree: true, // 监听子树变化，捕获动态添加的菜单
+        attributes: false // 不监听属性变化，减少触发频率
+      });
+    }
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(forceHideInterval);
+      observer.disconnect();
+    };
+  }, [markdownContent]);
 
   const handleSubmit = async (values: CreatePostRequest) => {
     try {
@@ -213,19 +368,16 @@ const CreatePost: React.FC = () => {
               }}>
                 <MDEditor
                   value={markdownContent}
-                  onChange={(val) => {
-                    setMarkdownContent(val);
-                    form.setFieldValue('content', val);
-                  }}
+                  onChange={handleMarkdownChange}
                   preview="edit"
                   hideToolbar={false}
                   height={450}
                   data-color-mode="light"
                   previewOptions={{
-                    rehypePlugins: [[rehypeSanitize]]
+                    rehypePlugins: [[rehypeSanitize, videoEmbedSchema]]
                   }}
                   textareaProps={{
-                    placeholder: '支持 Markdown 语法：\n\n# 一级标题\n## 二级标题\n\n**粗体文字** *斜体文字*\n\n- 无序列表\n1. 有序列表\n\n> 引用内容\n\n[链接文字](URL)\n![图片描述](图片URL)\n\n```javascript\n// 代码块\nconsole.log("Hello World!");\n```\n\n让你的帖子更精彩！',
+                    placeholder: '支持 Markdown 语法和视频嵌入：\n\n# 一级标题\n## 二级标题\n\n**粗体文字** *斜体文字*\n\n- 无序列表\n1. 有序列表\n\n> 引用内容\n\n[链接文字](URL)\n![图片描述](图片URL)\n\n```javascript\n// 代码块\nconsole.log("Hello World!");\n```\n\n🎬 支持视频嵌入：\n\nB站视频：\n<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=883823306&bvid=BV1fK4y1s7Qf&cid=213186693&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>\n\nYouTube视频：\n<iframe width="560" height="315" src="https://www.youtube.com/embed/视频ID" title="YouTube video player" frameborder="0" allowfullscreen></iframe>\n\n让你的帖子更精彩！',
                     style: {
                       fontSize: '15px',
                       lineHeight: '1.6',
@@ -240,6 +392,8 @@ const CreatePost: React.FC = () => {
               </div>
             </Form.Item>
 
+            {/* 暂时隐藏分类和标签选择，待数据库中有相应数据后启用 */}
+            {/*
             <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
               <Form.Item
                 name="categoryId"
@@ -247,18 +401,14 @@ const CreatePost: React.FC = () => {
                 style={{ flex: 1 }}
               >
                 <Select
-                  placeholder="选择帖子分类"
+                  placeholder="选择帖子分类（暂未启用）"
+                  disabled
                   allowClear
                   size="large"
                   style={{
                     borderRadius: '12px'
                   }}
                 >
-                  <Select.Option value="tech">💻 技术讨论</Select.Option>
-                  <Select.Option value="general">💬 综合讨论</Select.Option>
-                  <Select.Option value="news">📰 新闻资讯</Select.Option>
-                  <Select.Option value="qa">❓ 问答求助</Select.Option>
-                  <Select.Option value="share">📚 经验分享</Select.Option>
                 </Select>
               </Form.Item>
 
@@ -269,7 +419,8 @@ const CreatePost: React.FC = () => {
               >
                 <Select
                   mode="multiple"
-                  placeholder="添加相关标签"
+                  placeholder="添加相关标签（暂未启用）"
+                  disabled
                   allowClear
                   size="large"
                   style={{
@@ -277,24 +428,10 @@ const CreatePost: React.FC = () => {
                   }}
                   maxTagCount={5}
                 >
-                  <Select.Option value="javascript">JavaScript</Select.Option>
-                  <Select.Option value="react">React</Select.Option>
-                  <Select.Option value="nodejs">Node.js</Select.Option>
-                  <Select.Option value="css">CSS</Select.Option>
-                  <Select.Option value="html">HTML</Select.Option>
-                  <Select.Option value="python">Python</Select.Option>
-                  <Select.Option value="java">Java</Select.Option>
-                  <Select.Option value="csharp">C#</Select.Option>
-                  <Select.Option value="frontend">前端开发</Select.Option>
-                  <Select.Option value="backend">后端开发</Select.Option>
-                  <Select.Option value="mobile">移动开发</Select.Option>
-                  <Select.Option value="database">数据库</Select.Option>
-                  <Select.Option value="devops">DevOps</Select.Option>
-                  <Select.Option value="ai">人工智能</Select.Option>
-                  <Select.Option value="ml">机器学习</Select.Option>
                 </Select>
               </Form.Item>
             </div>
+            */}
 
             {/* 发布提示 */}
             <div style={{

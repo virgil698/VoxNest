@@ -98,4 +98,162 @@
   .voxnest-header {
     padding: 0 16px;
   }
+
+  /* 移动端 Header 优化 */
+  .voxnest-mobile-header {
+    padding: 0 16px !important;
+    gap: 8px !important;
+    height: 60px !important;
+  }
+
+  /* Logo 在移动端缩小 */
+  .voxnest-logo {
+    font-size: 20px !important;
+    margin-right: 16px !important;
+  }
+
+  /* 主导航在移动端隐藏，只保留首页 */
+  .voxnest-header-menu {
+    display: none !important;
+  }
+
+  /* 搜索框在移动端优化 */
+  .voxnest-header-search {
+    min-width: 100px !important;
+    max-width: 200px !important;
+  }
+
+  .voxnest-search-box {
+    font-size: 14px !important;
+    padding: 6px 12px !important;
+  }
+
+  .voxnest-search-box::placeholder {
+    content: "搜索..." !important;
+  }
+
+  /* 按钮文字在移动端隐藏，只显示图标 */
+  .voxnest-btn-text {
+    display: none !important;
+  }
+
+
+  .voxnest-username {
+    display: none !important;
+  }
+
+  /* 右侧操作区间距调整 */
+  .voxnest-header-actions {
+    gap: 4px !important;
+  }
+
+  .voxnest-header-actions .ant-space-item {
+    margin-right: 4px !important;
+  }
+
+  /* 按钮尺寸优化 */
+  .voxnest-create-post-btn,
+  .voxnest-login-btn,
+  .voxnest-register-btn {
+    padding: 4px 8px !important;
+    min-width: 36px !important;
+    height: 36px !important;
+  }
+
+
+  /* 用户头像区域优化 */
+  .voxnest-user-dropdown .ant-space {
+    gap: 4px !important;
+  }
+
+  /* Header 左侧区域优化 */
+  .voxnest-header-left {
+    flex: 0 0 auto !important;
+    min-width: 100px;
+  }
+
+  /* Header 插槽在移动端隐藏或调整 */
+  .voxnest-header-slot-left {
+    margin-right: 8px !important;
+  }
+}
+
+/* 超小屏幕优化 (小于480px) */
+@media (max-width: 479px) {
+  .voxnest-mobile-header {
+    padding: 0 12px !important;
+    gap: 4px !important;
+  }
+
+  .voxnest-logo {
+    font-size: 18px !important;
+    margin-right: 8px !important;
+  }
+
+  .voxnest-header-search {
+    min-width: 80px !important;
+    max-width: 150px !important;
+  }
+
+  .voxnest-search-box::placeholder {
+    font-size: 12px !important;
+  }
+
+  /* 在极小屏幕上进一步压缩按钮 */
+  .voxnest-create-post-btn,
+  .voxnest-login-btn,
+  .voxnest-register-btn {
+    padding: 2px 6px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    border-radius: 6px !important;
+  }
+}
+
+/* 移动端内容区域优化 */
+@media (max-width: 768px) {
+  .voxnest-main-content {
+    padding: 16px 12px !important;
+  }
+
+  .voxnest-main-content > div {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* 确保行和列不会溢出 */
+  .ant-row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .ant-col {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  /* 移动端卡片间距调整 */
+  .ant-card {
+    margin-bottom: 12px !important;
+  }
+
+  /* 移动端表格响应式 */
+  .ant-table-wrapper {
+    overflow-x: auto !important;
+  }
+
+  .ant-table {
+    min-width: 600px !important;
+  }
+}
+
+@media (max-width: 479px) {
+  .voxnest-main-content {
+    padding: 12px 8px !important;
+  }
+
+  .ant-col {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
 }

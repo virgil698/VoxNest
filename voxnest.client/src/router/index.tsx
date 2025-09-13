@@ -19,8 +19,7 @@ const InstallPage = lazy(() => import('../pages/Install'));
 const AdminDashboard = lazy(() => import('../pages/admin/Dashboard'));
 const AdminSiteSettings = lazy(() => import('../pages/admin/SiteSettings'));
 const AdminLogManagement = lazy(() => import('../pages/admin/LogManagement'));
-const AdminPluginManagement = lazy(() => import('../pages/admin/PluginManagement'));
-const AdminThemeManagement = lazy(() => import('../pages/admin/ThemeManagement'));
+const AdminExtensionManagement = lazy(() => import('../pages/admin/ExtensionManagement'));
 
 export const router = createBrowserRouter([
   // 安装页面（不需要Layout）
@@ -64,15 +63,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'extensions',
-        element: <div>扩展管理页面 - 开发中</div>,
-      },
-      {
-        path: 'plugins',
-        element: <AdminPluginManagement />,
-      },
-      {
-        path: 'themes',
-        element: <AdminThemeManagement />,
+        element: <AdminExtensionManagement />,
       },
     ],
   },

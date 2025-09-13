@@ -63,6 +63,9 @@ public static class DependencyInjection
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IPluginService, PluginService>();
         services.AddScoped<IThemeService, ThemeService>();
+        services.AddScoped<IUnifiedExtensionService, UnifiedExtensionService>();
+        services.AddScoped<IExtensionInstallerService, ExtensionInstallerService>();
+        services.AddScoped<IFileSystemExtensionService, FileSystemExtensionService>();
         services.AddScoped<ISystemInfoService, SystemInfoService>();
         
         // 注册基础设施服务

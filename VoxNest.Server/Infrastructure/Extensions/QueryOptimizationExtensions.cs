@@ -20,7 +20,7 @@ public static class QueryOptimizationExtensions
             .Include(p => p.Author)
             .ThenInclude(a => a.Profile)
             .Include(p => p.Category)
-            .Include(p => p.PostTags.Take(10)) // 限制标签数量
+            .Include(p => p.PostTags) // 移除Take限制，使用简单的Include
             .ThenInclude(pt => pt.Tag)
             .Where(p => p.Status == PostStatus.Published)
             .AsSplitQuery(); // 使用分割查询优化性能
@@ -37,7 +37,7 @@ public static class QueryOptimizationExtensions
             .Include(p => p.Category)
             .Include(p => p.PostTags)
             .ThenInclude(pt => pt.Tag)
-            .Include(p => p.Comments.Where(c => c.ParentId == null).Take(20)) // 只加载顶级评论，限制数量
+            .Include(p => p.Comments) // 移除复杂的Where和Take，使用简单的Include
             .ThenInclude(c => c.User)
             .ThenInclude(u => u.Profile)
             .AsSplitQuery();
@@ -50,7 +50,7 @@ public static class QueryOptimizationExtensions
     {
         return context.Posts
             .Include(p => p.Category)
-            .Include(p => p.PostTags.Take(5))
+            .Include(p => p.PostTags) // 移除Take限制，使用简单的Include
             .ThenInclude(pt => pt.Tag)
             .Where(p => p.AuthorId == userId && p.Status != PostStatus.Deleted)
             .AsSplitQuery();
@@ -210,9 +210,34 @@ public static class QueryOptimizationExtensions
     /// </summary>
     public static async Task IncrementPostViewCountAsync(this VoxNestDbContext context, int postId)
     {
-        // 使用原生SQL直接更新，避免加载整个实体
-        await context.Database.ExecuteSqlInterpolatedAsync(
-            $"UPDATE Posts SET ViewCount = ViewCount + 1 WHERE Id = {postId}");
+        try
+        {
+            // 使用EF Core的更安全方式更新浏览次数
+            var post = await context.Posts
+                .Where(p => p.Id == postId)
+                .FirstOrDefaultAsync();
+            
+            if (post != null)
+            {
+                post.ViewCount++;
+                await context.SaveChangesAsync();
+            }
+        }
+        catch (Exception)
+        {
+            // 如果上述方法失败，使用原生SQL作为备选方案
+            try
+            {
+                await context.Database.ExecuteSqlRawAsync(
+                    "UPDATE Posts SET ViewCount = ViewCount + 1 WHERE Id = @p0", 
+                    postId);
+            }
+            catch
+            {
+                // 静默失败，不影响用户体验
+                // 浏览次数更新失败不应该阻止用户查看帖子
+            }
+        }
     }
 
     /// <summary>

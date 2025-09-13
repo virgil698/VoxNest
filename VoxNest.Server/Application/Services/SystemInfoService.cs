@@ -205,15 +205,8 @@ public class SystemInfoService : ISystemInfoService
                 return result?.DatabaseSize ?? 0;
             }
             
-            // SQLite 或其他数据库，尝试获取数据库文件大小
-            if (connectionString?.Contains("sqlite", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                var dataSource = ExtractDataSourceFromConnectionString(connectionString);
-                if (!string.IsNullOrEmpty(dataSource) && File.Exists(dataSource))
-                {
-                    return new FileInfo(dataSource).Length;
-                }
-            }
+            // 系统仅支持 MySQL/MariaDB，不支持其他数据库类型
+            _logger.LogWarning("无法获取非 MySQL/MariaDB 数据库的大小信息");
         }
         catch (Exception ex)
         {
@@ -273,30 +266,6 @@ public class SystemInfoService : ISystemInfoService
         }
     }
 
-    /// <summary>
-    /// 从连接字符串中提取数据源路径
-    /// </summary>
-    private static string? ExtractDataSourceFromConnectionString(string connectionString)
-    {
-        try
-        {
-            var parts = connectionString.Split(';');
-            foreach (var part in parts)
-            {
-                var trimmed = part.Trim();
-                if (trimmed.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase))
-                {
-                    return trimmed.Substring("Data Source=".Length);
-                }
-            }
-        }
-        catch
-        {
-            // Ignore extraction errors
-        }
-        
-        return null;
-    }
 }
 
 /// <summary>
