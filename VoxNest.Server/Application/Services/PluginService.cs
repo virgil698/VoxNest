@@ -599,44 +599,44 @@ namespace VoxNest.Server.Application.Services
             }
         }
 
-        public async Task<ApiResponse<string>> ValidatePluginFileAsync(IFormFile file)
+        public Task<ApiResponse<string>> ValidatePluginFileAsync(IFormFile file)
         {
             try
             {
                 if (file == null || file.Length == 0)
                 {
-                    return ApiResponse<string>.CreateError("文件不能为空");
+                    return Task.FromResult(ApiResponse<string>.CreateError("文件不能为空"));
                 }
 
                 if (!file.FileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
                 {
-                    return ApiResponse<string>.CreateError("插件文件必须是ZIP格式");
+                    return Task.FromResult(ApiResponse<string>.CreateError("插件文件必须是ZIP格式"));
                 }
 
                 if (file.Length > 50 * 1024 * 1024) // 50MB限制
                 {
-                    return ApiResponse<string>.CreateError("插件文件大小不能超过50MB");
+                    return Task.FromResult(ApiResponse<string>.CreateError("插件文件大小不能超过50MB"));
                 }
 
                 // TODO: 更详细的插件文件验证
-                return ApiResponse<string>.CreateSuccess("文件验证通过");
+                return Task.FromResult(ApiResponse<string>.CreateSuccess("文件验证通过"));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "验证插件文件时发生错误");
-                return ApiResponse<string>.CreateError("文件验证失败");
+                return Task.FromResult(ApiResponse<string>.CreateError("文件验证失败"));
             }
         }
 
         // 简化实现的方法
-        public async Task<ApiResponse<byte[]>> ExportPluginConfigAsync(int id)
+        public Task<ApiResponse<byte[]>> ExportPluginConfigAsync(int id)
         {
-            return ApiResponse<byte[]>.CreateError("功能暂未实现");
+            return Task.FromResult(ApiResponse<byte[]>.CreateError("功能暂未实现"));
         }
 
-        public async Task<ApiResponse<string>> ImportPluginConfigAsync(int id, IFormFile configFile)
+        public Task<ApiResponse<string>> ImportPluginConfigAsync(int id, IFormFile configFile)
         {
-            return ApiResponse<string>.CreateError("功能暂未实现");
+            return Task.FromResult(ApiResponse<string>.CreateError("功能暂未实现"));
         }
 
         // 私有辅助方法
@@ -675,7 +675,7 @@ namespace VoxNest.Server.Application.Services
             return Convert.ToHexString(hash);
         }
 
-        private async Task<string> ExtractPluginToFrontendAsync(string zipFilePath, string pluginId)
+        private Task<string> ExtractPluginToFrontendAsync(string zipFilePath, string pluginId)
         {
             try
             {
@@ -712,7 +712,7 @@ namespace VoxNest.Server.Application.Services
                 }
                 
                 _logger.LogInformation($"Plugin {pluginId} extracted to frontend directory: {pluginDirectory}");
-                return pluginDirectory;
+                return Task.FromResult(pluginDirectory);
             }
             catch (Exception ex)
             {

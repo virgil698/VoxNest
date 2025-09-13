@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, startTransition } from 'react';
 import {
   Row,
   Col,
@@ -23,7 +23,7 @@ import {
   TagsOutlined,
 } from '@ant-design/icons';
 import { AdminApi } from '../../api/admin';
-import type { SiteOverview } from '../../api/admin';
+import type { SiteOverview, SystemInfo } from '../../api/admin';
 import { useLogger } from '../../hooks/useLogger';
 import dayjs from 'dayjs';
 
@@ -33,26 +33,73 @@ interface DashboardProps {}
 
 const Dashboard: React.FC<DashboardProps> = () => {
   const [overview, setOverview] = useState<SiteOverview | null>(null);
+  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [systemInfoLoading, setSystemInfoLoading] = useState(true);
   const logger = useLogger('Admin.Dashboard');
 
   // 加载概览数据
   const loadOverview = async () => {
-    setLoading(true);
+    startTransition(() => {
+      setLoading(true);
+    });
+    
     try {
       const data = await AdminApi.getSiteOverview();
-      setOverview(data);
+      
+      startTransition(() => {
+        setOverview(data);
+        setLoading(false);
+      });
+      
       logger.debug('Loaded admin dashboard overview');
     } catch (error) {
       message.error('加载概览数据失败');
       logger.error('Failed to load admin overview', error as Error);
+      
+      startTransition(() => {
+        setOverview(null);
+        setLoading(false);
+      });
+    }
+  };
+
+  // 加载系统信息
+  const loadSystemInfo = async () => {
+    setSystemInfoLoading(true);
+    
+    try {
+      const data = await AdminApi.getSystemInfo();
+      setSystemInfo(data);
+      logger.debug('Loaded system info');
+    } catch (error) {
+      console.error('获取系统信息失败:', error);
+      logger.error('Failed to load system info', error as Error);
+      // 不显示错误消息，静默失败
     } finally {
-      setLoading(false);
+      setSystemInfoLoading(false);
     }
   };
 
   useEffect(() => {
-    loadOverview();
+    // 使用 startTransition 包装异步操作
+    const controller = new AbortController();
+    
+    const loadData = async () => {
+      try {
+        await loadOverview();
+        await loadSystemInfo();
+      } catch (error) {
+        // 错误已在各自的函数中处理
+        console.warn('Dashboard data loading failed:', error);
+      }
+    };
+
+    loadData();
+
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   if (loading) {
@@ -68,7 +115,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
       <div style={{ textAlign: 'center', padding: '50px' }}>
         <Text type="secondary">加载数据失败，请重试</Text>
         <br />
-        <Button type="primary" onClick={loadOverview} style={{ marginTop: '16px' }}>
+        <Button type="primary" onClick={() => { startTransition(() => { setLoading(true); }); loadOverview(); }} style={{ marginTop: '16px' }}>
           重新加载
         </Button>
       </div>
@@ -133,7 +180,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
       {/* 页面标题 */}
       <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Title level={2} style={{ margin: 0 }}>概览面板</Title>
-        <Button icon={<ReloadOutlined />} onClick={loadOverview}>
+        <Button icon={<ReloadOutlined />} onClick={() => { startTransition(() => { setLoading(true); }); loadOverview(); }}>
           刷新数据
         </Button>
       </div>
@@ -255,30 +302,59 @@ const Dashboard: React.FC<DashboardProps> = () => {
         {/* 右列 */}
         <Col xs={24} lg={8}>
           {/* 系统信息 */}
-          <Card title="系统信息" style={{ marginBottom: '16px' }}>
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <div>
-                <Text strong>运行时间：</Text>
-                <Text>{formatUptime(overview.systemStats.uptime)}</Text>
+          <Card 
+            title="系统信息" 
+            style={{ marginBottom: '16px' }}
+            loading={systemInfoLoading}
+            extra={
+              <Button 
+                type="text" 
+                icon={<ReloadOutlined />} 
+                onClick={loadSystemInfo}
+                size="small"
+                title="刷新系统信息"
+              />
+            }
+          >
+            {systemInfo ? (
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <div>
+                  <Text strong>运行时间：</Text>
+                  <Text>{formatUptime(systemInfo.uptime)}</Text>
+                </div>
+                <div>
+                  <Text strong>内存使用：</Text>
+                  <Text>{formatBytes(systemInfo.memoryUsage)} / {formatBytes(systemInfo.totalMemory)}</Text>
+                </div>
+                <div>
+                  <Text strong>数据库大小：</Text>
+                  <Text>{formatBytes(systemInfo.databaseSize)}</Text>
+                </div>
+                <div>
+                  <Text strong>存储使用：</Text>
+                  <Progress
+                    percent={Math.round(systemInfo.storageUsagePercent)}
+                    size="small"
+                    format={(percent) => `${percent}%`}
+                  />
+                  <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                    {formatBytes(systemInfo.usedStorage)} / {formatBytes(systemInfo.totalStorage)}
+                  </div>
+                </div>
+                <div>
+                  <Text strong>操作系统：</Text>
+                  <Text style={{ fontSize: '12px' }}>{systemInfo.operatingSystem}</Text>
+                </div>
+                <div>
+                  <Text strong>.NET版本：</Text>
+                  <Text>{systemInfo.dotNetVersion}</Text>
+                </div>
+              </Space>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '20px' }}>
+                <Text type="secondary">无法获取系统信息</Text>
               </div>
-              <div>
-                <Text strong>内存使用：</Text>
-                <Text>{formatBytes(overview.systemStats.memoryUsage)}</Text>
-              </div>
-              <div>
-                <Text strong>数据库大小：</Text>
-                <Text>{formatBytes(overview.systemStats.databaseSize)}</Text>
-              </div>
-              <div>
-                <Text strong>存储使用：</Text>
-                <Progress
-                  percent={overview.systemStats.totalStorage > 0 
-                    ? Math.round((overview.systemStats.usedStorage / overview.systemStats.totalStorage) * 100)
-                    : 0}
-                  size="small"
-                />
-              </div>
-            </Space>
+            )}
           </Card>
 
           {/* 最近用户注册 */}

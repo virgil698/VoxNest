@@ -61,9 +61,27 @@ public class EnhancedInstallService : IInstallService
 
         try
         {
-            // 检查配置文件
+            // 检查配置文件是否存在且包含有效的数据库连接
             if (!status.ConfigExists)
             {
+                status.CurrentStep = InstallStep.DatabaseConfig;
+                return status;
+            }
+
+            // 检查配置文件中是否有有效的数据库连接字符串
+            try
+            {
+                var config = VoxNest.Server.Shared.Extensions.ConfigurationExtensions.LoadServerConfigurationFromYaml(ConfigFile);
+                if (string.IsNullOrWhiteSpace(config.Database.ConnectionString))
+                {
+                    _logger.LogDebug("配置文件存在但数据库连接字符串为空，需要用户配置");
+                    status.CurrentStep = InstallStep.DatabaseConfig;
+                    return status;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "配置文件格式有误，需要重新配置");
                 status.CurrentStep = InstallStep.DatabaseConfig;
                 return status;
             }
@@ -169,8 +187,39 @@ public class EnhancedInstallService : IInstallService
             // 保存配置文件
             VoxNest.Server.Shared.Extensions.ConfigurationExtensions.SaveConfigurationToYaml(serverConfig, ConfigFile);
 
-            _logger.LogInformation("数据库配置已保存");
-            return Result.Success("数据库配置保存成功");
+            // 验证配置文件是否成功保存并包含正确的连接字符串
+            try
+            {
+                var savedConfig = VoxNest.Server.Shared.Extensions.ConfigurationExtensions.LoadServerConfigurationFromYaml(ConfigFile);
+                if (string.IsNullOrWhiteSpace(savedConfig.Database.ConnectionString) || 
+                    savedConfig.Database.ConnectionString != BuildConnectionString(config))
+                {
+                    _logger.LogWarning("保存的配置文件验证失败，连接字符串不匹配");
+                    return Result.Failure("配置文件保存验证失败，请重试");
+                }
+                
+                _logger.LogInformation("数据库配置已保存并验证通过");
+                _logger.LogDebug("连接字符串: {ConnectionString}", savedConfig.Database.ConnectionString.Substring(0, Math.Min(50, savedConfig.Database.ConnectionString.Length)) + "...");
+                
+                // 给系统一些时间来处理文件更新
+                await Task.Delay(1000);
+                
+                // 再次测试连接以确保配置已生效
+                var finalTest = await TestDatabaseConnectionAsync(config);
+                if (!finalTest.IsSuccess)
+                {
+                    _logger.LogWarning("配置保存后的最终连接测试失败: {Message}", finalTest.Message);
+                    return Result.Failure($"配置已保存但连接测试失败: {finalTest.Message}。请检查数据库服务是否正常运行");
+                }
+                
+                _logger.LogInformation("数据库配置保存成功，连接测试通过");
+                return Result.Success("数据库配置保存成功，配置文件已更新并验证");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "验证保存的配置文件时出错");
+                return Result.Failure("配置文件保存后验证失败，请检查文件权限");
+            }
         }
         catch (Exception ex)
         {
@@ -218,8 +267,20 @@ public class EnhancedInstallService : IInstallService
 
             _logger.LogInformation("开始数据库初始化流程...");
 
-            // 加载配置
+            // 重新加载配置文件以确保获取最新的数据库配置
+            _logger.LogDebug("重新加载配置文件: {ConfigFile}", ConfigFile);
             var config = VoxNest.Server.Shared.Extensions.ConfigurationExtensions.LoadServerConfigurationFromYaml(ConfigFile);
+            
+            // 验证数据库连接字符串不为空
+            if (string.IsNullOrWhiteSpace(config.Database.ConnectionString))
+            {
+                _logger.LogError("配置文件中的数据库连接字符串为空");
+                return Result.Failure("数据库连接字符串未配置，请先完成数据库配置步骤");
+            }
+            
+            _logger.LogDebug("使用数据库连接: Provider={Provider}, ConnectionString前缀={ConnectionPrefix}", 
+                config.Database.Provider, 
+                config.Database.ConnectionString.Substring(0, Math.Min(30, config.Database.ConnectionString.Length)) + "...");
             
             // 验证配置
             var (isValid, errors) = config.ValidateConfiguration();
@@ -327,14 +388,29 @@ public class EnhancedInstallService : IInstallService
             // 创建安装标识文件
             var installInfo = new
             {
+                IsInstalled = true,
                 InstalledAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff"),
                 SiteName = siteConfig.SiteName,
                 AdminEmail = siteConfig.AdminEmail,
-                Version = GetType().Assembly.GetName().Version?.ToString() ?? "Unknown"
+                Version = GetType().Assembly.GetName().Version?.ToString() ?? "Unknown",
+                ConfigFile = ConfigFile,
+                DatabaseInitialized = true,
+                HasAdminUser = true
             };
 
-            await File.WriteAllTextAsync(InstallFlagFile, 
-                System.Text.Json.JsonSerializer.Serialize(installInfo, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+            var installInfoJson = System.Text.Json.JsonSerializer.Serialize(installInfo, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(InstallFlagFile, installInfoJson);
+            
+            // 验证安装锁文件是否成功创建
+            if (File.Exists(InstallFlagFile))
+            {
+                _logger.LogInformation("✅ 安装锁文件创建成功: {InstallFlagFile}", InstallFlagFile);
+            }
+            else
+            {
+                _logger.LogError("❌ 安装锁文件创建失败: {InstallFlagFile}", InstallFlagFile);
+                return Result.Failure("安装锁文件创建失败，安装可能未完全成功");
+            }
             
             _logger.LogInformation("VoxNest 安装完成: {SiteName}", siteConfig.SiteName);
             return Result.Success("安装完成，系统即将重启");
@@ -440,15 +516,25 @@ public class EnhancedInstallService : IInstallService
         {
             if (!File.Exists(ConfigFile))
             {
+                _logger.LogDebug("配置文件不存在: {ConfigFile}", ConfigFile);
                 return (false, false, false);
             }
 
+            // 重新加载配置文件以确保获取最新配置
             var config = VoxNest.Server.Shared.Extensions.ConfigurationExtensions.LoadServerConfigurationFromYaml(ConfigFile);
+            
+            // 检查连接字符串是否为空
+            if (string.IsNullOrWhiteSpace(config.Database.ConnectionString))
+            {
+                _logger.LogDebug("配置文件中数据库连接字符串为空");
+                return (false, false, false);
+            }
             
             // 测试连接
             var connectionResult = await TestConnectionInternalAsync(config.Database.ConnectionString);
             if (!connectionResult)
             {
+                _logger.LogDebug("数据库连接测试失败");
                 return (false, false, false);
             }
 

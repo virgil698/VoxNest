@@ -63,6 +63,7 @@ public static class DependencyInjection
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IPluginService, PluginService>();
         services.AddScoped<IThemeService, ThemeService>();
+        services.AddScoped<ISystemInfoService, SystemInfoService>();
         
         // 注册基础设施服务
         services.AddScoped<IDatabaseMigrationService, DatabaseMigrationService>();

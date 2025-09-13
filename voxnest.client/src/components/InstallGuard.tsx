@@ -34,73 +34,67 @@ const InstallGuard: React.FC<InstallGuardProps> = ({ children }) => {
       setLoading(true);
       setError(null);
       
-      // 首先检查前端本地的安装锁
-      console.log('🔍 检查前端安装锁文件...');
-      if (installLockManager.hasInstallLock()) {
-        const lockData = installLockManager.getInstallLock();
-        console.log('✅ 发现本地安装锁，系统已安装:', lockData);
-        
-        // 验证安装锁是否有效
-        const validation = await installLockManager.validateInstallation();
-        if (validation.isValid && !validation.shouldRecheck) {
-          console.log('✅ 安装锁验证通过，跳过后端检查');
-          setInstallStatus({ 
-            isInstalled: true, 
-            currentStep: 3, // InstallStep.Completed
-            configExists: true,
-            databaseConnected: true,
-            databaseInitialized: true,
-            hasAdminUser: true
-          });
-          setLoading(false);
-          return;
-        }
-        
-        console.log('⚠️ 安装锁需要重新验证，检查后端状态');
-      } else {
-        console.log('❌ 未发现本地安装锁，检查后端安装状态');
-      }
+      console.log('🔍 开始检查系统安装状态...');
       
-      // 尝试从缓存获取状态
-      const cachedStatus = installLockManager.getCachedInstallStatus();
-      if (cachedStatus && cachedStatus.isInstalled) {
-        console.log('📋 使用缓存的安装状态');
-        setInstallStatus(cachedStatus);
-        setLoading(false);
-        return;
-      }
-      
-      // 检查后端安装状态
+      // 检查后端安装状态 - 简化逻辑，直接检查后端
       console.log('🌐 请求后端安装状态...');
       const status = await InstallApi.getInstallStatus();
+      console.log('📊 后端安装状态:', status);
+      
       setInstallStatus(status);
       
-      // 缓存后端状态
-      installLockManager.cacheInstallStatus(status);
-      
-      // 如果后端已安装，创建前端安装锁
+      // 根据安装状态决定操作
       if (status.isInstalled) {
-        console.log('✅ 后端已安装，创建前端安装锁');
+        console.log('✅ 系统已完全安装');
+        // 创建或更新前端安装锁
         installLockManager.createInstallLock();
+        // 缓存状态
+        installLockManager.cacheInstallStatus(status);
       } else {
-        console.log('❌ 系统未安装，跳转到安装页面');
+        console.log('❌ 系统未安装，当前步骤:', status.currentStep);
+        console.log('🔄 跳转到安装页面...');
+        
+        // 清除可能存在的过期缓存
+        installLockManager.removeInstallLock();
+        
+        // 跳转到安装页面
         window.location.href = '/install';
         return;
       }
       
     } catch (error) {
-      console.error('检查安装状态失败:', error);
+      console.error('💥 检查安装状态失败:', error);
       
-      // 如果是网络错误或API不可用，可能是后端未启动或处于安装模式
-      if (error instanceof Error) {
-        if (error.message.includes('fetch') || error.message.includes('Network')) {
-          console.log('后端可能处于安装模式，跳转到安装页面');
-          window.location.href = '/install';
-          return;
-        }
+      // 检查是否是网络问题或后端未启动
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const isNetworkError = errorMessage.includes('fetch') || 
+                            errorMessage.includes('Network') || 
+                            errorMessage.includes('Failed to fetch') ||
+                            errorMessage.includes('ERR_CONNECTION') ||
+                            (error as any)?.code === 'NETWORK_ERROR';
+      
+      if (isNetworkError) {
+        console.log('🌐 检测到网络错误，可能是后端未启动，跳转到安装页面');
+        window.location.href = '/install';
+        return;
       }
       
-      setError('无法检查系统安装状态，请检查网络连接或联系管理员');
+      // 如果是API错误（404, 500等），也跳转到安装页面
+      const statusCode = (error as any)?.response?.status || (error as any)?.status;
+      if (statusCode) {
+        console.log(`🔧 API返回状态码 ${statusCode}，跳转到安装页面`);
+        window.location.href = '/install';
+        return;
+      }
+      
+      // 其他未知错误
+      console.error('🚨 未知错误类型:', {
+        message: errorMessage,
+        error: error,
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      
+      setError('无法检查系统安装状态，请检查网络连接或联系管理员。如果问题持续存在，请尝试手动访问 /install 页面。');
     } finally {
       setLoading(false);
     }
@@ -145,30 +139,46 @@ const InstallGuard: React.FC<InstallGuardProps> = ({ children }) => {
             title={<span style={{ fontSize: '20px', fontWeight: '600', color: 'var(--text-primary)' }}>系统检查失败</span>}
             subTitle={<span style={{ fontSize: '16px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>{error}</span>}
             extra={
-              <Button
-                type="primary"
-                onClick={checkInstallStatus}
-                size="large"
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.animation = 'errorShake 0.3s ease-in-out';
-                }}
-                onAnimationEnd={(e) => {
-                  (e.currentTarget as HTMLElement).style.animation = '';
-                }}
-                style={{
-                  height: '44px',
-                  borderRadius: '12px',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
-                  border: 'none',
-                  boxShadow: '0 4px 16px rgba(79, 70, 229, 0.3)',
-                  padding: '0 32px',
-                  transition: 'all 0.3s ease'
-                }}
-              >
-                重新检查
-              </Button>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <Button
+                  type="primary"
+                  onClick={checkInstallStatus}
+                  size="large"
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.animation = 'errorShake 0.3s ease-in-out';
+                  }}
+                  onAnimationEnd={(e) => {
+                    (e.currentTarget as HTMLElement).style.animation = '';
+                  }}
+                  style={{
+                    height: '44px',
+                    borderRadius: '12px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+                    border: 'none',
+                    boxShadow: '0 4px 16px rgba(79, 70, 229, 0.3)',
+                    padding: '0 32px',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  重新检查
+                </Button>
+                <Button
+                  onClick={() => window.location.href = '/install'}
+                  size="large"
+                  style={{
+                    height: '44px',
+                    borderRadius: '12px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    padding: '0 32px',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  前往安装页面
+                </Button>
+              </div>
             }
           />
         </div>

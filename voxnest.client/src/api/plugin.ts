@@ -2,7 +2,16 @@
  * 插件管理 API
  */
 
-import { request } from '../utils/request';
+import { apiClient } from './client';
+import type { PagedResult } from './admin';
+
+// API 响应类型
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  errors?: string[];
+}
 
 // 枚举定义
 export const PluginStatus = {
@@ -125,23 +134,23 @@ export interface PluginVersion {
 export const pluginApi = {
   // 获取插件列表
   getPlugins: (params: PluginQuery) =>
-    request.get<PagedResult<Plugin>>('/plugin', { params }),
+    apiClient.get<PagedResult<Plugin>>('/plugin', { params }),
 
   // 获取插件详情
   getPlugin: (id: number) =>
-    request.get<ApiResponse<Plugin>>(`/plugin/${id}`),
+    apiClient.get<ApiResponse<Plugin>>(`/plugin/${id}`),
 
   // 根据唯一ID获取插件
   getPluginByUniqueId: (uniqueId: string) =>
-    request.get<ApiResponse<Plugin>>(`/plugin/by-unique-id/${uniqueId}`),
+    apiClient.get<ApiResponse<Plugin>>(`/plugin/by-unique-id/${uniqueId}`),
 
   // 创建插件
   createPlugin: (data: CreatePlugin) =>
-    request.post<ApiResponse<Plugin>>('/plugin', data),
+    apiClient.post<ApiResponse<Plugin>>('/plugin', data),
 
   // 更新插件
   updatePlugin: (id: number, data: UpdatePlugin) =>
-    request.put<ApiResponse<Plugin>>(`/plugin/${id}`, data),
+    apiClient.put<ApiResponse<Plugin>>(`/plugin/${id}`, data),
 
   // 上传插件
   uploadPlugin: (file: File, description?: string, tags?: string) => {
@@ -150,46 +159,46 @@ export const pluginApi = {
     if (description) formData.append('description', description);
     if (tags) formData.append('tags', tags);
     
-    return request.post<ApiResponse<Plugin>>('/plugin/upload', formData, {
+    return apiClient.post<ApiResponse<Plugin>>('/plugin/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
 
   // 安装插件
   installPlugin: (id: number) =>
-    request.post<ApiResponse<string>>(`/plugin/${id}/install`),
+    apiClient.post<ApiResponse<string>>(`/plugin/${id}/install`),
 
   // 启用插件
   enablePlugin: (id: number) =>
-    request.post<ApiResponse<string>>(`/plugin/${id}/enable`),
+    apiClient.post<ApiResponse<string>>(`/plugin/${id}/enable`),
 
   // 禁用插件
   disablePlugin: (id: number) =>
-    request.post<ApiResponse<string>>(`/plugin/${id}/disable`),
+    apiClient.post<ApiResponse<string>>(`/plugin/${id}/disable`),
 
   // 卸载插件
   uninstallPlugin: (id: number) =>
-    request.post<ApiResponse<string>>(`/plugin/${id}/uninstall`),
+    apiClient.post<ApiResponse<string>>(`/plugin/${id}/uninstall`),
 
   // 删除插件
   deletePlugin: (id: number) =>
-    request.delete<ApiResponse<string>>(`/plugin/${id}`),
+    apiClient.delete<ApiResponse<string>>(`/plugin/${id}`),
 
   // 获取插件版本列表
   getPluginVersions: (id: number) =>
-    request.get<ApiResponse<PluginVersion[]>>(`/plugin/${id}/versions`),
+    apiClient.get<ApiResponse<PluginVersion[]>>(`/plugin/${id}/versions`),
 
   // 获取插件统计
   getPluginStats: () =>
-    request.get<ApiResponse<PluginStats>>('/plugin/stats'),
+    apiClient.get<ApiResponse<PluginStats>>('/plugin/stats'),
 
   // 获取已启用插件
   getEnabledPlugins: () =>
-    request.get<ApiResponse<Plugin[]>>('/plugin/enabled'),
+    apiClient.get<ApiResponse<Plugin[]>>('/plugin/enabled'),
 
   // 批量更新插件状态
   batchUpdatePluginStatus: (pluginIds: number[], status: PluginStatus) =>
-    request.post<ApiResponse<string>>('/plugin/batch-status', {
+    apiClient.post<ApiResponse<string>>('/plugin/batch-status', {
       pluginIds,
       status
     }),
@@ -199,14 +208,14 @@ export const pluginApi = {
     const formData = new FormData();
     formData.append('file', file);
     
-    return request.post<ApiResponse<string>>('/plugin/validate', formData, {
+    return apiClient.post<ApiResponse<string>>('/plugin/validate', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
 
   // 导出插件配置
   exportPluginConfig: (id: number) =>
-    request.get(`/plugin/${id}/export-config`, {
+    apiClient.get(`/plugin/${id}/export-config`, {
       responseType: 'blob'
     }),
 
@@ -215,7 +224,7 @@ export const pluginApi = {
     const formData = new FormData();
     formData.append('configFile', file);
     
-    return request.post<ApiResponse<string>>(`/plugin/${id}/import-config`, formData, {
+    return apiClient.post<ApiResponse<string>>(`/plugin/${id}/import-config`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   }

@@ -47,6 +47,47 @@ public class AdminController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// 获取站点基础统计信息 - 用于首页显示
+    /// </summary>
+    [HttpGet("stats")]
+    [AllowAnonymous] // 允许匿名访问，供首页使用
+    [ProducesResponseType(typeof(ApiResponse<SiteStatsDto>), 200)]
+    public async Task<ActionResult<ApiResponse<SiteStatsDto>>> GetSiteStats(
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await _adminService.GetSiteStatsAsync(cancellationToken);
+            return Ok(ApiResponse<SiteStatsDto>.CreateSuccess(result));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting site stats");
+            return BadRequest(ApiResponse.CreateError("获取站点统计失败"));
+        }
+    }
+
+    /// <summary>
+    /// 获取系统信息
+    /// </summary>
+    [HttpGet("system-info")]
+    [ProducesResponseType(typeof(ApiResponse<SystemInfoDto>), 200)]
+    public async Task<ActionResult<ApiResponse<SystemInfoDto>>> GetSystemInfo(
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await _adminService.GetSystemInfoAsync(cancellationToken);
+            return Ok(ApiResponse<SystemInfoDto>.CreateSuccess(result));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting system info");
+            return BadRequest(ApiResponse.CreateError("获取系统信息失败"));
+        }
+    }
+
     #endregion
 
     #region 站点设置

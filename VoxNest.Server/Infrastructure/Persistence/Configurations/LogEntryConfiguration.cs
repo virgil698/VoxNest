@@ -61,7 +61,7 @@ public class LogEntryConfiguration : IEntityTypeConfiguration<LogEntry>
 
         builder.Property(l => l.CreatedAt)
             .IsRequired()
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("UTC_TIMESTAMP()");
 
         // 外键关系
         builder.HasOne(l => l.User)

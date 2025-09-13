@@ -4,8 +4,8 @@
  */
 
 import React, { useState } from 'react';
-import { Button, Badge, Card, Space, Typography, Tag } from 'antd';
-import { BellOutlined, FireOutlined, RocketOutlined } from '@ant-design/icons';
+import { Button, Badge, Card, Space, Typography, Tag, message } from 'antd';
+import { BellOutlined, FireOutlined, RocketOutlined, CloseOutlined } from '@ant-design/icons';
 import type { Integration } from '../core/types';
 
 const { Text } = Typography;
@@ -55,6 +55,26 @@ const QuickActionsCard: React.FC = () => {
 };
 
 const FeatureHighlight: React.FC = () => {
+  const [isVisible, setIsVisible] = useState(() => {
+    // 检查今日是否已关闭
+    const today = new Date().toDateString();
+    const closedToday = localStorage.getItem(`feature_highlight_closed_${today}`);
+    return closedToday !== 'true';
+  });
+
+  // 关闭提示框
+  const handleClose = () => {
+    const today = new Date().toDateString();
+    localStorage.setItem(`feature_highlight_closed_${today}`, 'true');
+    setIsVisible(false);
+    message.success('功能提示已关闭，明天会重新显示');
+  };
+
+  // 如果不可见，不渲染组件
+  if (!isVisible) {
+    return null;
+  }
+
   return (
     <div
       style={{
@@ -64,10 +84,42 @@ const FeatureHighlight: React.FC = () => {
         borderRadius: '12px',
         textAlign: 'center',
         margin: '20px 0',
+        position: 'relative',
       }}
     >
+      {/* 关闭按钮 */}
+      <Button
+        type="text"
+        icon={<CloseOutlined />}
+        onClick={handleClose}
+        style={{
+          position: 'absolute',
+          top: '8px',
+          right: '8px',
+          color: 'rgba(255, 255, 255, 0.8)',
+          border: 'none',
+          width: '28px',
+          height: '28px',
+          borderRadius: '4px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'all 0.2s ease'
+        }}
+        size="small"
+        title="关闭提示（今日不再显示）"
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+          e.currentTarget.style.color = 'white';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'transparent';
+          e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+        }}
+      />
+
       <FireOutlined style={{ fontSize: '24px', marginBottom: '12px' }} />
-      <h3 style={{ color: 'white', marginBottom: '8px' }}>
+      <h3 style={{ color: 'white', marginBottom: '8px', marginRight: '32px' }}>
         🎉 VoxNest 扩展框架已升级！
       </h3>
       <Text style={{ color: 'rgba(255,255,255,0.9)' }}>
@@ -188,8 +240,26 @@ export const ExampleIntegration: Integration = {
       if (context.config.dev && typeof window !== 'undefined') {
         (window as any).__exampleIntegration = {
           getSlotStats: () => context.framework.getStats().slots,
-          debugSlot: (slotId: string) => context.framework.debugSlot(slotId),
-          listSlots: () => context.framework.listSlots(),
+          debugSlot: (slotId: string) => {
+            const components = context.slots.getComponents(slotId);
+            const hasComponents = context.slots.hasComponents(slotId);
+            return {
+              slotId,
+              hasComponents,
+              componentCount: components.length,
+              components: components.map(c => ({
+                name: c.name,
+                source: c.source,
+                priority: c.priority,
+                description: c.description
+              }))
+            };
+          },
+          getFrameworkStats: () => context.framework.getStats(),
+          getAllSlots: () => {
+            const stats = context.framework.getStats();
+            return stats.slots || {};
+          },
         };
         
         context.logger.debug('Example Integration: Added debug methods to window.__exampleIntegration');

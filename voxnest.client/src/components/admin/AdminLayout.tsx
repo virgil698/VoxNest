@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Layout, Menu, Avatar, Dropdown, Space, Button, Badge, Typography } from 'antd';
+import React, { useState, Suspense } from 'react';
+import { Layout, Menu, Avatar, Dropdown, Space, Button, Badge, Typography, Spin, Alert } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   DashboardOutlined,
@@ -21,8 +21,54 @@ const { Text } = Typography;
 
 interface AdminLayoutProps {}
 
+// 错误边界组件
+class AdminErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('AdminLayout Error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '50px', textAlign: 'center' }}>
+          <Alert
+            message="管理面板加载出错"
+            description="请刷新页面重试，如果问题持续存在，请联系技术支持。"
+            type="error"
+            showIcon
+            action={
+              <Button
+                size="small"
+                type="primary"
+                onClick={() => window.location.reload()}
+              >
+                刷新页面
+              </Button>
+            }
+          />
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 const AdminLayout: React.FC<AdminLayoutProps> = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const [openKeys, setOpenKeys] = useState<string[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthStore();
@@ -86,9 +132,13 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
       if (item.children) {
         for (const child of item.children) {
           if (path === child.key) {
+            // 确保父菜单在openKeys中
+            if (!openKeys.includes(item.key)) {
+              setOpenKeys([...openKeys, item.key]);
+            }
             return { 
               selectedKeys: [child.key], 
-              openKeys: [item.key] 
+              openKeys: [...openKeys, item.key] 
             };
           }
         }
@@ -97,7 +147,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
         if (path === item.key || (item.key !== '/admin' && path.startsWith(item.key))) {
           return { 
             selectedKeys: [item.key], 
-            openKeys: [] 
+            openKeys: openKeys 
           };
         }
       }
@@ -105,7 +155,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
     
     return { 
       selectedKeys: ['/admin'], 
-      openKeys: [] 
+      openKeys: openKeys 
     };
   };
 
@@ -116,6 +166,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
 
   // 获取菜单状态
   const menuState = getSelectedAndOpenKeys();
+  
+  // 处理菜单展开/收起
+  const handleOpenChange = (keys: string[]) => {
+    setOpenKeys(keys);
+  };
 
   // 处理用户菜单点击
   const handleUserMenuClick = ({ key }: { key: string }) => {
@@ -216,6 +271,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
           openKeys={menuState.openKeys}
           items={menuItems}
           onClick={({ key }) => handleMenuClick(key)}
+          onOpenChange={handleOpenChange}
           style={{
             border: 'none',
           }}
@@ -268,20 +324,40 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
               }}
               placement="bottomRight"
             >
-              <Space style={{ cursor: 'pointer' }}>
+              <Space style={{ cursor: 'pointer' }} align="center">
                 <Avatar
                   src={user?.avatar}
                   icon={<UserOutlined />}
                   size="default"
                 />
-                <div style={{ display: collapsed ? 'none' : 'block' }}>
-                  <div style={{ fontSize: '14px', fontWeight: '500' }}>
-                    {user?.displayName || user?.username}
+                {!collapsed && (
+                  <div style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    justifyContent: 'center',
+                    lineHeight: 1.2
+                  }}>
+                    <div style={{ 
+                      fontSize: '14px', 
+                      fontWeight: '500',
+                      color: '#262626',
+                      marginBottom: '2px'
+                    }}>
+                      {user?.displayName || user?.username || '未知用户'}
+                    </div>
+                    <div style={{ 
+                      fontSize: '12px', 
+                      color: '#8c8c8c',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {user && user.roles && Array.isArray(user.roles) ? (
+                        user.roles.includes('Admin') ? '超级管理员' : 
+                        user.roles.includes('Moderator') ? '版主' : 
+                        user.roles.length > 0 ? user.roles.join(', ') : '普通用户'
+                      ) : '普通用户'}
+                    </div>
                   </div>
-                  <div style={{ fontSize: '12px', color: '#999' }}>
-                    管理员
-                  </div>
-                </div>
+                )}
               </Space>
             </Dropdown>
           </Space>
@@ -298,7 +374,20 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
           }}
         >
-          <Outlet />
+          <AdminErrorBoundary>
+            <Suspense fallback={
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                minHeight: '300px' 
+              }}>
+                <Spin size="large" tip="加载管理面板..." />
+              </div>
+            }>
+              <Outlet />
+            </Suspense>
+          </AdminErrorBoundary>
         </Content>
       </Layout>
     </Layout>

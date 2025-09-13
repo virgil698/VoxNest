@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Form, Input, Select, InputNumber, Button, Row, Col, Alert, Space } from 'antd';
-import { DatabaseOutlined, ExperimentOutlined } from '@ant-design/icons';
+import { ExperimentOutlined } from '@ant-design/icons';
 import { InstallApi } from '../../api/install';
 import type { DatabaseConfigDto } from '../../api/install';
 
@@ -78,22 +78,6 @@ const DatabaseConfigStep: React.FC<DatabaseConfigStepProps> = ({ onSubmit, loadi
 
   return (
     <div style={{ padding: '8px' }}>
-      <div style={{ 
-        textAlign: 'center', 
-        marginBottom: '32px',
-        padding: '24px',
-        background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
-        borderRadius: '16px',
-        color: 'var(--text-secondary)'
-      }}>
-        <DatabaseOutlined style={{ fontSize: '48px', marginBottom: '16px', display: 'block' }} />
-        <h3 style={{ color: 'var(--primary-color)', fontSize: '24px', fontWeight: '600', margin: '0 0 12px 0' }}>
-          数据库配置
-        </h3>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '16px', margin: 0, lineHeight: '1.6' }}>
-          请配置数据库连接信息，系统将在此数据库中创建必要的表结构
-        </p>
-      </div>
 
       <Form
         form={form}
@@ -102,7 +86,7 @@ const DatabaseConfigStep: React.FC<DatabaseConfigStepProps> = ({ onSubmit, loadi
         onFinish={handleSubmit}
         style={{
           background: 'white',
-          padding: '32px',
+          padding: '24px',
           borderRadius: '16px',
           border: '1px solid var(--border-color)',
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'

@@ -75,6 +75,49 @@ export interface SiteOverview {
   recentActivity: RecentActivity;
 }
 
+// 站点基础统计接口 - 用于首页显示
+export interface SiteStats {
+  totalUsers: number;
+  onlineUsers: number;
+  activeUsers: number;
+  totalPosts: number;
+  totalComments: number;
+  newPostsToday: number;
+  newUsersToday: number;
+  recentActiveUsers: number;
+  generatedAt: string;
+}
+
+// 系统信息接口
+export interface SystemInfo {
+  uptime: number;
+  memoryUsage: number;
+  totalMemory: number;
+  cpuUsage: number;
+  databaseSize: number;
+  totalStorage: number;
+  usedStorage: number;
+  availableStorage: number;
+  storageUsagePercent: number;
+  extensionCount: number;
+  activeExtensionCount: number;
+  operatingSystem: string;
+  dotNetVersion: string;
+  applicationVersion: string;
+  serverTime: string;
+  timeZone: string;
+  startupTime: string;
+  gcInfo: GcInfo;
+}
+
+// GC信息接口
+export interface GcInfo {
+  gen0Collections: number;
+  gen1Collections: number;
+  gen2Collections: number;
+  totalAllocatedBytes: number;
+}
+
 export interface UserStats {
   totalUsers: number;
   newUsersToday: number;
@@ -307,6 +350,18 @@ export class AdminApi {
   // 站点概览
   static async getSiteOverview(): Promise<SiteOverview> {
     const response = await apiClient.get('/api/admin/overview');
+    return response.data.data;
+  }
+
+  // 站点基础统计 - 用于首页显示
+  static async getSiteStats(): Promise<SiteStats> {
+    const response = await apiClient.get('/api/admin/stats');
+    return response.data.data;
+  }
+
+  // 系统信息
+  static async getSystemInfo(): Promise<SystemInfo> {
+    const response = await apiClient.get('/api/admin/system-info');
     return response.data.data;
   }
 

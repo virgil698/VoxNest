@@ -16,6 +16,16 @@ public interface IAdminService
     /// </summary>
     Task<SiteOverviewDto> GetSiteOverviewAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// 获取站点基础统计信息 - 用于首页显示
+    /// </summary>
+    Task<SiteStatsDto> GetSiteStatsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取系统信息
+    /// </summary>
+    Task<SystemInfoDto> GetSystemInfoAsync(CancellationToken cancellationToken = default);
+
     #endregion
 
     #region 站点设置

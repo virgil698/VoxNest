@@ -52,11 +52,11 @@ public class SiteSettingConfiguration : IEntityTypeConfiguration<SiteSetting>
 
         builder.Property(s => s.CreatedAt)
             .IsRequired()
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("UTC_TIMESTAMP()");
 
         builder.Property(s => s.UpdatedAt)
             .IsRequired()
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("UTC_TIMESTAMP()");
 
         // 外键关系
         builder.HasOne(s => s.UpdatedBy)

@@ -59,27 +59,6 @@ const VersionInfo: React.FC = () => {
   );
 };
 
-// 演示组件 - Content Before 区域的欢迎横幅
-const WelcomeBanner: React.FC = () => {
-  return (
-    <div style={{
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      color: 'white',
-      padding: '20px',
-      borderRadius: '12px',
-      marginBottom: '24px',
-      textAlign: 'center',
-      boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
-    }}>
-      <h3 style={{ margin: 0, color: 'white', fontSize: '18px', fontWeight: '600' }}>
-        🎉 扩展框架集成成功！
-      </h3>
-      <p style={{ margin: '8px 0 0 0', color: 'rgba(255,255,255,0.9)', fontSize: '14px' }}>
-        VoxNest 扩展框架已经成功集成到现有系统中，现在可以使用插件和主题功能了
-      </p>
-    </div>
-  );
-};
 
 // 注册演示组件到不同的槽位
 export function initializeDemoPlugin() {
@@ -100,19 +79,10 @@ export function initializeDemoPlugin() {
       name: 'Framework Version Info'
     });
     
-    // 注册欢迎横幅到content.before槽位
-    registerToSlot('content.before', WelcomeBanner, {
-      source: 'demo-plugin',
-      priority: 15,
-      name: 'Welcome Banner',
-      condition: () => window.location.pathname === '/' // 只在首页显示
-    });
-    
     console.log('✅ 演示插件初始化成功！');
     console.log('已注册的组件：');
     console.log('- 页面头部右侧：演示设置按钮');
     console.log('- 页面底部右侧：扩展框架版本信息');
-    console.log('- 主内容区域顶部：欢迎横幅');
   } catch (error) {
     console.error('❌ 演示插件初始化失败：', error);
   }
@@ -132,12 +102,10 @@ export const DemoPlugin = {
   components: {
     SettingsButton,
     VersionInfo,
-    WelcomeBanner,
   },
   
   // 插件配置
   config: {
-    showWelcomeBanner: true,
     showVersionInfo: true,
     showSettingsButton: true,
   },

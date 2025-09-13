@@ -1,6 +1,6 @@
 import React from 'react';
 import { Form, Input, Button } from 'antd';
-import { GlobalOutlined, MailOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { GlobalOutlined, MailOutlined } from '@ant-design/icons';
 import type { SiteConfigDto } from '../../api/install';
 
 interface SiteConfigStepProps {
@@ -25,39 +25,6 @@ const SiteConfigStep: React.FC<SiteConfigStepProps> = ({ onSubmit, loading }) =>
 
   return (
     <div style={{ padding: '8px' }}>
-      <div style={{ 
-        textAlign: 'center', 
-        marginBottom: '32px',
-        padding: '24px',
-        background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-        borderRadius: '16px',
-        color: 'var(--text-secondary)'
-      }}>
-        <GlobalOutlined style={{ fontSize: '48px', marginBottom: '16px', display: 'block' }} />
-        <h3 style={{ color: 'var(--primary-color)', fontSize: '24px', fontWeight: '600', margin: '0 0 12px 0' }}>
-          站点配置
-        </h3>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '16px', margin: 0, lineHeight: '1.6' }}>
-          最后一步！请配置站点基本信息，完成安装
-        </p>
-      </div>
-
-      <div style={{
-        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-        borderRadius: '16px',
-        padding: '32px',
-        textAlign: 'center',
-        marginBottom: '32px',
-        color: 'var(--text-secondary)'
-      }}>
-        <CheckCircleOutlined style={{ fontSize: '64px', marginBottom: '16px', display: 'block', color: 'var(--primary-color)' }} />
-        <h3 style={{ color: 'var(--primary-color)', fontSize: '24px', fontWeight: '600', margin: '0 0 12px 0' }}>
-          恭喜！系统安装即将完成
-        </h3>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '16px', margin: 0, lineHeight: '1.6' }}>
-          数据库已成功初始化，管理员账户已创建，现在只需要完成站点配置即可开始使用
-        </p>
-      </div>
 
       <Form
         form={form}
@@ -66,11 +33,10 @@ const SiteConfigStep: React.FC<SiteConfigStepProps> = ({ onSubmit, loading }) =>
         onFinish={handleSubmit}
         style={{
           background: 'white',
-          padding: '32px',
+          padding: '24px',
           borderRadius: '16px',
           border: '1px solid var(--border-color)',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-          marginBottom: '24px'
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
         }}
       >
         <Form.Item
@@ -173,22 +139,6 @@ const SiteConfigStep: React.FC<SiteConfigStepProps> = ({ onSubmit, loading }) =>
           )}
         </Form.Item>
       </Form>
-
-      <div style={{ 
-        padding: '24px', 
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        borderRadius: '16px',
-        textAlign: 'center',
-        color: 'var(--text-secondary)'
-      }}>
-        <h4 style={{ color: 'var(--text-primary)', marginBottom: '12px', fontSize: '18px', fontWeight: '600' }}>
-          🎆 安装完成后
-        </h4>
-        <p style={{ margin: 0, color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-          系统将自动重启并跳转到论坛首页<br />
-          您可以使用刚才创建的管理员账户登录并开始管理您的论坛
-        </p>
-      </div>
     </div>
   );
 };

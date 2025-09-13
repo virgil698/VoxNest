@@ -55,11 +55,11 @@ public class UserStatsConfiguration : IEntityTypeConfiguration<UserStats>
 
         builder.Property(s => s.LastActiveAt)
             .IsRequired()
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("UTC_TIMESTAMP()");
 
         builder.Property(s => s.UpdatedAt)
             .IsRequired()
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("UTC_TIMESTAMP()");
 
         // 外键关系
         builder.HasOne(s => s.User)

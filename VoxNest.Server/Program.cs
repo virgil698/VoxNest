@@ -20,23 +20,41 @@ builder.Configuration
     .AddCommandLine(args);
 
 // 确保服务器配置文件存在，如果不存在则生成默认配置
-if (!File.Exists("server-config.yml"))
+const string configFile = "server-config.yml";
+if (!File.Exists(configFile))
 {
-    Console.WriteLine("🔧 未找到服务器配置文件，正在生成默认配置...");
-    var defaultConfig = VoxNest.Server.Shared.Extensions.ConfigurationExtensions.CreateDefaultConfiguration();
-    VoxNest.Server.Shared.Extensions.ConfigurationExtensions.SaveConfigurationToYaml(defaultConfig, "server-config.yml");
-    Console.WriteLine("✅ 默认配置文件已生成: server-config.yml");
+    try
+    {
+        Console.WriteLine("🔧 未找到服务器配置文件，正在生成默认配置...");
+        var defaultConfig = VoxNest.Server.Shared.Extensions.ConfigurationExtensions.CreateDefaultConfiguration();
+        VoxNest.Server.Shared.Extensions.ConfigurationExtensions.SaveConfigurationToYaml(defaultConfig, configFile);
+        
+        // 验证文件是否成功生成
+        if (File.Exists(configFile))
+        {
+            Console.WriteLine($"✅ 默认配置文件已生成: {configFile}");
+        }
+        else
+        {
+            Console.WriteLine($"❌ 警告：配置文件生成失败: {configFile}");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ 生成配置文件时发生错误: {ex.Message}");
+        Console.WriteLine("系统将在安装模式下运行...");
+    }
 }
 
 // 确保安全配置存在
 builder.Services.EnsureSecureConfiguration(builder.Configuration, builder.Environment);
 
 // 读取服务器配置并设置监听端口
-if (File.Exists("server-config.yml"))
+if (File.Exists(configFile))
 {
     try
     {
-        var serverConfig = VoxNest.Server.Shared.Extensions.ConfigurationExtensions.LoadServerConfigurationFromYaml("server-config.yml");
+        var serverConfig = VoxNest.Server.Shared.Extensions.ConfigurationExtensions.LoadServerConfigurationFromYaml(configFile);
         var httpUrl = $"http://localhost:{serverConfig.Server.Port}";
         
         builder.WebHost.UseUrls(httpUrl);
@@ -44,8 +62,12 @@ if (File.Exists("server-config.yml"))
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"读取服务器配置失败，使用默认端口: {ex.Message}");
+        Console.WriteLine($"❌ 读取服务器配置失败，使用默认端口: {ex.Message}");
     }
+}
+else
+{
+    Console.WriteLine("⚠️ 配置文件不存在，使用默认端口配置");
 }
 
 // 配置服务
@@ -62,17 +84,31 @@ var app = builder.Build();
 app.ConfigureVoxNestPipeline();
 app.ConfigureDevelopmentEnvironment();
 
-// 初始化数据库（仅在已安装且配置存在时）
-if (File.Exists("install.lock") && File.Exists("server-config.yml"))
+// 初始化数据库
+const string installLockFile = "install.lock";
+try
 {
-    try
+    // 如果系统已完全安装，执行正常的数据库迁移
+    if (File.Exists(installLockFile) && File.Exists(configFile))
     {
+        Console.WriteLine("✅ 系统已安装，执行数据库迁移检查...");
         await app.EnsureDatabaseMigratedAsync();
     }
-    catch (Exception ex)
+    else
     {
-        app.Logger.LogError(ex, "数据库迁移失败");
+        // 系统未完全安装，记录状态但不阻止启动
+        var missingFiles = new List<string>();
+        if (!File.Exists(installLockFile)) missingFiles.Add("install.lock");
+        if (!File.Exists(configFile)) missingFiles.Add(configFile);
+        
+        Console.WriteLine($"⚠️ 系统未完全安装，缺少文件: {string.Join(", ", missingFiles)}");
+        Console.WriteLine("💡 请通过 /install 页面完成系统安装");
     }
+}
+catch (Exception ex)
+{
+    app.Logger.LogError(ex, "数据库初始化检查失败");
+    Console.WriteLine($"❌ 数据库初始化失败: {ex.Message}");
 }
 
 // 配置路由

@@ -19,12 +19,18 @@ public class AdminService : IAdminService
     private readonly VoxNestDbContext _context;
     private readonly IMapper _mapper;
     private readonly ILogger<AdminService> _logger;
+    private readonly ISystemInfoService _systemInfoService;
 
-    public AdminService(VoxNestDbContext context, IMapper mapper, ILogger<AdminService> logger)
+    public AdminService(
+        VoxNestDbContext context, 
+        IMapper mapper, 
+        ILogger<AdminService> logger,
+        ISystemInfoService systemInfoService)
     {
         _context = context;
         _mapper = mapper;
         _logger = logger;
+        _systemInfoService = systemInfoService;
     }
 
     /// <summary>
@@ -36,21 +42,43 @@ public class AdminService : IAdminService
         var postCount = await _context.Posts.CountAsync(cancellationToken);
         var tagCount = await _context.Tags.CountAsync(cancellationToken);
         
+        // 计算真实统计数据
+        var today = DateTime.UtcNow.Date;
+        var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
+
+        var newUsersToday = await _context.Users
+            .CountAsync(u => u.CreatedAt.Date == today, cancellationToken);
+
+        var newPostsToday = await _context.Posts
+            .CountAsync(p => p.CreatedAt.Date == today, cancellationToken);
+
+        var totalComments = await _context.Comments
+            .CountAsync(cancellationToken);
+
+        var newCommentsToday = await _context.Comments
+            .CountAsync(c => c.CreatedAt.Date == today, cancellationToken);
+
+        var recentActiveUsers = await _context.UserStats
+            .CountAsync(us => us.LastActiveAt >= sevenDaysAgo, cancellationToken);
+
+        var activeUsers = await _context.Users
+            .CountAsync(u => u.Status == UserStatus.Active, cancellationToken);
+
         return new SiteOverviewDto
         {
             UserStats = new UserStatsDto
             {
                 TotalUsers = userCount,
-                NewUsersToday = 0,
-                ActiveUsers = 0,
-                OnlineUsers = 0
+                NewUsersToday = newUsersToday,
+                ActiveUsers = recentActiveUsers,
+                OnlineUsers = 0 // 在线用户数通过前端计算
             },
             PostStats = new PostStatsDto
             {
                 TotalPosts = postCount,
-                NewPostsToday = 0,
-                TotalComments = 0,
-                NewCommentsToday = 0
+                NewPostsToday = newPostsToday,
+                TotalComments = totalComments,
+                NewCommentsToday = newCommentsToday
             },
             SystemStats = new SystemStatsDto
             {
@@ -58,6 +86,47 @@ public class AdminService : IAdminService
                 ActiveExtensionCount = 0
             },
             RecentActivity = new RecentActivityDto()
+        };
+    }
+
+    /// <summary>
+    /// 获取站点基础统计信息 - 用于首页显示
+    /// </summary>
+    public async Task<SiteStatsDto> GetSiteStatsAsync(CancellationToken cancellationToken = default)
+    {
+        var today = DateTime.UtcNow.Date;
+        var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
+
+        // 基础统计
+        var totalUsers = await _context.Users.CountAsync(cancellationToken);
+        var totalPosts = await _context.Posts.CountAsync(cancellationToken);
+        var totalComments = await _context.Comments.CountAsync(cancellationToken);
+
+        // 今日新增
+        var newUsersToday = await _context.Users
+            .CountAsync(u => u.CreatedAt.Date == today, cancellationToken);
+
+        var newPostsToday = await _context.Posts
+            .CountAsync(p => p.CreatedAt.Date == today, cancellationToken);
+
+        // 活跃用户统计
+        var activeUsers = await _context.Users
+            .CountAsync(u => u.Status == UserStatus.Active, cancellationToken);
+
+        var recentActiveUsers = await _context.UserStats
+            .CountAsync(us => us.LastActiveAt >= sevenDaysAgo, cancellationToken);
+
+        return new SiteStatsDto
+        {
+            TotalUsers = totalUsers,
+            OnlineUsers = 0, // 在线用户数由前端实时计算
+            ActiveUsers = activeUsers,
+            TotalPosts = totalPosts,
+            TotalComments = totalComments,
+            NewPostsToday = newPostsToday,
+            NewUsersToday = newUsersToday,
+            RecentActiveUsers = recentActiveUsers,
+            GeneratedAt = DateTime.UtcNow
         };
     }
 
@@ -162,64 +231,64 @@ public class AdminService : IAdminService
     }
 
     // 以下方法暂时返回空数据，避免编译错误
-    public async Task<PagedResult<AdminUserDto>> GetUsersAsync(AdminUserQueryDto query, CancellationToken cancellationToken = default)
+    public Task<PagedResult<AdminUserDto>> GetUsersAsync(AdminUserQueryDto query, CancellationToken cancellationToken = default)
     {
-        return PagedResult<AdminUserDto>.Success(new List<AdminUserDto>(), 0, query.PageNumber, query.PageSize);
+        return Task.FromResult(PagedResult<AdminUserDto>.Success(new List<AdminUserDto>(), 0, query.PageNumber, query.PageSize));
     }
 
-    public async Task<AdminUserDto?> GetUserAsync(int userId, CancellationToken cancellationToken = default)
+    public Task<AdminUserDto?> GetUserAsync(int userId, CancellationToken cancellationToken = default)
     {
-        return null;
+        return Task.FromResult<AdminUserDto?>(null);
     }
 
-    public async Task<bool> UpdateUserStatusAsync(int userId, UpdateUserStatusDto dto, CancellationToken cancellationToken = default)
+    public Task<bool> UpdateUserStatusAsync(int userId, UpdateUserStatusDto dto, CancellationToken cancellationToken = default)
     {
-        return false;
+        return Task.FromResult(false);
     }
 
-    public async Task<bool> UpdateUserRolesAsync(int userId, UpdateUserRolesDto dto, CancellationToken cancellationToken = default)
+    public Task<bool> UpdateUserRolesAsync(int userId, UpdateUserRolesDto dto, CancellationToken cancellationToken = default)
     {
-        return false;
+        return Task.FromResult(false);
     }
 
-    public async Task<bool> DeleteUserAsync(int userId, CancellationToken cancellationToken = default)
+    public Task<bool> DeleteUserAsync(int userId, CancellationToken cancellationToken = default)
     {
-        return false;
+        return Task.FromResult(false);
     }
 
-    public async Task<PagedResult<AdminPostDto>> GetPostsAsync(AdminPostQueryDto query, CancellationToken cancellationToken = default)
+    public Task<PagedResult<AdminPostDto>> GetPostsAsync(AdminPostQueryDto query, CancellationToken cancellationToken = default)
     {
-        return PagedResult<AdminPostDto>.Success(new List<AdminPostDto>(), 0, query.PageNumber, query.PageSize);
+        return Task.FromResult(PagedResult<AdminPostDto>.Success(new List<AdminPostDto>(), 0, query.PageNumber, query.PageSize));
     }
 
-    public async Task<AdminPostDto?> GetPostAsync(int postId, CancellationToken cancellationToken = default)
+    public Task<AdminPostDto?> GetPostAsync(int postId, CancellationToken cancellationToken = default)
     {
-        return null;
+        return Task.FromResult<AdminPostDto?>(null);
     }
 
-    public async Task<bool> UpdatePostStatusAsync(int postId, UpdatePostStatusDto dto, CancellationToken cancellationToken = default)
+    public Task<bool> UpdatePostStatusAsync(int postId, UpdatePostStatusDto dto, CancellationToken cancellationToken = default)
     {
-        return false;
+        return Task.FromResult(false);
     }
 
-    public async Task<int> BatchOperatePostsAsync(BatchPostOperationDto dto, CancellationToken cancellationToken = default)
+    public Task<int> BatchOperatePostsAsync(BatchPostOperationDto dto, CancellationToken cancellationToken = default)
     {
-        return 0;
+        return Task.FromResult(0);
     }
 
-    public async Task<bool> DeletePostAsync(int postId, CancellationToken cancellationToken = default)
+    public Task<bool> DeletePostAsync(int postId, CancellationToken cancellationToken = default)
     {
-        return false;
+        return Task.FromResult(false);
     }
 
-    public async Task<PagedResult<AdminTagDto>> GetTagsAsync(AdminTagQueryDto query, CancellationToken cancellationToken = default)
+    public Task<PagedResult<AdminTagDto>> GetTagsAsync(AdminTagQueryDto query, CancellationToken cancellationToken = default)
     {
-        return PagedResult<AdminTagDto>.Success(new List<AdminTagDto>(), 0, query.PageNumber, query.PageSize);
+        return Task.FromResult(PagedResult<AdminTagDto>.Success(new List<AdminTagDto>(), 0, query.PageNumber, query.PageSize));
     }
 
-    public async Task<TagStatsDto> GetTagStatsAsync(CancellationToken cancellationToken = default)
+    public Task<TagStatsDto> GetTagStatsAsync(CancellationToken cancellationToken = default)
     {
-        return new TagStatsDto
+        return Task.FromResult(new TagStatsDto
         {
             TotalTags = 0,
             EnabledTags = 0,
@@ -227,17 +296,17 @@ public class AdminService : IAdminService
             UnusedTags = 0,
             TopTags = new List<AdminTagDto>(),
             RecentTags = new List<AdminTagDto>()
-        };
+        });
     }
 
-    public async Task<AdminTagDto?> GetTagAsync(int tagId, CancellationToken cancellationToken = default)
+    public Task<AdminTagDto?> GetTagAsync(int tagId, CancellationToken cancellationToken = default)
     {
-        return null;
+        return Task.FromResult<AdminTagDto?>(null);
     }
 
-    public async Task<AdminTagDto> CreateTagAsync(CreateUpdateTagDto dto, CancellationToken cancellationToken = default)
+    public Task<AdminTagDto> CreateTagAsync(CreateUpdateTagDto dto, CancellationToken cancellationToken = default)
     {
-        return new AdminTagDto 
+        return Task.FromResult(new AdminTagDto 
         { 
             Id = 1, 
             Name = dto.Name ?? "",
@@ -251,21 +320,29 @@ public class AdminService : IAdminService
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             LastUsedAt = DateTime.UtcNow
-        };
+        });
     }
 
-    public async Task<AdminTagDto?> UpdateTagAsync(int tagId, CreateUpdateTagDto dto, CancellationToken cancellationToken = default)
+    public Task<AdminTagDto?> UpdateTagAsync(int tagId, CreateUpdateTagDto dto, CancellationToken cancellationToken = default)
     {
-        return null;
+        return Task.FromResult<AdminTagDto?>(null);
     }
 
-    public async Task<bool> DeleteTagAsync(int tagId, CancellationToken cancellationToken = default)
+    public Task<bool> DeleteTagAsync(int tagId, CancellationToken cancellationToken = default)
     {
-        return false;
+        return Task.FromResult(false);
     }
 
-    public async Task<bool> MergeTagsAsync(int sourceTagId, int targetTagId, CancellationToken cancellationToken = default)
+    public Task<bool> MergeTagsAsync(int sourceTagId, int targetTagId, CancellationToken cancellationToken = default)
     {
-        return false;
+        return Task.FromResult(false);
+    }
+
+    /// <summary>
+    /// 获取系统信息
+    /// </summary>
+    public async Task<SystemInfoDto> GetSystemInfoAsync(CancellationToken cancellationToken = default)
+    {
+        return await _systemInfoService.GetSystemInfoAsync(cancellationToken);
     }
 }

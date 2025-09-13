@@ -213,7 +213,7 @@ namespace VoxNest.Server.Presentation.Controllers
         }
 
         // 私有辅助方法
-        private async Task<List<string>> GetDirectoriesAsync(string basePath)
+        private Task<List<string>> GetDirectoriesAsync(string basePath)
         {
             var directories = new List<string>();
 
@@ -233,16 +233,16 @@ namespace VoxNest.Server.Presentation.Controllers
                 }
             }
 
-            return directories;
+            return Task.FromResult(directories);
         }
 
-        private async Task<int> CleanupExtensionDirectory(string basePath, string type)
+        private Task<int> CleanupExtensionDirectory(string basePath, string type)
         {
             var cleanedCount = 0;
 
             if (!Directory.Exists(basePath))
             {
-                return cleanedCount;
+                return Task.FromResult(cleanedCount);
             }
 
             var dirs = Directory.GetDirectories(basePath);
@@ -265,7 +265,7 @@ namespace VoxNest.Server.Presentation.Controllers
                 }
             }
 
-            return cleanedCount;
+            return Task.FromResult(cleanedCount);
         }
 
         private string GetContentType(string fileName)

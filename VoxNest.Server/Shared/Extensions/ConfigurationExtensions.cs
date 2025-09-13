@@ -54,7 +54,7 @@ public static class ConfigurationExtensions
             Database = new DatabaseSettings
             {
                 Provider = "MySQL",
-                ConnectionString = "Server=localhost;Database=voxnest;User=root;Password=your_password;Port=3306;CharSet=utf8mb4;",
+                ConnectionString = "", // 空连接字符串，等待用户安装时配置
                 EnableSensitiveDataLogging = false,
                 EnableDetailedErrors = false
             },

@@ -608,56 +608,56 @@ namespace VoxNest.Server.Application.Services
             }
         }
 
-        public async Task<ApiResponse<string>> ValidateThemeFileAsync(IFormFile file)
+        public Task<ApiResponse<string>> ValidateThemeFileAsync(IFormFile file)
         {
             try
             {
                 if (file == null || file.Length == 0)
                 {
-                    return ApiResponse<string>.CreateError("文件不能为空");
+                    return Task.FromResult(ApiResponse<string>.CreateError("文件不能为空"));
                 }
 
                 if (!file.FileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
                 {
-                    return ApiResponse<string>.CreateError("主题文件必须是ZIP格式");
+                    return Task.FromResult(ApiResponse<string>.CreateError("主题文件必须是ZIP格式"));
                 }
 
                 if (file.Length > 20 * 1024 * 1024) // 20MB限制
                 {
-                    return ApiResponse<string>.CreateError("主题文件大小不能超过20MB");
+                    return Task.FromResult(ApiResponse<string>.CreateError("主题文件大小不能超过20MB"));
                 }
 
-                return ApiResponse<string>.CreateSuccess("文件验证通过");
+                return Task.FromResult(ApiResponse<string>.CreateSuccess("文件验证通过"));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "验证主题文件时发生错误");
-                return ApiResponse<string>.CreateError("文件验证失败");
+                return Task.FromResult(ApiResponse<string>.CreateError("文件验证失败"));
             }
         }
 
         // 简化实现的方法
-        public async Task<ApiResponse<byte[]>> ExportThemeConfigAsync(int id)
+        public Task<ApiResponse<byte[]>> ExportThemeConfigAsync(int id)
         {
-            return ApiResponse<byte[]>.CreateError("功能暂未实现");
+            return Task.FromResult(ApiResponse<byte[]>.CreateError("功能暂未实现"));
         }
 
-        public async Task<ApiResponse<string>> ImportThemeConfigAsync(int id, IFormFile configFile)
+        public Task<ApiResponse<string>> ImportThemeConfigAsync(int id, IFormFile configFile)
         {
-            return ApiResponse<string>.CreateError("功能暂未实现");
+            return Task.FromResult(ApiResponse<string>.CreateError("功能暂未实现"));
         }
 
-        public async Task<ApiResponse<string>> CustomizeThemeVariablesAsync(int id, Dictionary<string, string> variables)
+        public Task<ApiResponse<string>> CustomizeThemeVariablesAsync(int id, Dictionary<string, string> variables)
         {
-            return ApiResponse<string>.CreateError("功能暂未实现");
+            return Task.FromResult(ApiResponse<string>.CreateError("功能暂未实现"));
         }
 
-        public async Task<ApiResponse<Dictionary<string, object>>> GetThemeVariableDefinitionsAsync(int id)
+        public Task<ApiResponse<Dictionary<string, object>>> GetThemeVariableDefinitionsAsync(int id)
         {
-            return ApiResponse<Dictionary<string, object>>.CreateError("功能暂未实现");
+            return Task.FromResult(ApiResponse<Dictionary<string, object>>.CreateError("功能暂未实现"));
         }
 
-        private async Task<string> ExtractThemeToFrontendAsync(string zipFilePath, string themeId)
+        private Task<string> ExtractThemeToFrontendAsync(string zipFilePath, string themeId)
         {
             try
             {
@@ -694,7 +694,7 @@ namespace VoxNest.Server.Application.Services
                 }
                 
                 _logger.LogInformation($"Theme {themeId} extracted to frontend directory: {themeDirectory}");
-                return themeDirectory;
+                return Task.FromResult(themeDirectory);
             }
             catch (Exception ex)
             {

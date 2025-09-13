@@ -2,7 +2,16 @@
  * 主题管理 API
  */
 
-import { request } from '../utils/request';
+import { apiClient } from './client';
+import type { PagedResult } from './admin';
+
+// API 响应类型
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  errors?: string[];
+}
 
 // 枚举定义
 export const ThemeStatus = {
@@ -135,23 +144,23 @@ export interface ThemePreview {
 export const themeApi = {
   // 获取主题列表
   getThemes: (params: ThemeQuery) =>
-    request.get<PagedResult<Theme>>('/theme', { params }),
+    apiClient.get<PagedResult<Theme>>('/theme', { params }),
 
   // 获取主题详情
   getTheme: (id: number) =>
-    request.get<ApiResponse<Theme>>(`/theme/${id}`),
+    apiClient.get<ApiResponse<Theme>>(`/theme/${id}`),
 
   // 根据唯一ID获取主题
   getThemeByUniqueId: (uniqueId: string) =>
-    request.get<ApiResponse<Theme>>(`/theme/by-unique-id/${uniqueId}`),
+    apiClient.get<ApiResponse<Theme>>(`/theme/by-unique-id/${uniqueId}`),
 
   // 创建主题
   createTheme: (data: CreateTheme) =>
-    request.post<ApiResponse<Theme>>('/theme', data),
+    apiClient.post<ApiResponse<Theme>>('/theme', data),
 
   // 更新主题
   updateTheme: (id: number, data: UpdateTheme) =>
-    request.put<ApiResponse<Theme>>(`/theme/${id}`, data),
+    apiClient.put<ApiResponse<Theme>>(`/theme/${id}`, data),
 
   // 上传主题
   uploadTheme: (file: File, description?: string, tags?: string, setAsDefault = false) => {
@@ -161,54 +170,54 @@ export const themeApi = {
     if (tags) formData.append('tags', tags);
     formData.append('setAsDefault', setAsDefault.toString());
     
-    return request.post<ApiResponse<Theme>>('/theme/upload', formData, {
+    return apiClient.post<ApiResponse<Theme>>('/theme/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
 
   // 安装主题
   installTheme: (id: number) =>
-    request.post<ApiResponse<string>>(`/theme/${id}/install`),
+    apiClient.post<ApiResponse<string>>(`/theme/${id}/install`),
 
   // 激活主题
   activateTheme: (id: number) =>
-    request.post<ApiResponse<string>>(`/theme/${id}/activate`),
+    apiClient.post<ApiResponse<string>>(`/theme/${id}/activate`),
 
   // 禁用主题
   disableTheme: (id: number) =>
-    request.post<ApiResponse<string>>(`/theme/${id}/disable`),
+    apiClient.post<ApiResponse<string>>(`/theme/${id}/disable`),
 
   // 卸载主题
   uninstallTheme: (id: number) =>
-    request.post<ApiResponse<string>>(`/theme/${id}/uninstall`),
+    apiClient.post<ApiResponse<string>>(`/theme/${id}/uninstall`),
 
   // 删除主题
   deleteTheme: (id: number) =>
-    request.delete<ApiResponse<string>>(`/theme/${id}`),
+    apiClient.delete<ApiResponse<string>>(`/theme/${id}`),
 
   // 获取当前激活主题
   getActiveTheme: () =>
-    request.get<ApiResponse<Theme>>('/theme/active'),
+    apiClient.get<ApiResponse<Theme>>('/theme/active'),
 
   // 获取主题预览列表
   getThemePreviews: () =>
-    request.get<ApiResponse<ThemePreview[]>>('/theme/previews'),
+    apiClient.get<ApiResponse<ThemePreview[]>>('/theme/previews'),
 
   // 获取主题统计
   getThemeStats: () =>
-    request.get<ApiResponse<ThemeStats>>('/theme/stats'),
+    apiClient.get<ApiResponse<ThemeStats>>('/theme/stats'),
 
   // 预览主题
   previewTheme: (id: number) =>
-    request.get<ApiResponse<ThemePreview>>(`/theme/${id}/preview`),
+    apiClient.get<ApiResponse<ThemePreview>>(`/theme/${id}/preview`),
 
   // 重置为默认主题
   resetToDefaultTheme: () =>
-    request.post<ApiResponse<string>>('/theme/reset-to-default'),
+    apiClient.post<ApiResponse<string>>('/theme/reset-to-default'),
 
   // 批量更新主题状态
   batchUpdateThemeStatus: (themeIds: number[], status: ThemeStatus) =>
-    request.post<ApiResponse<string>>('/theme/batch-status', {
+    apiClient.post<ApiResponse<string>>('/theme/batch-status', {
       themeIds,
       status
     }),
@@ -218,7 +227,7 @@ export const themeApi = {
     const formData = new FormData();
     formData.append('file', file);
     
-    return request.post<ApiResponse<string>>('/theme/validate', formData, {
+    return apiClient.post<ApiResponse<string>>('/theme/validate', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   }
