@@ -399,6 +399,9 @@ install.lock
 logs/
 *.log.*
 
+# 例外：允许Application层的Log DTO文件夹
+!**/Application/DTOs/Log/
+
 # IDE和编辑器文件
 .vscode/settings.json
 .idea/
