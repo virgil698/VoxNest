@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { Spin } from 'antd';
 import { useAuthStore } from '../../stores/authStore';
 
@@ -49,6 +49,5 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   }
 
   // 用于路由布局的情况
-  const { Outlet } = require('react-router-dom');
   return <Outlet />;
 };

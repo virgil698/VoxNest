@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 using System.Text;
 using VoxNest.Server.Application.DTOs.Install;
+using VoxNest.Server.Application.DTOs.Auth;
 using VoxNest.Server.Application.Interfaces;
 using VoxNest.Server.Domain.Entities.System;
 using VoxNest.Server.Domain.Entities.User;
@@ -11,6 +12,7 @@ using VoxNest.Server.Shared.Configuration;
 using VoxNest.Server.Shared.Extensions;
 using VoxNest.Server.Shared.Results;
 using BCrypt.Net;
+using AutoMapper;
 
 namespace VoxNest.Server.Application.Services;
 
@@ -24,6 +26,10 @@ public class EnhancedInstallService : IInstallService
     private readonly IInstallLockService _lockService;
     private readonly IWebHostEnvironment _environment;
     private readonly ILogger<EnhancedInstallService> _logger;
+    private readonly IJwtTokenService _jwtTokenService;
+    private readonly IMapper _mapper;
+    private readonly ServerConfiguration _serverConfig;
+    private readonly IConfigurationReloadService? _configurationReloadService;
     
     private const string InstallFlagFile = "install.lock";
     private const string ConfigFile = "server-config.yml";
@@ -33,12 +39,20 @@ public class EnhancedInstallService : IInstallService
         IInstallLockService lockService,
         IWebHostEnvironment environment,
         ILogger<EnhancedInstallService> logger,
+        IJwtTokenService jwtTokenService,
+        IMapper mapper,
+        ServerConfiguration serverConfig,
         IInstallationDbContextService? installationDbContextService = null,
-        IDbContextFactory<VoxNestDbContext>? contextFactory = null)
+        IDbContextFactory<VoxNestDbContext>? contextFactory = null,
+        IConfigurationReloadService? configurationReloadService = null)
     {
         _lockService = lockService;
         _environment = environment;
         _logger = logger;
+        _jwtTokenService = jwtTokenService;
+        _mapper = mapper;
+        _serverConfig = serverConfig;
+        _configurationReloadService = configurationReloadService;
         _installationDbContextService = installationDbContextService;
         _contextFactory = contextFactory;
     }
@@ -302,6 +316,10 @@ public class EnhancedInstallService : IInstallService
             await CreateInitializationFlagAsync();
             
             _logger.LogInformation("数据库初始化完成");
+            
+            // 检查是否需要重载配置
+            await TriggerConfigurationReloadIfNeededAsync();
+            
             return Result.Success("数据库初始化成功");
         }
         catch (Exception ex)
@@ -312,12 +330,12 @@ public class EnhancedInstallService : IInstallService
     }
 
     /// <inheritdoc/>
-    public async Task<Result> CreateAdminUserAsync(CreateAdminDto adminInfo)
+    public async Task<Result<CreateAdminResponseDto>> CreateAdminUserAsync(CreateAdminDto adminInfo)
     {
         var lockResult = await _lockService.AcquireLockAsync("create_admin_user", 60);
         if (!lockResult.IsSuccess)
         {
-            return Result.Failure(lockResult.Message);
+            return Result<CreateAdminResponseDto>.Failure(lockResult.Message);
         }
 
         await using var lockObj = lockResult.Data!;
@@ -326,7 +344,7 @@ public class EnhancedInstallService : IInstallService
         {
             if (!File.Exists(ConfigFile))
             {
-                return Result.Failure("配置文件不存在");
+                return Result<CreateAdminResponseDto>.Failure("配置文件不存在");
             }
 
             using var context = await CreateDbContextAsync();
@@ -335,7 +353,7 @@ public class EnhancedInstallService : IInstallService
             var dbValidation = await ValidateDatabaseStructureAsync(context);
             if (!dbValidation.IsSuccess)
             {
-                return dbValidation;
+                return Result<CreateAdminResponseDto>.Failure(dbValidation.Message);
             }
 
             // 检查用户名和邮箱是否已存在
@@ -345,23 +363,57 @@ public class EnhancedInstallService : IInstallService
             if (existingUser != null)
             {
                 var conflict = existingUser.Username == adminInfo.Username ? "用户名" : "邮箱";
-                return Result.Failure($"{conflict}已存在，请选择其他{conflict}");
+                return Result<CreateAdminResponseDto>.Failure($"{conflict}已存在，请选择其他{conflict}");
             }
 
             // 创建管理员用户
             var result = await CreateAdminUserInternalAsync(context, adminInfo);
             if (!result.IsSuccess)
             {
-                return result;
+                return Result<CreateAdminResponseDto>.Failure(result.Message);
             }
 
-            _logger.LogInformation("管理员账户创建完成: {Username}", adminInfo.Username);
-            return Result.Success("管理员账户创建成功");
+            // 获取创建的用户完整信息（包含角色等）
+            var adminUser = await context.Users
+                .Include(u => u.Profile)
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Username == adminInfo.Username);
+
+            if (adminUser == null)
+            {
+                return Result<CreateAdminResponseDto>.Failure("无法获取创建的管理员用户信息");
+            }
+
+            // 生成JWT令牌
+            var accessToken = await _jwtTokenService.GenerateAccessTokenAsync(adminUser);
+            
+            // 更新最后登录时间
+            adminUser.LastLoginAt = DateTime.UtcNow;
+            await context.SaveChangesAsync();
+
+            // 映射用户DTO
+            var userDto = _mapper.Map<UserDto>(adminUser);
+
+            // 创建登录响应数据
+            var authData = new LoginResponseDto
+            {
+                AccessToken = accessToken,
+                TokenType = "Bearer",
+                ExpiresIn = _serverConfig.Jwt.ExpireMinutes * 60,
+                User = userDto
+            };
+
+            // 创建成功响应
+            var response = CreateAdminResponseDto.CreateSuccess("管理员账户创建成功", authData);
+
+            _logger.LogInformation("管理员账户创建完成并已自动登录: {Username}", adminInfo.Username);
+            return Result<CreateAdminResponseDto>.Success(response);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "创建管理员账户失败");
-            return Result.Failure($"创建管理员账户失败: {ex.Message}");
+            return Result<CreateAdminResponseDto>.Failure($"创建管理员账户失败: {ex.Message}");
         }
     }
 
@@ -986,6 +1038,44 @@ public class EnhancedInstallService : IInstallService
         catch (Exception ex)
         {
             return new { error = ex.Message };
+        }
+    }
+
+    /// <summary>
+    /// 触发配置重载（如果需要）
+    /// </summary>
+    private async Task TriggerConfigurationReloadIfNeededAsync()
+    {
+        try
+        {
+            if (_configurationReloadService != null)
+            {
+                var shouldReload = await _configurationReloadService.ShouldReloadConfigurationAsync();
+                if (shouldReload)
+                {
+                    _logger.LogInformation("检测到需要重载配置，触发应用重启...");
+                    var reloadResult = await _configurationReloadService.ReloadConfigurationAsync();
+                    if (reloadResult.IsSuccess)
+                    {
+                        // 延迟重启，给当前请求时间完成
+                        _ = Task.Run(async () =>
+                        {
+                            await Task.Delay(3000);
+                            await _configurationReloadService.TriggerApplicationRestartAsync();
+                        });
+                        
+                        _logger.LogInformation("配置重载已触发，应用将在3秒后重启");
+                    }
+                    else
+                    {
+                        _logger.LogWarning("配置重载失败: {Message}", reloadResult.Message);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "触发配置重载时出错");
         }
     }
 

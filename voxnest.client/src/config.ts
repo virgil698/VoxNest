@@ -204,34 +204,34 @@ export function createConfigFromEnv(): Partial<AppConfig> {
 
 export interface ConfigValidationRule {
   path: string;
-  validator: (value: any) => boolean;
+  validator: (value: unknown) => boolean;
   message: string;
 }
 
 export const configValidationRules: ConfigValidationRule[] = [
   {
     path: 'server.devPort',
-    validator: (port: number) => port > 0 && port <= 65535,
+    validator: (value: unknown) => typeof value === 'number' && value > 0 && value <= 65535,
     message: '前端开发服务器端口必须在1-65535范围内',
   },
   {
     path: 'server.backendHttpPort',
-    validator: (port: number) => port > 0 && port <= 65535,
+    validator: (value: unknown) => typeof value === 'number' && value > 0 && value <= 65535,
     message: '后端HTTP端口必须在1-65535范围内',
   },
   {
     path: 'server.backendHttpsPort',
-    validator: (port: number) => port > 0 && port <= 65535,
+    validator: (value: unknown) => typeof value === 'number' && value > 0 && value <= 65535,
     message: '后端HTTPS端口必须在1-65535范围内',
   },
   {
     path: 'api.timeout',
-    validator: (timeout: number) => timeout > 0 && timeout <= 60000,
+    validator: (value: unknown) => typeof value === 'number' && value > 0 && value <= 60000,
     message: 'API超时时间必须在0-60000毫秒范围内',
   },
   {
     path: 'ui.pageSize',
-    validator: (size: number) => size > 0 && size <= 100,
+    validator: (value: unknown) => typeof value === 'number' && value > 0 && value <= 100,
     message: '每页显示条数必须在1-100范围内',
   },
 ];
@@ -248,12 +248,12 @@ export function mergeConfig(base: AppConfig, override: Partial<AppConfig>): AppC
   
   for (const [key, value] of Object.entries(override)) {
     if (value && typeof value === 'object' && !Array.isArray(value)) {
-      (merged as any)[key] = {
-        ...(merged as any)[key],
+      (merged as Record<string, unknown>)[key] = {
+        ...(merged as Record<string, unknown>)[key] as Record<string, unknown>,
         ...value,
       };
     } else if (value !== undefined) {
-      (merged as any)[key] = value;
+      (merged as Record<string, unknown>)[key] = value;
     }
   }
   
@@ -263,8 +263,9 @@ export function mergeConfig(base: AppConfig, override: Partial<AppConfig>): AppC
 /**
  * 获取配置中指定路径的值
  */
-export function getConfigValue(config: AppConfig, path: string): any {
-  return path.split('.').reduce((obj, key) => obj?.[key], config as any);
+export function getConfigValue(config: AppConfig, path: string): unknown {
+  return path.split('.').reduce((obj: unknown, key: string) => 
+    (obj as Record<string, unknown>)?.[key], config);
 }
 
 /**

@@ -1,0 +1,506 @@
+/**
+ * VoxNest 深色主题样式
+ * 提供现代、护眼的深色界面设计
+ */
+
+/* 深色主题根变量 */
+.voxnest-theme-dark {
+  /* 主色调 */
+  --voxnest-color-primary: #6366f1;
+  --voxnest-color-primary-hover: #7c3aed;
+  --voxnest-color-primary-active: #8b5cf6;
+  --voxnest-color-primary-light: #1e1b4b;
+  
+  /* 次要色调 */
+  --voxnest-color-secondary: #8b5cf6;
+  --voxnest-color-secondary-hover: #a78bfa;
+  --voxnest-color-secondary-active: #c4b5fd;
+  --voxnest-color-secondary-light: #2d1b69;
+  
+  /* 强调色 */
+  --voxnest-color-accent: #67e8f9;
+  --voxnest-color-accent-hover: #22d3ee;
+  --voxnest-color-accent-active: #06b6d4;
+  --voxnest-color-accent-light: #083344;
+  
+  /* 背景色 */
+  --voxnest-color-background: #0f172a;
+  --voxnest-color-background-secondary: #1e293b;
+  --voxnest-color-background-tertiary: #334155;
+  
+  /* 表面色 */
+  --voxnest-color-surface: #1e293b;
+  --voxnest-color-surface-hover: #334155;
+  --voxnest-color-surface-active: #475569;
+  --voxnest-color-surface-elevated: #2d3748;
+  
+  /* 文本色 */
+  --voxnest-color-text: #f1f5f9;
+  --voxnest-color-text-secondary: #cbd5e1;
+  --voxnest-color-text-tertiary: #94a3b8;
+  --voxnest-color-text-inverse: #1e293b;
+  
+  /* 边框色 */
+  --voxnest-color-border: #374151;
+  --voxnest-color-border-light: #4b5563;
+  --voxnest-color-border-dark: #1f2937;
+  
+  /* 状态色 */
+  --voxnest-color-success: #34d399;
+  --voxnest-color-success-light: #064e3b;
+  --voxnest-color-warning: #fbbf24;
+  --voxnest-color-warning-light: #451a03;
+  --voxnest-color-error: #f87171;
+  --voxnest-color-error-light: #7f1d1d;
+  --voxnest-color-info: #60a5fa;
+  --voxnest-color-info-light: #1e3a8a;
+  
+  /* 阴影 */
+  --voxnest-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --voxnest-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --voxnest-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --voxnest-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+  
+  /* 透明度 */
+  --voxnest-opacity-disabled: 0.5;
+  --voxnest-opacity-hover: 0.8;
+  --voxnest-opacity-active: 0.9;
+}
+
+/* 深色主题下的全局样式 */
+.voxnest-theme-dark {
+  background-color: var(--voxnest-color-background);
+  color: var(--voxnest-color-text);
+}
+
+/* 头部样式 */
+.voxnest-theme-dark header,
+.voxnest-theme-dark .ant-layout-header {
+  background-color: var(--voxnest-color-surface-elevated);
+  border-bottom: 1px solid var(--voxnest-color-border);
+  box-shadow: var(--voxnest-shadow-md);
+}
+
+/* 侧边栏样式 */
+.voxnest-theme-dark .ant-layout-sider {
+  background-color: var(--voxnest-color-surface);
+  border-right: 1px solid var(--voxnest-color-border);
+}
+
+.voxnest-theme-dark .ant-menu {
+  background-color: transparent;
+  border-right: none;
+  color: var(--voxnest-color-text);
+}
+
+.voxnest-theme-dark .ant-menu-item {
+  color: var(--voxnest-color-text-secondary);
+  border-radius: 6px;
+  margin: 2px 8px;
+}
+
+.voxnest-theme-dark .ant-menu-item:hover {
+  background-color: var(--voxnest-color-primary-light);
+  color: var(--voxnest-color-primary);
+}
+
+.voxnest-theme-dark .ant-menu-item-selected {
+  background-color: var(--voxnest-color-primary-light);
+  color: var(--voxnest-color-primary);
+}
+
+/* 卡片样式 */
+.voxnest-theme-dark .ant-card {
+  background-color: var(--voxnest-color-surface);
+  border: 1px solid var(--voxnest-color-border);
+  box-shadow: var(--voxnest-shadow-md);
+}
+
+.voxnest-theme-dark .ant-card:hover {
+  box-shadow: var(--voxnest-shadow-lg);
+  border-color: var(--voxnest-color-border-light);
+}
+
+.voxnest-theme-dark .ant-card-head {
+  background-color: var(--voxnest-color-background-secondary);
+  border-bottom: 1px solid var(--voxnest-color-border);
+  color: var(--voxnest-color-text);
+}
+
+.voxnest-theme-dark .ant-card-body {
+  color: var(--voxnest-color-text);
+}
+
+/* 按钮样式 */
+.voxnest-theme-dark .ant-btn-primary {
+  background-color: var(--voxnest-color-primary);
+  border-color: var(--voxnest-color-primary);
+  box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
+  color: var(--voxnest-color-text-inverse);
+}
+
+.voxnest-theme-dark .ant-btn-primary:hover {
+  background-color: var(--voxnest-color-primary-hover);
+  border-color: var(--voxnest-color-primary-hover);
+  box-shadow: 0 4px 8px rgba(99, 102, 241, 0.4);
+}
+
+.voxnest-theme-dark .ant-btn-primary:active {
+  background-color: var(--voxnest-color-primary-active);
+  border-color: var(--voxnest-color-primary-active);
+}
+
+.voxnest-theme-dark .ant-btn-default {
+  background-color: var(--voxnest-color-surface);
+  border-color: var(--voxnest-color-border);
+  color: var(--voxnest-color-text);
+}
+
+.voxnest-theme-dark .ant-btn-default:hover {
+  background-color: var(--voxnest-color-surface-hover);
+  border-color: var(--voxnest-color-border-light);
+  color: var(--voxnest-color-text);
+}
+
+/* 表单样式 */
+.voxnest-theme-dark .ant-input,
+.voxnest-theme-dark .ant-select-selector {
+  background-color: var(--voxnest-color-surface);
+  border-color: var(--voxnest-color-border);
+  color: var(--voxnest-color-text);
+}
+
+.voxnest-theme-dark .ant-input::placeholder {
+  color: var(--voxnest-color-text-tertiary);
+}
+
+.voxnest-theme-dark .ant-input:focus,
+.voxnest-theme-dark .ant-select-focused .ant-select-selector {
+  border-color: var(--voxnest-color-primary);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.voxnest-theme-dark .ant-select-selection-placeholder {
+  color: var(--voxnest-color-text-tertiary);
+}
+
+/* 表格样式 */
+.voxnest-theme-dark .ant-table {
+  background-color: var(--voxnest-color-surface);
+  color: var(--voxnest-color-text);
+}
+
+.voxnest-theme-dark .ant-table-thead > tr > th {
+  background-color: var(--voxnest-color-background-secondary);
+  border-bottom: 1px solid var(--voxnest-color-border);
+  color: var(--voxnest-color-text);
+}
+
+.voxnest-theme-dark .ant-table-tbody > tr > td {
+  border-bottom: 1px solid var(--voxnest-color-border);
+  color: var(--voxnest-color-text);
+}
+
+.voxnest-theme-dark .ant-table-tbody > tr:hover > td {
+  background-color: var(--voxnest-color-surface-hover);
+}
+
+/* 模态框样式 */
+.voxnest-theme-dark .ant-modal-content {
+  background-color: var(--voxnest-color-surface);
+  box-shadow: var(--voxnest-shadow-xl);
+  color: var(--voxnest-color-text);
+}
+
+.voxnest-theme-dark .ant-modal-header {
+  background-color: var(--voxnest-color-background-secondary);
+  border-bottom: 1px solid var(--voxnest-color-border);
+}
+
+.voxnest-theme-dark .ant-modal-title {
+  color: var(--voxnest-color-text);
+}
+
+.voxnest-theme-dark .ant-modal-footer {
+  background-color: var(--voxnest-color-background-secondary);
+  border-top: 1px solid var(--voxnest-color-border);
+}
+
+.voxnest-theme-dark .ant-modal-close {
+  color: var(--voxnest-color-text-secondary);
+}
+
+/* 提示样式 */
+.voxnest-theme-dark .ant-alert-success {
+  background-color: var(--voxnest-color-success-light);
+  border: 1px solid var(--voxnest-color-success);
+  color: var(--voxnest-color-success);
+}
+
+.voxnest-theme-dark .ant-alert-warning {
+  background-color: var(--voxnest-color-warning-light);
+  border: 1px solid var(--voxnest-color-warning);
+  color: var(--voxnest-color-warning);
+}
+
+.voxnest-theme-dark .ant-alert-error {
+  background-color: var(--voxnest-color-error-light);
+  border: 1px solid var(--voxnest-color-error);
+  color: var(--voxnest-color-error);
+}
+
+.voxnest-theme-dark .ant-alert-info {
+  background-color: var(--voxnest-color-info-light);
+  border: 1px solid var(--voxnest-color-info);
+  color: var(--voxnest-color-info);
+}
+
+/* 下拉菜单样式 */
+.voxnest-theme-dark .ant-dropdown {
+  background-color: var(--voxnest-color-surface);
+  box-shadow: var(--voxnest-shadow-xl);
+  border: 1px solid var(--voxnest-color-border);
+}
+
+.voxnest-theme-dark .ant-dropdown-menu {
+  background-color: var(--voxnest-color-surface);
+  color: var(--voxnest-color-text);
+}
+
+.voxnest-theme-dark .ant-dropdown-menu-item {
+  color: var(--voxnest-color-text);
+}
+
+.voxnest-theme-dark .ant-dropdown-menu-item:hover {
+  background-color: var(--voxnest-color-surface-hover);
+}
+
+/* 工具提示样式 */
+.voxnest-theme-dark .ant-tooltip-inner {
+  background-color: var(--voxnest-color-background-tertiary);
+  color: var(--voxnest-color-text);
+  box-shadow: var(--voxnest-shadow-lg);
+}
+
+.voxnest-theme-dark .ant-tooltip-arrow::before {
+  background-color: var(--voxnest-color-background-tertiary);
+}
+
+/* 进度条样式 */
+.voxnest-theme-dark .ant-progress-bg {
+  background-color: var(--voxnest-color-primary);
+}
+
+.voxnest-theme-dark .ant-progress-outer {
+  background-color: var(--voxnest-color-background-secondary);
+}
+
+/* 标签样式 */
+.voxnest-theme-dark .ant-tag {
+  background-color: var(--voxnest-color-background-tertiary);
+  border-color: var(--voxnest-color-border);
+  color: var(--voxnest-color-text-secondary);
+}
+
+/* 分割线样式 */
+.voxnest-theme-dark .ant-divider {
+  border-color: var(--voxnest-color-border);
+}
+
+/* 步骤条样式 */
+.voxnest-theme-dark .ant-steps-item-process .ant-steps-item-icon {
+  background-color: var(--voxnest-color-primary);
+  border-color: var(--voxnest-color-primary);
+}
+
+.voxnest-theme-dark .ant-steps-item-finish .ant-steps-item-icon {
+  background-color: var(--voxnest-color-success);
+  border-color: var(--voxnest-color-success);
+}
+
+.voxnest-theme-dark .ant-steps-item-title {
+  color: var(--voxnest-color-text);
+}
+
+.voxnest-theme-dark .ant-steps-item-description {
+  color: var(--voxnest-color-text-secondary);
+}
+
+/* 面包屑样式 */
+.voxnest-theme-dark .ant-breadcrumb {
+  color: var(--voxnest-color-text-secondary);
+}
+
+.voxnest-theme-dark .ant-breadcrumb a {
+  color: var(--voxnest-color-text-secondary);
+}
+
+.voxnest-theme-dark .ant-breadcrumb a:hover {
+  color: var(--voxnest-color-primary);
+}
+
+/* 开关样式 */
+.voxnest-theme-dark .ant-switch {
+  background-color: var(--voxnest-color-background-tertiary);
+}
+
+.voxnest-theme-dark .ant-switch-checked {
+  background-color: var(--voxnest-color-primary);
+}
+
+/* 滑动条样式 */
+.voxnest-theme-dark .ant-slider-track {
+  background-color: var(--voxnest-color-primary);
+}
+
+.voxnest-theme-dark .ant-slider-handle {
+  border-color: var(--voxnest-color-primary);
+  background-color: var(--voxnest-color-surface);
+}
+
+.voxnest-theme-dark .ant-slider-rail {
+  background-color: var(--voxnest-color-background-tertiary);
+}
+
+/* 滚动条样式 */
+.voxnest-theme-dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.voxnest-theme-dark ::-webkit-scrollbar-track {
+  background-color: var(--voxnest-color-background-secondary);
+}
+
+.voxnest-theme-dark ::-webkit-scrollbar-thumb {
+  background-color: var(--voxnest-color-border-light);
+  border-radius: 4px;
+}
+
+.voxnest-theme-dark ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--voxnest-color-text-tertiary);
+}
+
+/* 选择文本样式 */
+.voxnest-theme-dark ::selection {
+  background-color: rgba(99, 102, 241, 0.3);
+  color: var(--voxnest-color-text);
+}
+
+/* 链接样式 */
+.voxnest-theme-dark a {
+  color: var(--voxnest-color-primary);
+}
+
+.voxnest-theme-dark a:hover {
+  color: var(--voxnest-color-primary-hover);
+}
+
+/* 代码样式 */
+.voxnest-theme-dark code {
+  background-color: var(--voxnest-color-background-tertiary);
+  color: var(--voxnest-color-accent);
+  border: 1px solid var(--voxnest-color-border);
+}
+
+.voxnest-theme-dark pre {
+  background-color: var(--voxnest-color-background-tertiary);
+  border: 1px solid var(--voxnest-color-border);
+  color: var(--voxnest-color-text);
+}
+
+/* 标签页样式 */
+.voxnest-theme-dark .ant-tabs-tab {
+  color: var(--voxnest-color-text-secondary);
+}
+
+.voxnest-theme-dark .ant-tabs-tab-active {
+  color: var(--voxnest-color-primary);
+}
+
+.voxnest-theme-dark .ant-tabs-ink-bar {
+  background-color: var(--voxnest-color-primary);
+}
+
+.voxnest-theme-dark .ant-tabs-content-holder {
+  background-color: var(--voxnest-color-surface);
+}
+
+/* 折叠面板样式 */
+.voxnest-theme-dark .ant-collapse {
+  background-color: var(--voxnest-color-surface);
+  border-color: var(--voxnest-color-border);
+}
+
+.voxnest-theme-dark .ant-collapse-item {
+  border-bottom-color: var(--voxnest-color-border);
+}
+
+.voxnest-theme-dark .ant-collapse-header {
+  color: var(--voxnest-color-text);
+}
+
+.voxnest-theme-dark .ant-collapse-content {
+  background-color: var(--voxnest-color-surface);
+  color: var(--voxnest-color-text);
+}
+
+/* 时间选择器样式 */
+.voxnest-theme-dark .ant-picker {
+  background-color: var(--voxnest-color-surface);
+  border-color: var(--voxnest-color-border);
+  color: var(--voxnest-color-text);
+}
+
+.voxnest-theme-dark .ant-picker:hover {
+  border-color: var(--voxnest-color-border-light);
+}
+
+/* 颜色选择器样式 */
+.voxnest-theme-dark .ant-color-picker-trigger {
+  background-color: var(--voxnest-color-surface);
+  border-color: var(--voxnest-color-border);
+}
+
+/* 高对比度模式 */
+.voxnest-theme-dark.voxnest-high-contrast {
+  --voxnest-color-text: #ffffff;
+  --voxnest-color-background: #000000;
+  --voxnest-color-border: #ffffff;
+  --voxnest-color-primary: #00ffff;
+}
+
+/* 大字体模式 */
+.voxnest-theme-dark.voxnest-larger-text {
+  font-size: 16px;
+}
+
+.voxnest-theme-dark.voxnest-larger-text .ant-btn {
+  font-size: 16px;
+  height: auto;
+  padding: 8px 16px;
+}
+
+.voxnest-theme-dark.voxnest-larger-text .ant-input {
+  font-size: 16px;
+  padding: 8px 12px;
+}
+
+/* 打印样式 */
+@media print {
+  .voxnest-theme-dark {
+    background-color: white !important;
+    color: black !important;
+  }
+  
+  .voxnest-theme-dark * {
+    background-color: white !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+  
+  .voxnest-theme-dark .ant-card,
+  .voxnest-theme-dark .ant-modal-content {
+    border: 1px solid #ccc !important;
+  }
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, Steps, Button, message, Alert } from 'antd';
 import { CheckCircleOutlined } from '@ant-design/icons';
 import { InstallApi, InstallStep } from '../api/install';
@@ -8,7 +8,32 @@ import AdminSetupStep from '../components/install/AdminSetupStep';
 import SiteConfigStep from '../components/install/SiteConfigStep';
 import SimpleLoading from '../components/common/SimpleLoading';
 import { handleApiError } from '../api/client';
+import { useAuthStore } from '../stores/authStore';
+import { UserStatus } from '../types/auth';
+import { usePostInstallMonitor } from '../hooks/useServiceStatus';
 import '../styles/pages/Install.css';
+
+interface DiagnosisData {
+  timestamp: string;
+  configFile: {
+    exists: boolean;
+    readable: boolean;
+    validConfig: boolean;
+    errorMessage?: string;
+  };
+  database?: {
+    connected: boolean;
+    provider?: string;
+    connectionString?: string;
+    errorMessage?: string;
+  };
+  tables?: Record<string, {
+    exists: boolean;
+    columns?: string[];
+    rowCount?: number;
+  }>;
+  seedData?: Record<string, unknown>;
+}
 
 // 添加错误消息动画样式
 const injectErrorAnimationStyles = () => {
@@ -59,14 +84,24 @@ injectErrorAnimationStyles();
 
 const Install: React.FC = () => {
   const [loading, setLoading] = useState(true);
+  const { setAuth } = useAuthStore();
   const [installStatus, setInstallStatus] = useState<InstallStatusDto | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [processing, setProcessing] = useState(false);
   const [dbInitStarted, setDbInitStarted] = useState(false);
   const [dbInitCompleted, setDbInitCompleted] = useState(false);
+  
+  // 安装后服务重启监控
+  const { waitingForRestart, startMonitoring } = usePostInstallMonitor(() => {
+    // 服务重启完成回调
+    message.success('🎉 系统重启完成！正在跳转到首页...');
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 2000);
+  });
 
   // 安装步骤配置
-  const installSteps = [
+  const installSteps = useMemo(() => [
     {
       title: '数据库配置',
       description: '配置数据库连接信息',
@@ -87,10 +122,10 @@ const Install: React.FC = () => {
       description: '站点配置和安装完成',
       step: InstallStep.Completed
     }
-  ];
+  ], []);
 
   // 获取安装状态
-  const fetchInstallStatus = async () => {
+  const fetchInstallStatus = useCallback(async () => {
     try {
       setLoading(true);
       const status = await InstallApi.getInstallStatus();
@@ -122,11 +157,11 @@ const Install: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [installSteps]);
 
   useEffect(() => {
     fetchInstallStatus();
-  }, []);
+  }, [fetchInstallStatus]);
 
   // 重置数据库初始化状态，当步骤变化时
   useEffect(() => {
@@ -264,7 +299,7 @@ const Install: React.FC = () => {
       message.destroy('diagnosis');
       
       // 格式化诊断信息用于显示
-      const formatDiagnosis = (data: any) => {
+      const formatDiagnosis = (data: DiagnosisData) => {
         const lines = [];
         lines.push(`🕐 诊断时间: ${data.timestamp}`);
         lines.push('');
@@ -279,17 +314,21 @@ const Install: React.FC = () => {
         lines.push('');
         
         lines.push('🗄️ 数据库状态:');
-        lines.push(`  • 连接: ${data.database.connected ? '✅' : '❌'}`);
-        lines.push(`  • 提供商: ${data.database.provider || 'N/A'}`);
-        lines.push(`  • 连接串: ${data.database.connectionString || 'N/A'}`);
-        if (data.database.errorMessage) {
-          lines.push(`  • 错误: ${data.database.errorMessage}`);
+        if (data.database) {
+          lines.push(`  • 连接: ${data.database.connected ? '✅' : '❌'}`);
+          lines.push(`  • 提供商: ${data.database.provider || 'N/A'}`);
+          lines.push(`  • 连接串: ${data.database.connectionString || 'N/A'}`);
+          if (data.database.errorMessage) {
+            lines.push(`  • 错误: ${data.database.errorMessage}`);
+          }
+        } else {
+          lines.push(`  • 未找到数据库信息`);
         }
         lines.push('');
         
-        if (Object.keys(data.tables).length > 0) {
+        if (data.tables && Object.keys(data.tables).length > 0) {
           lines.push('📋 数据表状态:');
-          Object.entries(data.tables).forEach(([tableName, tableInfo]: [string, any]) => {
+          Object.entries(data.tables).forEach(([tableName, tableInfo]: [string, { exists: boolean; columns?: string[]; rowCount?: number; count?: number; error?: string }]) => {
             if (tableInfo.exists) {
               lines.push(`  • ${tableName}: ✅ (${tableInfo.count} 条记录)`);
             } else {
@@ -299,16 +338,17 @@ const Install: React.FC = () => {
           lines.push('');
         }
         
-        if (Object.keys(data.seedData).length > 0) {
+        if (data.seedData && Object.keys(data.seedData).length > 0) {
           lines.push('🌱 种子数据状态:');
-          Object.entries(data.seedData).forEach(([key, value]: [string, any]) => {
+          Object.entries(data.seedData).forEach(([key, value]: [string, unknown]) => {
             if (key === 'error') {
               lines.push(`  • 错误: ${value}`);
-            } else if (typeof value === 'object') {
-              if (value.exists !== undefined) {
-                lines.push(`  • ${key}: ${value.exists ? '✅' : '❌'} ${value.id ? `(ID: ${value.id})` : ''}`);
-              } else if (value.hasData !== undefined) {
-                lines.push(`  • ${key}: ${value.hasData ? '✅' : '❌'} (${value.count} 条记录)`);
+            } else if (typeof value === 'object' && value !== null) {
+              const objValue = value as Record<string, unknown>;
+              if ('exists' in objValue) {
+                lines.push(`  • ${key}: ${objValue.exists ? '✅' : '❌'} ${objValue.id ? `(ID: ${objValue.id})` : ''}`);
+              } else if ('hasData' in objValue) {
+                lines.push(`  • ${key}: ${objValue.hasData ? '✅' : '❌'} (${objValue.count} 条记录)`);
               }
             }
           });
@@ -321,7 +361,7 @@ const Install: React.FC = () => {
       message.info({
         content: (
           <div style={{ maxHeight: '400px', overflow: 'auto', whiteSpace: 'pre-line', fontFamily: 'monospace', fontSize: '12px' }}>
-            {formatDiagnosis(diagnosis)}
+            {formatDiagnosis(diagnosis as DiagnosisData)}
           </div>
         ),
         duration: 0,
@@ -400,11 +440,6 @@ const Install: React.FC = () => {
                 <div style={{ fontSize: '12px', color: '#666', padding: '8px', backgroundColor: '#fff7e6', border: '1px solid #ffd591', borderRadius: '4px' }}>
                   💡 检测到数据库表结构问题，建议返回上一步使用"修复数据库"功能
                 </div>
-                {result.traceId && (
-                  <div style={{ fontSize: '11px', color: '#999', marginTop: 6, fontFamily: 'monospace' }}>
-                    🔍 追踪ID: {result.traceId}
-                  </div>
-                )}
               </div>
             ),
             duration: 10
@@ -413,14 +448,39 @@ const Install: React.FC = () => {
           // 使用统一的错误处理函数
           handleApiError({ 
             message: result.message, 
-            errorCode: result.errorCode,
-            traceId: result.traceId 
+            errorCode: result.errorCode 
           }, '创建管理员账户失败');
         }
         return;
       }
 
-      message.success('管理员账户创建成功');
+      // 如果响应包含认证信息，自动设置认证状态
+      if (result.accessToken && result.user) {
+        // 将UserDto转换为User类型（添加status属性）
+        const userForAuth = {
+          ...result.user,
+          status: UserStatus.Active // 新创建的管理员默认为激活状态
+        };
+        
+        setAuth(result.accessToken, userForAuth);
+        message.success({
+          content: (
+            <div>
+              <div style={{ fontWeight: 'bold', color: '#52c41a', marginBottom: 4 }}>
+                ✅ 管理员账户创建成功
+              </div>
+              <div style={{ fontSize: '12px', color: '#666' }}>
+                您已自动登录，可以直接访问管理面板
+              </div>
+            </div>
+          ),
+          duration: 4
+        });
+        console.log('🎉 管理员创建成功并已自动登录:', result.user.username);
+      } else {
+        message.success('管理员账户创建成功');
+      }
+
       setCurrentStep(3); // 进入完成步骤
       // 不调用fetchInstallStatus，避免步骤被重置
     } catch (error) {
@@ -442,12 +502,18 @@ const Install: React.FC = () => {
         return;
       }
 
-      message.success('安装完成！系统即将重启...');
+      message.success('安装完成！系统正在重启...');
       
-      // 延迟后重定向到首页
+      // 启动服务重启监控
+      startMonitoring();
+      
+      // 如果监控失败，兜底重定向机制
       setTimeout(() => {
-        window.location.href = '/';
-      }, 3000);
+        if (waitingForRestart) {
+          message.warning('系统重启中，请稍候...');
+          window.location.href = '/';
+        }
+      }, 15000); // 15秒兜底
     } catch (error) {
       console.error('完成安装失败:', error);
       message.error('完成安装失败，请重试');
@@ -468,7 +534,7 @@ const Install: React.FC = () => {
             loading={processing}
           />
         );
-      case 1: // 数据库初始化
+      case 1: { // 数据库初始化
         const showDatabaseStatus = installStatus && !processing;
         const isConnected = installStatus?.databaseConnected ?? true;
         const hasConnectionIssue = showDatabaseStatus && !isConnected;
@@ -575,6 +641,7 @@ const Install: React.FC = () => {
             )}
           </div>
         );
+      }
       case 2: // 管理员设置
         return (
           <div className="step-content">

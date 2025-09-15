@@ -98,11 +98,11 @@ import type { ComponentRegistration, VoxNestConfig } from './core/types';
  */
 export function registerToSlot(
   slotId: string, 
-  component: React.ComponentType<any>,
+  component: React.ComponentType<Record<string, unknown>>,
   options: {
     source?: string;
     priority?: number;
-    condition?: (props?: any) => boolean;
+    condition?: (props?: Record<string, unknown>) => boolean;
     name?: string;
   } = {}
 ): void {
@@ -236,7 +236,7 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   });
   
   // 暴露调试方法到全局
-  (window as any).__VoxNestExtensions = {
+  (window as unknown as Record<string, unknown>).__VoxNestExtensions = {
     getFramework,
     getStats: getFrameworkStats,
     printStatus: printFrameworkStatus,

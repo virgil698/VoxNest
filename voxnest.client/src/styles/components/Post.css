@@ -856,3 +856,109 @@ div iframe[src*="youtu.be"],
   border: none !important;
   display: block !important;
 }
+
+/* md-editor-rt 编辑器样式适配 */
+
+/* 编辑器主题适配 */
+.md-editor {
+  background: var(--bg-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 12px !important;
+}
+
+/* 工具栏样式适配 */
+.md-editor-toolbar {
+  background: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+.md-editor-toolbar-item {
+  color: var(--text-primary) !important;
+}
+
+.md-editor-toolbar-item:hover {
+  background: var(--bg-hover) !important;
+  color: var(--primary-color) !important;
+}
+
+/* 编辑区域样式适配 */
+.md-editor-input-wrapper {
+  background: var(--bg-primary) !important;
+}
+
+.md-editor-input {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  font-family: inherit !important;
+  font-size: 15px !important;
+  line-height: 1.6 !important;
+}
+
+/* 预览区域样式适配 */
+.md-editor-preview-wrapper {
+  background: var(--bg-primary) !important;
+}
+
+.md-editor-preview {
+  color: var(--text-primary) !important;
+  font-size: 16px !important;
+  line-height: 1.8 !important;
+}
+
+/* 预览内容中的标题样式 */
+.md-editor-preview h1,
+.md-editor-preview h2,
+.md-editor-preview h3,
+.md-editor-preview h4,
+.md-editor-preview h5,
+.md-editor-preview h6 {
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+/* 预览内容中的代码块样式 */
+.md-editor-preview pre {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px !important;
+}
+
+.md-editor-preview code {
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+}
+
+/* 预览内容中的引用样式 */
+.md-editor-preview blockquote {
+  border-left: 4px solid var(--primary-color) !important;
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* 预览内容中的表格样式 */
+.md-editor-preview table {
+  border-collapse: collapse !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.md-editor-preview th,
+.md-editor-preview td {
+  border: 1px solid var(--border-color) !important;
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.md-editor-preview th {
+  background: var(--bg-secondary) !important;
+}
+
+/* 分隔线样式 */
+.md-editor-resize-bar {
+  background: var(--border-color) !important;
+}
+
+.md-editor-resize-bar:hover {
+  background: var(--primary-color) !important;
+}

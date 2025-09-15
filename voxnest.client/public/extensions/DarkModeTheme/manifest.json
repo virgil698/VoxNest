@@ -1,0 +1,423 @@
+{
+  "id": "dark-mode-theme",
+  "name": "明暗模式切换器",
+  "version": "2.0.0",
+  "author": "VoxNest Team",
+  "description": "智能明暗模式主题切换器，支持系统偏好检测、自动切换、渐变动画和个性化定制",
+  "type": "theme",
+  
+  "entry": "DarkModeThemeIntegration.tsx",
+  
+  "files": [
+    {
+      "path": "ThemeManager.ts",
+      "type": "ts",
+      "order": 0
+    },
+    {
+      "path": "ThemeToggle.tsx",
+      "type": "tsx", 
+      "order": 1
+    },
+    {
+      "path": "ThemeCustomizer.tsx",
+      "type": "tsx",
+      "order": 2
+    },
+    {
+      "path": "DarkModeThemeIntegration.tsx",
+      "type": "tsx",
+      "order": 3
+    },
+    {
+      "path": "light-theme.css",
+      "type": "css",
+      "order": 4,
+      "condition": "window.VoxNestTheme?.currentTheme !== 'dark'"
+    },
+    {
+      "path": "dark-theme.css",
+      "type": "css",
+      "order": 5,
+      "condition": "window.VoxNestTheme?.currentTheme === 'dark'"
+    },
+    {
+      "path": "animations.css",
+      "type": "css",
+      "order": 6
+    }
+  ],
+  
+  "autoLoad": true,
+  "priority": 200,
+  
+  "defaultConfig": {
+    "defaultTheme": "auto",
+    "enableTransitions": true,
+    "transitionDuration": 300,
+    "savePreference": true,
+    "followSystemTheme": true,
+    "showToggleButton": true,
+    "togglePosition": "top-right",
+    "toggleStyle": "switch",
+    "showCustomizer": true,
+    "enableScheduler": true,
+    "enableKeyboardShortcut": true,
+    "keyboardShortcut": "ctrl+shift+d",
+    "scheduler": {
+      "lightModeStart": "06:00",
+      "darkModeStart": "18:00",
+      "enabled": false
+    },
+    "customColors": {
+      "light": {
+        "primary": "#4f46e5",
+        "secondary": "#7c3aed",
+        "accent": "#06b6d4",
+        "background": "#ffffff",
+        "surface": "#f8fafc",
+        "text": "#1e293b"
+      },
+      "dark": {
+        "primary": "#6366f1", 
+        "secondary": "#8b5cf6",
+        "accent": "#67e8f9",
+        "background": "#0f172a",
+        "surface": "#1e293b",
+        "text": "#f1f5f9"
+      }
+    },
+    "accessibility": {
+      "highContrast": false,
+      "reducedMotion": false,
+      "largerText": false,
+      "focusRing": true
+    }
+  },
+
+  "configSchema": {
+    "title": "明暗模式主题设置",
+    "description": "配置智能明暗模式切换器的外观、行为和个性化选项",
+    "groups": [
+      {
+        "id": "general",
+        "title": "基本设置",
+        "description": "配置主题的基本行为和默认选项",
+        "order": 1
+      },
+      {
+        "id": "ui",
+        "title": "界面控制",
+        "description": "配置切换按钮和用户界面元素",
+        "order": 2
+      },
+      {
+        "id": "automation",
+        "title": "自动化设置",
+        "description": "配置系统主题跟随和定时切换功能",
+        "order": 3
+      },
+      {
+        "id": "colors",
+        "title": "颜色定制",
+        "description": "自定义明暗模式下的主题颜色",
+        "order": 4
+      },
+      {
+        "id": "animations",
+        "title": "动画效果",
+        "description": "配置主题切换的过渡动画",
+        "order": 5
+      },
+      {
+        "id": "accessibility",
+        "title": "无障碍功能",
+        "description": "配置可访问性和辅助功能选项",
+        "order": 6
+      }
+    ],
+    "properties": {
+      "defaultTheme": {
+        "type": "select",
+        "title": "默认主题",
+        "description": "用户首次访问时的默认主题模式",
+        "default": "auto",
+        "required": true,
+        "group": "general",
+        "order": 1,
+        "options": [
+          { "label": "自动跟随系统", "value": "auto" },
+          { "label": "浅色模式", "value": "light" },
+          { "label": "深色模式", "value": "dark" }
+        ]
+      },
+      "savePreference": {
+        "type": "boolean",
+        "title": "保存用户偏好",
+        "description": "是否记住用户的主题选择偏好",
+        "default": true,
+        "group": "general",
+        "order": 2
+      },
+      "followSystemTheme": {
+        "type": "boolean",
+        "title": "跟随系统主题",
+        "description": "是否自动跟随操作系统的明暗模式设置",
+        "default": true,
+        "group": "general",
+        "order": 3
+      },
+      "showToggleButton": {
+        "type": "boolean",
+        "title": "显示切换按钮",
+        "description": "是否在页面中显示主题切换按钮",
+        "default": true,
+        "group": "ui",
+        "order": 1
+      },
+      "togglePosition": {
+        "type": "select",
+        "title": "切换按钮位置",
+        "description": "主题切换按钮在页面中的显示位置",
+        "default": "top-right",
+        "group": "ui",
+        "order": 2,
+        "depends": "showToggleButton",
+        "dependsValue": true,
+        "options": [
+          { "label": "顶部右侧", "value": "top-right" },
+          { "label": "顶部左侧", "value": "top-left" },
+          { "label": "底部右侧", "value": "bottom-right" },
+          { "label": "底部左侧", "value": "bottom-left" },
+          { "label": "导航栏内", "value": "nav-user" },
+          { "label": "管理面板", "value": "admin-sidebar" }
+        ]
+      },
+      "toggleStyle": {
+        "type": "select",
+        "title": "切换按钮样式",
+        "description": "选择主题切换按钮的外观样式",
+        "default": "switch",
+        "group": "ui",
+        "order": 3,
+        "depends": "showToggleButton",
+        "dependsValue": true,
+        "options": [
+          { "label": "开关切换器", "value": "switch" },
+          { "label": "图标按钮", "value": "button" },
+          { "label": "下拉选择器", "value": "dropdown" }
+        ]
+      },
+      "showCustomizer": {
+        "type": "boolean",
+        "title": "显示主题定制器",
+        "description": "是否提供高级主题定制功能入口",
+        "default": true,
+        "group": "ui",
+        "order": 4
+      },
+      "enableKeyboardShortcut": {
+        "type": "boolean",
+        "title": "启用键盘快捷键",
+        "description": "是否支持键盘快捷键快速切换主题",
+        "default": true,
+        "group": "ui",
+        "order": 5
+      },
+      "keyboardShortcut": {
+        "type": "string",
+        "title": "键盘快捷键",
+        "description": "设置主题切换的键盘快捷键组合",
+        "default": "ctrl+shift+d",
+        "group": "ui",
+        "order": 6,
+        "depends": "enableKeyboardShortcut",
+        "dependsValue": true,
+        "pattern": "^(ctrl|alt|shift|meta)\\+.*$"
+      },
+      "enableScheduler": {
+        "type": "boolean",
+        "title": "启用定时切换",
+        "description": "是否根据时间自动切换明暗模式",
+        "default": true,
+        "group": "automation",
+        "order": 1
+      },
+      "scheduler.enabled": {
+        "type": "boolean",
+        "title": "激活定时器",
+        "description": "启用定时自动切换功能（需要用户授权）",
+        "default": false,
+        "group": "automation",
+        "order": 2,
+        "depends": "enableScheduler",
+        "dependsValue": true
+      },
+      "scheduler.lightModeStart": {
+        "type": "string",
+        "title": "浅色模式开始时间",
+        "description": "每天开始使用浅色模式的时间（24小时制）",
+        "default": "06:00",
+        "group": "automation",
+        "order": 3,
+        "depends": "scheduler.enabled",
+        "dependsValue": true,
+        "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$",
+        "format": "time"
+      },
+      "scheduler.darkModeStart": {
+        "type": "string",
+        "title": "深色模式开始时间",
+        "description": "每天开始使用深色模式的时间（24小时制）",
+        "default": "18:00",
+        "group": "automation",
+        "order": 4,
+        "depends": "scheduler.enabled",
+        "dependsValue": true,
+        "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$",
+        "format": "time"
+      },
+      "enableTransitions": {
+        "type": "boolean",
+        "title": "启用切换动画",
+        "description": "主题切换时是否显示过渡动画效果",
+        "default": true,
+        "group": "animations",
+        "order": 1
+      },
+      "transitionDuration": {
+        "type": "number",
+        "title": "动画持续时间 (毫秒)",
+        "description": "主题切换动画的持续时间",
+        "default": 300,
+        "min": 100,
+        "max": 2000,
+        "group": "animations",
+        "order": 2,
+        "depends": "enableTransitions",
+        "dependsValue": true
+      },
+      "customColors.light.primary": {
+        "type": "color",
+        "title": "浅色主色调",
+        "description": "浅色模式下的主要品牌色彩",
+        "default": "#4f46e5",
+        "group": "colors",
+        "order": 1
+      },
+      "customColors.light.secondary": {
+        "type": "color",
+        "title": "浅色辅助色",
+        "description": "浅色模式下的辅助色彩",
+        "default": "#7c3aed",
+        "group": "colors",
+        "order": 2
+      },
+      "customColors.light.accent": {
+        "type": "color",
+        "title": "浅色强调色",
+        "description": "浅色模式下的强调和点缀色彩",
+        "default": "#06b6d4",
+        "group": "colors",
+        "order": 3
+      },
+      "customColors.light.background": {
+        "type": "color",
+        "title": "浅色背景色",
+        "description": "浅色模式下的页面背景色",
+        "default": "#ffffff",
+        "group": "colors",
+        "order": 4
+      },
+      "customColors.dark.primary": {
+        "type": "color",
+        "title": "深色主色调",
+        "description": "深色模式下的主要品牌色彩",
+        "default": "#6366f1",
+        "group": "colors",
+        "order": 5
+      },
+      "customColors.dark.secondary": {
+        "type": "color",
+        "title": "深色辅助色",
+        "description": "深色模式下的辅助色彩",
+        "default": "#8b5cf6",
+        "group": "colors",
+        "order": 6
+      },
+      "customColors.dark.accent": {
+        "type": "color",
+        "title": "深色强调色",
+        "description": "深色模式下的强调和点缀色彩",
+        "default": "#67e8f9",
+        "group": "colors",
+        "order": 7
+      },
+      "customColors.dark.background": {
+        "type": "color",
+        "title": "深色背景色",
+        "description": "深色模式下的页面背景色",
+        "default": "#0f172a",
+        "group": "colors",
+        "order": 8
+      },
+      "accessibility.highContrast": {
+        "type": "boolean",
+        "title": "高对比度模式",
+        "description": "提供更高的颜色对比度以改善可读性",
+        "default": false,
+        "group": "accessibility",
+        "order": 1
+      },
+      "accessibility.reducedMotion": {
+        "type": "boolean",
+        "title": "减少动画效果",
+        "description": "为动作敏感用户减少或禁用动画效果",
+        "default": false,
+        "group": "accessibility",
+        "order": 2
+      },
+      "accessibility.largerText": {
+        "type": "boolean",
+        "title": "放大文字",
+        "description": "增大文字尺寸以提高可读性",
+        "default": false,
+        "group": "accessibility",
+        "order": 3
+      },
+      "accessibility.focusRing": {
+        "type": "boolean",
+        "title": "显示焦点环",
+        "description": "为键盘导航用户显示可见的焦点指示器",
+        "default": true,
+        "group": "accessibility",
+        "order": 4
+      }
+    },
+    "required": ["defaultTheme", "togglePosition"]
+  },
+  
+  "permissions": [
+    "storage.local",
+    "storage.sync",
+    "system.theme",
+    "notifications.create"
+  ],
+  
+  "hooks": {
+    "beforeLoad": "console.log('Initializing Dark Mode Theme...')",
+    "afterLoad": "window.VoxNestTheme?.initialize?.()",
+    "beforeUnload": "window.VoxNestTheme?.cleanup?.()"
+  },
+  
+  "peerDependencies": [
+    "react@^18.0.0",
+    "antd@^5.0.0"
+  ],
+  
+  "restrictions": {
+    "features": ["localStorage", "matchMedia"]
+  },
+  
+  "enabled": true
+}

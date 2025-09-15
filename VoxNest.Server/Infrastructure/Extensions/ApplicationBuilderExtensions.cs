@@ -112,6 +112,7 @@ public static class ApplicationBuilderExtensions
         {
             // 允许安装API和静态资源访问
             if (context.Request.Path.StartsWithSegments("/api/install") ||
+                context.Request.Path.StartsWithSegments("/api/log") ||
                 context.Request.Path.StartsWithSegments("/install") ||
                 context.Request.Path.StartsWithSegments("/assets") ||
                 context.Request.Path.StartsWithSegments("/vite.svg") ||

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card,
   Form,
@@ -11,17 +11,18 @@ import {
   Tabs,
   Space,
   message,
-  Spin,
   Typography,
-  Divider,
   Alert,
+  Modal,
 } from 'antd';
-import { SaveOutlined, ReloadOutlined } from '@ant-design/icons';
-import { AdminApi, SiteSettingType } from '../../api/admin';
-import type { SiteSetting } from '../../api/admin';
-import { useLogger } from '../../hooks/useLogger';
+import { SaveOutlined, ReloadOutlined, ExportOutlined, ImportOutlined, UndoOutlined } from '@ant-design/icons';
+import { 
+  FrontendSettingsManager, 
+  frontendSettingsSchema, 
+  type FrontendSettingProperty 
+} from '../../config/frontendSettings';
 
-const { Title, Text } = Typography;
+const { Title, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
@@ -29,257 +30,199 @@ interface SiteSettingsProps {}
 
 const SiteSettings: React.FC<SiteSettingsProps> = () => {
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [settingsByGroup, setSettingsByGroup] = useState<Record<string, SiteSetting[]>>({});
-  const [activeTab, setActiveTab] = useState<string>('基础设置');
-  const logger = useLogger('Admin.SiteSettings');
+  const [hasChanges, setHasChanges] = useState(false);
+  const [activeTab, setActiveTab] = useState('appearance');
+  const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [importModalVisible, setImportModalVisible] = useState(false);
+  const [exportData, setExportData] = useState('');
+  const [importData, setImportData] = useState('');
 
-  // 加载站点设置
-  const loadSettings = async () => {
+  // 加载设置
+  const loadSettings = useCallback(() => {
     setLoading(true);
     try {
-      const data = await AdminApi.getSiteSettingsByGroup();
-      setSettingsByGroup(data);
-      
-      // 设置表单初始值
-      const initialValues: Record<string, any> = {};
-      Object.values(data).flat().forEach(setting => {
-        initialValues[setting.key] = convertValue(setting.value, setting.type);
-      });
-      form.setFieldsValue(initialValues);
-      
-      // 设置默认活跃标签
-      const groups = Object.keys(data);
-      if (groups.length > 0 && !groups.includes(activeTab)) {
-        setActiveTab(groups[0]);
-      }
-      
-      logger.debug('Loaded site settings', `Loaded ${Object.values(data).flat().length} settings`);
+      const settings = FrontendSettingsManager.loadSettings();
+      form.setFieldsValue(settings);
+      setHasChanges(false);
     } catch (error) {
-      message.error('加载站点设置失败');
-      logger.error('Failed to load site settings', error as Error);
+      message.error('加载设置失败');
+      console.error('Failed to load settings:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  // 转换值类型
-  const convertValue = (value: string | undefined, type: SiteSettingType): any => {
-    if (!value) return undefined;
-    
-    switch (type) {
-      case SiteSettingType.Boolean:
-        return value === 'true';
-      case SiteSettingType.Number:
-        return Number(value);
-      case SiteSettingType.Json:
-        try {
-          return JSON.parse(value);
-        } catch {
-          return value;
-        }
-      default:
-        return value;
-    }
-  };
-
-  // 转换值为字符串
-  const convertToString = (value: any, type: SiteSettingType): string => {
-    if (value === null || value === undefined) return '';
-    
-    switch (type) {
-      case SiteSettingType.Boolean:
-        return String(value);
-      case SiteSettingType.Number:
-        return String(value);
-      case SiteSettingType.Json:
-        return typeof value === 'string' ? value : JSON.stringify(value);
-      default:
-        return String(value);
-    }
-  };
+  }, [form]);
 
   // 保存设置
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     setSaving(true);
     try {
       const values = await form.validateFields();
-      const updates: Record<string, string> = {};
-      
-      // 转换所有值为字符串格式
-      Object.values(settingsByGroup).flat().forEach(setting => {
-        if (values.hasOwnProperty(setting.key)) {
-          updates[setting.key] = convertToString(values[setting.key], setting.type);
-        }
-      });
-      
-      await AdminApi.batchUpdateSiteSettings(updates);
-      message.success('设置保存成功');
-      logger.logUserAction('Update site settings', `Updated ${Object.keys(updates).length} settings`);
-      
-      // 重新加载设置
-      await loadSettings();
+      FrontendSettingsManager.saveSettings(values);
+      setHasChanges(false);
+      message.success('设置已保存');
     } catch (error) {
       message.error('保存设置失败');
-      logger.error('Failed to save site settings', error as Error);
+      console.error('Failed to save settings:', error);
     } finally {
       setSaving(false);
     }
-  };
+  }, [form]);
 
   // 重置设置
-  const handleReset = async () => {
-    await loadSettings();
-    message.info('设置已重置');
-  };
+  const handleReset = useCallback(() => {
+    Modal.confirm({
+      title: '确认重置',
+      content: '这将重置所有设置为默认值，确定要继续吗？',
+      onOk: () => {
+        FrontendSettingsManager.resetSettings();
+        loadSettings();
+        message.success('设置已重置');
+      },
+    });
+  }, [loadSettings]);
 
-  // 渲染设置表单项
-  const renderSettingItem = (setting: SiteSetting) => {
-    const commonProps = {
-      placeholder: setting.description || `请输入${setting.name}`,
-    };
+  // 导出设置
+  const handleExport = useCallback(() => {
+    const data = FrontendSettingsManager.exportSettings();
+    setExportData(data);
+    setExportModalVisible(true);
+  }, []);
 
-    switch (setting.type) {
-      case SiteSettingType.Boolean:
+  // 导入设置
+  const handleImport = useCallback(() => {
+    if (!importData.trim()) {
+      message.error('请输入要导入的设置数据');
+      return;
+    }
+
+    const success = FrontendSettingsManager.importSettings(importData);
+    if (success) {
+      loadSettings();
+      setImportModalVisible(false);
+      setImportData('');
+      message.success('设置导入成功');
+    } else {
+      message.error('设置导入失败，请检查数据格式');
+    }
+  }, [importData, loadSettings]);
+
+  // 复制导出数据
+  const handleCopyExport = useCallback(() => {
+    navigator.clipboard.writeText(exportData).then(() => {
+      message.success('已复制到剪贴板');
+    }).catch(() => {
+      message.error('复制失败');
+    });
+  }, [exportData]);
+
+  // 初始化
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
+
+  // 表单值变化
+  const handleFormChange = useCallback(() => {
+    setHasChanges(true);
+  }, []);
+
+  // 渲染表单项
+  const renderFormItem = (key: string, property: FrontendSettingProperty) => {
+    switch (property.type) {
+      case 'boolean':
         return (
           <Form.Item
-            key={setting.key}
-            name={setting.key}
-            label={setting.name}
-            extra={setting.description}
+            key={key}
+            name={key}
+            label={property.title}
             valuePropName="checked"
+            help={property.description}
           >
             <Switch />
           </Form.Item>
         );
 
-      case SiteSettingType.Number:
+      case 'number':
         return (
           <Form.Item
-            key={setting.key}
-            name={setting.key}
-            label={setting.name}
-            extra={setting.description}
+            key={key}
+            name={key}
+            label={property.title}
+            help={property.description}
+            rules={[
+              ...(property.required ? [{ required: true, message: `请输入${property.title}` }] : []),
+              ...(property.min !== undefined ? [{ type: 'number' as const, min: property.min }] : []),
+              ...(property.max !== undefined ? [{ type: 'number' as const, max: property.max }] : [])
+            ]}
           >
-            <InputNumber style={{ width: '100%' }} {...commonProps} />
-          </Form.Item>
-        );
-
-      case SiteSettingType.Color:
-        return (
-          <Form.Item
-            key={setting.key}
-            name={setting.key}
-            label={setting.name}
-            extra={setting.description}
-          >
-            <ColorPicker showText />
-          </Form.Item>
-        );
-
-      case SiteSettingType.RichText:
-        return (
-          <Form.Item
-            key={setting.key}
-            name={setting.key}
-            label={setting.name}
-            extra={setting.description}
-          >
-            <TextArea rows={6} {...commonProps} />
-          </Form.Item>
-        );
-
-      case SiteSettingType.Json:
-        return (
-          <Form.Item
-            key={setting.key}
-            name={setting.key}
-            label={setting.name}
-            extra={setting.description}
-          >
-            <TextArea 
-              rows={4} 
-              {...commonProps}
-              placeholder="请输入有效的JSON格式"
+            <InputNumber
+              min={property.min}
+              max={property.max}
+              style={{ width: '100%' }}
+              placeholder={property.description}
             />
           </Form.Item>
         );
 
-      default:
-        // 检查是否有选项配置
-        if (setting.options) {
-          try {
-            const options = JSON.parse(setting.options);
-            if (Array.isArray(options)) {
-              return (
-                <Form.Item
-                  key={setting.key}
-                  name={setting.key}
-                  label={setting.name}
-                  extra={setting.description}
-                >
-                  <Select {...commonProps}>
-                    {options.map((option: any) => (
-                      <Option key={option.value} value={option.value}>
-                        {option.label}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              );
-            }
-          } catch {
-            // 如果解析失败，使用默认输入框
-          }
-        }
-
+      case 'select':
         return (
           <Form.Item
-            key={setting.key}
-            name={setting.key}
-            label={setting.name}
-            extra={setting.description}
+            key={key}
+            name={key}
+            label={property.title}
+            help={property.description}
+            rules={property.required ? [{ required: true, message: `请选择${property.title}` }] : []}
           >
-            <Input {...commonProps} />
+            <Select placeholder={property.description} allowClear>
+              {property.options?.map(option => (
+                <Option key={option.value} value={option.value}>
+                  {option.label}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        );
+
+      case 'color':
+        return (
+          <Form.Item
+            key={key}
+            name={key}
+            label={property.title}
+            help={property.description}
+          >
+            <ColorPicker showText format="hex" />
+          </Form.Item>
+        );
+
+      case 'textarea':
+        return (
+          <Form.Item
+            key={key}
+            name={key}
+            label={property.title}
+            help={property.description}
+            rules={property.required ? [{ required: true, message: `请输入${property.title}` }] : []}
+          >
+            <TextArea rows={4} placeholder={property.description} />
+          </Form.Item>
+        );
+
+      default:
+        return (
+          <Form.Item
+            key={key}
+            name={key}
+            label={property.title}
+            help={property.description}
+            rules={property.required ? [{ required: true, message: `请输入${property.title}` }] : []}
+          >
+            <Input placeholder={property.description} />
           </Form.Item>
         );
     }
   };
-
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  if (loading) {
-    return (
-      <div style={{ textAlign: 'center', padding: '50px' }}>
-        <Spin size="large" />
-      </div>
-    );
-  }
-
-  // 创建标签页
-  const tabItems = Object.entries(settingsByGroup).map(([group, settings]) => ({
-    key: group,
-    label: group,
-    children: (
-      <div style={{ maxWidth: '800px' }}>
-        {settings.length === 0 ? (
-          <Alert
-            message="暂无设置项"
-            description="当前分组下没有可配置的设置项。"
-            type="info"
-            showIcon
-          />
-        ) : (
-          settings
-            .sort((a, b) => a.sort - b.sort || a.name.localeCompare(b.name))
-            .map(setting => renderSettingItem(setting))
-        )}
-      </div>
-    ),
-  }));
 
   return (
     <div>
@@ -287,19 +230,38 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
       <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Title level={2} style={{ margin: 0 }}>站点设置</Title>
         <Space>
-          <Button icon={<ReloadOutlined />} onClick={handleReset}>
+          <Button icon={<ExportOutlined />} onClick={handleExport}>
+            导出
+          </Button>
+          <Button icon={<ImportOutlined />} onClick={() => setImportModalVisible(true)}>
+            导入
+          </Button>
+          <Button icon={<UndoOutlined />} onClick={handleReset}>
             重置
+          </Button>
+          <Button icon={<ReloadOutlined />} onClick={loadSettings} loading={loading}>
+            刷新
           </Button>
           <Button
             type="primary"
             icon={<SaveOutlined />}
             loading={saving}
             onClick={handleSave}
+            disabled={!hasChanges}
           >
             保存设置
           </Button>
         </Space>
       </div>
+
+
+      <Alert
+        message="前端配置说明"
+        description="这些设置控制网站的前端行为和外观，保存在浏览器本地存储中。配置会立即生效，影响当前浏览器的使用体验。"
+        type="info"
+        showIcon
+        style={{ marginBottom: 24 }}
+      />
 
       {/* 设置表单 */}
       <Card>
@@ -307,29 +269,88 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
           form={form}
           layout="vertical"
           size="large"
+          onValuesChange={handleFormChange}
         >
           <Tabs
             activeKey={activeTab}
             onChange={setActiveTab}
-            items={tabItems}
+            items={frontendSettingsSchema.groups
+              .sort((a, b) => (a.order || 0) - (b.order || 0))
+              .map(group => ({
+                key: group.id,
+                label: group.title,
+                children: (
+                  <div style={{ maxWidth: '800px' }}>
+                    {group.description && (
+                      <Alert
+                        message={group.description}
+                        type="info"
+                        style={{ marginBottom: 16 }}
+                        showIcon
+                      />
+                    )}
+                    {Object.entries(frontendSettingsSchema.properties)
+                      .filter(([, property]) => property.group === group.id)
+                      .sort(([, a], [, b]) => (a.order || 0) - (b.order || 0))
+                      .map(([key, property]) => renderFormItem(key, property))}
+                  </div>
+                ),
+              }))}
           />
         </Form>
       </Card>
 
-      {/* 帮助信息 */}
-      <Card style={{ marginTop: '24px' }}>
-        <Title level={4}>设置说明</Title>
-        <Divider />
-        <Text type="secondary">
-          <ul style={{ paddingLeft: '20px' }}>
-            <li>所有设置修改后需要点击"保存设置"按钮才能生效</li>
-            <li>部分设置可能需要重启应用程序才能完全生效</li>
-            <li>JSON格式的设置项请确保输入有效的JSON数据</li>
-            <li>颜色设置支持十六进制颜色值</li>
-            <li>如需添加新的设置项，请联系系统管理员</li>
-          </ul>
-        </Text>
-      </Card>
+      {/* 导出模态框 */}
+      <Modal
+        title="导出设置"
+        open={exportModalVisible}
+        onCancel={() => setExportModalVisible(false)}
+        footer={[
+          <Button key="copy" onClick={handleCopyExport}>
+            复制到剪贴板
+          </Button>,
+          <Button key="close" onClick={() => setExportModalVisible(false)}>
+            关闭
+          </Button>,
+        ]}
+        width={600}
+      >
+        <Paragraph>
+          以下是您当前的设置配置，您可以复制这些数据用于备份或迁移到其他浏览器：
+        </Paragraph>
+        <TextArea
+          value={exportData}
+          rows={10}
+          readOnly
+          style={{ fontFamily: 'monospace' }}
+        />
+      </Modal>
+
+      {/* 导入模态框 */}
+      <Modal
+        title="导入设置"
+        open={importModalVisible}
+        onCancel={() => {
+          setImportModalVisible(false);
+          setImportData('');
+        }}
+        onOk={handleImport}
+        okText="导入"
+        cancelText="取消"
+        width={600}
+      >
+        <Paragraph>
+          请粘贴要导入的设置配置。注意：这将覆盖当前的所有设置。
+        </Paragraph>
+        <TextArea
+          value={importData}
+          onChange={(e) => setImportData(e.target.value)}
+          rows={10}
+          placeholder="在此粘贴设置配置..."
+          style={{ fontFamily: 'monospace' }}
+        />
+      </Modal>
+
     </div>
   );
 };

@@ -169,7 +169,7 @@ export class LogApi {
     details?: string,
     source?: string,
     exception?: Error,
-    metadata?: any
+    metadata?: Record<string, unknown>
   ): Promise<void> {
     try {
       await this.createLog({
@@ -192,35 +192,35 @@ export class LogApi {
   /**
    * 记录调试日志
    */
-  static async debug(message: string, details?: string, source?: string, metadata?: any): Promise<void> {
+  static async debug(message: string, details?: string, source?: string, metadata?: Record<string, unknown>): Promise<void> {
     return this.log(LogLevel.Debug, message, details, source, undefined, metadata);
   }
 
   /**
    * 记录信息日志
    */
-  static async info(message: string, details?: string, source?: string, metadata?: any): Promise<void> {
+  static async info(message: string, details?: string, source?: string, metadata?: Record<string, unknown>): Promise<void> {
     return this.log(LogLevel.Info, message, details, source, undefined, metadata);
   }
 
   /**
    * 记录警告日志
    */
-  static async warning(message: string, details?: string, source?: string, metadata?: any): Promise<void> {
+  static async warning(message: string, details?: string, source?: string, metadata?: Record<string, unknown>): Promise<void> {
     return this.log(LogLevel.Warning, message, details, source, undefined, metadata);
   }
 
   /**
    * 记录错误日志
    */
-  static async error(message: string, exception?: Error, source?: string, metadata?: any): Promise<void> {
+  static async error(message: string, exception?: Error, source?: string, metadata?: Record<string, unknown>): Promise<void> {
     return this.log(LogLevel.Error, message, undefined, source, exception, metadata);
   }
 
   /**
    * 记录致命错误日志
    */
-  static async fatal(message: string, exception?: Error, source?: string, metadata?: any): Promise<void> {
+  static async fatal(message: string, exception?: Error, source?: string, metadata?: Record<string, unknown>): Promise<void> {
     return this.log(LogLevel.Fatal, message, undefined, source, exception, metadata);
   }
 }

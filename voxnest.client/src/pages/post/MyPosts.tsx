@@ -3,6 +3,7 @@ import { Card, List, Typography, Button, Empty, Space, Tag, message } from 'antd
 import { PlusOutlined, EyeOutlined, LikeOutlined, MessageOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { usePostStore } from '../../stores/postStore';
+import type { PostListItem, Tag as PostTag } from '../../types/post';
 import dayjs from 'dayjs';
 
 const { Title, Text, Paragraph } = Typography;
@@ -69,7 +70,7 @@ const MyPosts: React.FC = () => {
         <List
           loading={isLoadingMyPosts}
           dataSource={myPosts}
-          renderItem={(post) => (
+          renderItem={(post: PostListItem) => (
             <List.Item key={post.id}>
               <Card 
                 hoverable 
@@ -94,7 +95,7 @@ const MyPosts: React.FC = () => {
                     {post.category && (
                       <Tag color="blue">{post.category.name}</Tag>
                     )}
-                    {post.tags.map(tag => (
+                    {post.tags.map((tag: PostTag) => (
                       <Tag key={tag.id} color={tag.color || 'default'}>
                         {tag.name}
                       </Tag>

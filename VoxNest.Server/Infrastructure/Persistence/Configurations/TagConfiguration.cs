@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using VoxNest.Server.Domain.Entities.Content;
+using VoxNest.Server.Infrastructure.Persistence.Constants;
 
 namespace VoxNest.Server.Infrastructure.Persistence.Configurations;
 
@@ -11,7 +12,7 @@ public class TagConfiguration : IEntityTypeConfiguration<Tag>
 {
     public void Configure(EntityTypeBuilder<Tag> builder)
     {
-        builder.ToTable("Tags");
+        builder.ToTable(TableNames.Tags);
 
         builder.HasKey(t => t.Id);
 

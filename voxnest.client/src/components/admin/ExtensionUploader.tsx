@@ -28,7 +28,7 @@ import {
   CodeOutlined,
   BgColorsOutlined
 } from '@ant-design/icons';
-import type { RcFile } from 'antd/es/upload/interface';
+import type { RcFile, UploadChangeParam } from 'antd/es/upload/interface';
 import { extensionInstallerApi, type ExtensionUpload, type ExtensionPreview, type ExtensionInstallResult } from '../../api/unifiedExtension';
 import { fileSystemExtensionApi } from '../../api/fileSystemExtension';
 
@@ -66,7 +66,7 @@ export const ExtensionUploader: React.FC<ExtensionUploaderProps> = ({
   };
 
   // 处理文件选择
-  const handleFileChange = (info: any) => {
+  const handleFileChange = (info: UploadChangeParam) => {
     const { fileList } = info;
     if (fileList.length > 0) {
       const file = fileList[0].originFileObj as RcFile;

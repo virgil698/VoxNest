@@ -3,7 +3,7 @@
  * 简化的配置初始化逻辑
  */
 
-import { configManager, getAppConfig } from './index';
+import { configManager, getAppConfig, type FrontendConfig, type AppConfig, type BackendServerConfig } from './index';
 
 /**
  * 初始化配置
@@ -87,9 +87,9 @@ export function startConfigHealthCheck(): void {
 export function getConfigStatus(): {
   isValid: boolean;
   errors: string[];
-  config: any;
-  appConfig: any;
-  backendConfig: any;
+  config: FrontendConfig;
+  appConfig: AppConfig;
+  backendConfig: BackendServerConfig | null;
 } {
   const validation = configManager.validateConfig();
   return {

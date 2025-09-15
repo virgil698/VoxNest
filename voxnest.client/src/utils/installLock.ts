@@ -3,8 +3,14 @@
  * 类似后端的install.lock文件机制，但使用localStorage实现
  */
 
+import type { InstallStatusDto } from '../api/install';
+
 const INSTALL_LOCK_KEY = 'voxnest_install_lock';
 const INSTALL_STATUS_KEY = 'voxnest_install_status';
+
+interface CachedInstallStatus extends InstallStatusDto {
+  cachedAt: string;
+}
 
 export interface FrontendInstallLock {
   isInstalled: boolean;
@@ -77,7 +83,7 @@ export class FrontendInstallLockManager {
   /**
    * 缓存后端安装状态
    */
-  public cacheInstallStatus(status: any): void {
+  public cacheInstallStatus(status: InstallStatusDto): void {
     localStorage.setItem(INSTALL_STATUS_KEY, JSON.stringify({
       ...status,
       cachedAt: new Date().toISOString()
@@ -87,7 +93,7 @@ export class FrontendInstallLockManager {
   /**
    * 获取缓存的安装状态
    */
-  public getCachedInstallStatus(): any | null {
+  public getCachedInstallStatus(): CachedInstallStatus | null {
     const cachedData = localStorage.getItem(INSTALL_STATUS_KEY);
     if (!cachedData) {
       return null;

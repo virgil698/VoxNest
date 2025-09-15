@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using VoxNest.Server.Domain.Entities.Content;
+using VoxNest.Server.Infrastructure.Persistence.Constants;
 
 namespace VoxNest.Server.Infrastructure.Persistence.Configurations;
 
@@ -11,7 +12,7 @@ public class PostConfiguration : IEntityTypeConfiguration<Post>
 {
     public void Configure(EntityTypeBuilder<Post> builder)
     {
-        builder.ToTable("Posts");
+        builder.ToTable(TableNames.Posts);
 
         builder.HasKey(p => p.Id);
 

@@ -5,6 +5,16 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import type { LoginRequest } from '../../types/auth';
 
+interface ErrorInfo {
+  message?: string;
+  status?: number;
+  statusText?: string;
+  errors?: string[];
+  details?: string;
+  errorCode?: string;
+  traceId?: string;
+}
+
 const { Title, Text } = Typography;
 
 const Login: React.FC = () => {
@@ -16,7 +26,7 @@ const Login: React.FC = () => {
   // 如果已登录，重定向到首页或来源页面
   useEffect(() => {
     if (isAuthenticated) {
-      const from = (location.state as any)?.from || '/';
+      const from = (location.state as { from?: string })?.from || '/';
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, location]);
@@ -26,10 +36,10 @@ const Login: React.FC = () => {
       await login(values);
       message.success('登录成功！');
       
-      const from = (location.state as any)?.from || '/';
+      const from = (location.state as { from?: string })?.from || '/';
       navigate(from, { replace: true });
-    } catch (error: any) {
-      const errorInfo = (error as any).errorInfo;
+    } catch (error: unknown) {
+      const errorInfo = (error as { errorInfo?: ErrorInfo })?.errorInfo;
       
       if (errorInfo) {
         // 构建详细错误消息
@@ -72,7 +82,7 @@ const Login: React.FC = () => {
         console.groupEnd();
       } else {
         // 降级处理：使用简单的message提示
-        message.error(error.message || '登录失败，请稍后重试');
+        message.error((error as Error).message || '登录失败，请稍后重试');
         console.error('登录错误（无详细信息）:', error);
       }
     }

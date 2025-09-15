@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card,
   Table,
@@ -26,15 +26,14 @@ import {
 } from '@ant-design/icons';
 import { LogApi, LogLevel, LogCategory } from '../../api/log';
 import type { LogEntry, LogQueryParams, LogStats } from '../../api/log';
+import type { TableProps } from 'antd';
 import { useLogger } from '../../hooks/useLogger';
-import dayjs from 'dayjs';
+import dayjs, { type Dayjs } from 'dayjs';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 
-interface LogManagementProps {}
-
-const LogManagement: React.FC<LogManagementProps> = () => {
+const LogManagement: React.FC = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
@@ -89,7 +88,7 @@ const LogManagement: React.FC<LogManagementProps> = () => {
   };
 
   // 加载日志列表
-  const loadLogs = async (params?: LogQueryParams) => {
+  const loadLogs = useCallback(async (params?: LogQueryParams) => {
     setLoading(true);
     try {
       const finalParams = { ...queryParams, ...params };
@@ -110,10 +109,10 @@ const LogManagement: React.FC<LogManagementProps> = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [queryParams, logger]);
 
   // 加载统计信息
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       const result = await LogApi.getLogStats();
       setStats(result);
@@ -121,30 +120,34 @@ const LogManagement: React.FC<LogManagementProps> = () => {
       message.error('加载统计信息失败');
       logger.error('Failed to load log stats', error as Error);
     }
-  };
+  }, [logger]);
 
-  // 初始化加载
+  // 初始化加载（避免频繁重载）
   useEffect(() => {
-    loadLogs();
-    loadStats();
-  }, []);
+    // 只在日志列表为空时加载
+    if (logs.length === 0) {
+      loadLogs();
+      loadStats();
+    }
+  }, []); // 移除依赖，避免循环加载
 
   // 处理查询参数变化
-  const handleQueryChange = (key: keyof LogQueryParams, value: any) => {
+  const handleQueryChange = (key: keyof LogQueryParams, value: string | number | [string, string] | undefined) => {
     const newParams = { ...queryParams, [key]: value, pageNumber: 1 };
     setQueryParams(newParams);
     loadLogs(newParams);
   };
 
   // 处理表格变化
-  const handleTableChange = (pagination: any, _filters: any, sorter: any) => {
+  const handleTableChange = (pagination: TableProps<LogEntry>['pagination'], _filters: Record<string, unknown>, _sorter: unknown) => {
     const newParams = {
       ...queryParams,
-      pageNumber: pagination.current,
-      pageSize: pagination.pageSize
+      pageNumber: pagination && typeof pagination === 'object' ? (pagination as { current?: number }).current || 1 : 1,
+      pageSize: pagination && typeof pagination === 'object' ? (pagination as { pageSize?: number }).pageSize || 20 : 20
     };
 
-    if (sorter && sorter.field) {
+    if (_sorter && typeof _sorter === 'object' && _sorter !== null && 'field' in _sorter) {
+      const sorter = _sorter as { field?: string; order?: 'ascend' | 'descend' };
       newParams.sortBy = sorter.field;
       newParams.sortDirection = sorter.order === 'ascend' ? 'asc' : 'desc';
     }
@@ -266,7 +269,7 @@ const LogManagement: React.FC<LogManagementProps> = () => {
       title: '操作',
       key: 'action',
       width: 80,
-      render: (_text: any, record: LogEntry) => (
+      render: (_text: unknown, record: LogEntry) => (
         <Button 
           type="link" 
           icon={<EyeOutlined />}
@@ -322,7 +325,7 @@ const LogManagement: React.FC<LogManagementProps> = () => {
               placeholder="选择日志级别"
               allowClear
               style={{ width: '100%' }}
-              onChange={(value) => handleQueryChange('level', value)}
+              onChange={(value: string) => handleQueryChange('level', value)}
             >
               <Option value={LogLevel.Debug}>Debug</Option>
               <Option value={LogLevel.Info}>Info</Option>
@@ -336,7 +339,7 @@ const LogManagement: React.FC<LogManagementProps> = () => {
               placeholder="选择日志分类"
               allowClear
               style={{ width: '100%' }}
-              onChange={(value) => handleQueryChange('category', value)}
+              onChange={(value: string) => handleQueryChange('category', value)}
             >
               <Option value={LogCategory.System}>System</Option>
               <Option value={LogCategory.Authentication}>Authentication</Option>
@@ -352,13 +355,13 @@ const LogManagement: React.FC<LogManagementProps> = () => {
           <Col span={6}>
             <RangePicker
               style={{ width: '100%' }}
-              onChange={(dates) => {
+              onChange={(dates: [Dayjs | null, Dayjs | null] | null) => {
                 if (dates && dates.length === 2) {
                   handleQueryChange('startDate', dates[0]?.toISOString());
                   handleQueryChange('endDate', dates[1]?.toISOString());
                 } else {
-                  handleQueryChange('startDate', null);
-                  handleQueryChange('endDate', null);
+                  handleQueryChange('startDate', undefined);
+                  handleQueryChange('endDate', undefined);
                 }
               }}
             />
@@ -368,7 +371,7 @@ const LogManagement: React.FC<LogManagementProps> = () => {
               placeholder="搜索日志内容"
               allowClear
               suffix={<SearchOutlined />}
-              onChange={(e) => handleQueryChange('search', e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleQueryChange('search', e.target.value)}
               onPressEnter={() => loadLogs(queryParams)}
             />
           </Col>

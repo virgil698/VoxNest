@@ -25,7 +25,8 @@ export function useSlotRegistration(
     return () => {
       framework.slots.unregister(slotId, registration.source);
     };
-  }, [framework.slots, slotId, registration.source, ...deps]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [framework.slots, slotId, registration, ...deps]);
 }
 
 /**
@@ -52,10 +53,10 @@ export function useSlot(slotId: string) {
 
   const hasComponents = useMemo(() => 
     framework.slots.hasComponents(slotId), 
-    [framework.slots, slotId, components.length]
+    [framework.slots, slotId]
   );
 
-  const render = useCallback((props?: any) => 
+  const render = useCallback((props?: Record<string, unknown>) => 
     framework.slots.render(slotId, props),
     [framework.slots, slotId]
   );
@@ -89,7 +90,8 @@ export function useBulkSlotRegistration(
         framework.slots.unregister(slotId, registration.source);
       });
     };
-  }, [framework.slots, ...deps]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [framework.slots, registrations, ...deps]);
 }
 
 // ==================== 集成相关 Hooks ====================
@@ -106,7 +108,8 @@ export function useIntegration(integration: Integration, deps: React.DependencyL
     return () => {
       framework.integrations.unregister(integration.name);
     };
-  }, [framework, integration.name, ...deps]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [framework, integration, ...deps]);
 }
 
 /**
@@ -136,18 +139,32 @@ export function useIntegrations() {
 
 // ==================== 框架状态 Hooks ====================
 
+interface FrameworkStats {
+  status: string;
+  integrations: {
+    total: number;
+    withHooks: number;
+    hookCounts: Record<string, number>;
+  };
+  slots: {
+    total: number;
+    components: number;
+    breakdown: Record<string, number>;
+  };
+}
+
 /**
  * 获取框架状态的 Hook
  */
 export function useFrameworkStatus() {
   const framework = useExtensionFramework();
   const [status, setStatus] = useState(() => framework.status);
-  const [stats, setStats] = useState(() => framework.getStats());
+  const [stats, setStats] = useState<FrameworkStats>(() => framework.getStats() as unknown as FrameworkStats);
 
   useEffect(() => {
     const updateStatus = () => {
       setStatus(framework.status);
-      setStats(framework.getStats());
+      setStats(framework.getStats() as unknown as FrameworkStats);
     };
 
     updateStatus();
@@ -202,11 +219,11 @@ export function useFrameworkReady(callback?: () => void) {
  */
 export function useRegisterComponent(
   slotId: string,
-  component: React.ComponentType<any>,
+  component: React.ComponentType<Record<string, unknown>>,
   options: {
     source: string;
     priority?: number;
-    condition?: (props?: any) => boolean;
+    condition?: (props?: Record<string, unknown>) => boolean;
     name?: string;
     description?: string;
   },
@@ -219,7 +236,8 @@ export function useRegisterComponent(
     condition: options.condition,
     name: options.name,
     description: options.description,
-  }), [component, options.source, options.priority, options.name, options.description, ...deps]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [component, options.source, options.priority, options.condition, options.name, options.description, ...deps]);
 
   useSlotRegistration(slotId, registration, deps);
 }
@@ -291,7 +309,8 @@ export function useConditionalRegistration(
         framework.slots.unregister(slotId, registration.source);
       }
     };
-  }, [framework.slots, condition, slotId, registration.source, ...deps]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [framework.slots, condition, slotId, registration, ...deps]);
 }
 
 /**
@@ -314,5 +333,6 @@ export function useDelayedRegistration(
       clearTimeout(timer);
       framework.slots.unregister(slotId, registration.source);
     };
-  }, [framework.slots, delay, slotId, registration.source, ...deps]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [framework.slots, delay, slotId, registration, ...deps]);
 }

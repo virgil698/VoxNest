@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using VoxNest.Server.Domain.Entities.System;
+using VoxNest.Server.Infrastructure.Persistence.Constants;
 
 namespace VoxNest.Server.Infrastructure.Persistence.Configurations;
 
@@ -11,7 +12,7 @@ public class UserStatsConfiguration : IEntityTypeConfiguration<UserStats>
 {
     public void Configure(EntityTypeBuilder<UserStats> builder)
     {
-        builder.ToTable("UserStats");
+        builder.ToTable(TableNames.UserStats);
 
         // 主键
         builder.HasKey(s => s.Id);

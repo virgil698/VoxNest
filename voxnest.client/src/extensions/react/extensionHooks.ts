@@ -166,17 +166,13 @@ export function useThemeManager() {
   
   // 激活主题（卸载其他主题，加载指定主题）
   const activateTheme = useCallback(async (extension: DiscoveredExtension) => {
-    try {
-      // 卸载所有已加载的主题
-      for (const theme of loadedThemes) {
-        await unloadExtension(theme.manifest.id);
-      }
-      
-      // 加载新主题
-      return await loadTheme(extension);
-    } catch (err) {
-      throw err;
+    // 卸载所有已加载的主题
+    for (const theme of loadedThemes) {
+      await unloadExtension(theme.manifest.id);
     }
+    
+    // 加载新主题
+    return await loadTheme(extension);
   }, [loadedThemes, unloadExtension, loadTheme]);
 
   return {

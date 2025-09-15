@@ -1,6 +1,7 @@
 import React, { useEffect, Suspense, useState } from 'react';
 import { Layout as AntdLayout, Menu, Avatar, Dropdown, Button, Space, Spin, Input } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Slot, ConditionalSlot } from '../../extensions';
 import { 
   HomeOutlined, 
   UserOutlined, 
@@ -159,7 +160,7 @@ export const Layout: React.FC = () => {
           <Input
             placeholder="搜索话题、内容或用户..."
             value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchValue(e.target.value)}
             onPressEnter={() => handleSearch(searchValue)}
             className="voxnest-search-box"
             size="middle"
@@ -190,6 +191,9 @@ export const Layout: React.FC = () => {
               >
                 发帖
               </Button>
+              
+              {/* 用户导航扩展槽位 */}
+              <ConditionalSlot id="nav.user" />
               
               {/* 用户信息下拉菜单 */}
               <Dropdown
@@ -261,6 +265,9 @@ export const Layout: React.FC = () => {
           VoxNest ©2024 - 下一代论坛交流平台 | 分享知识，交流思想
         </div>
       </Footer>
+      
+      {/* 全局覆盖层 - 用于模态框、通知、Cookie横幅等 */}
+      <Slot id="overlay.root" wrapper={false} />
     </AntdLayout>
   );
 };

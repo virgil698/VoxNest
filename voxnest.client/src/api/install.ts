@@ -59,6 +59,30 @@ export interface ApiResponse {
   method?: string;
 }
 
+// 用户信息接口
+export interface UserDto {
+  id: number;
+  username: string;
+  email: string;
+  displayName?: string;
+  avatar?: string;
+  roles: string[];
+  createdAt: string;
+  lastLoginAt?: string;
+}
+
+// 管理员创建响应接口
+export interface CreateAdminResponseDto {
+  success: boolean;
+  message: string;
+  accessToken?: string;
+  tokenType?: string;
+  expiresIn?: number;
+  user?: UserDto;
+  errorCode?: string;
+  traceId?: string;
+}
+
 // 安装API类
 export class InstallApi {
   // 获取安装状态
@@ -94,8 +118,8 @@ export class InstallApi {
   }
 
   // 创建管理员账户
-  static async createAdminUser(adminInfo: CreateAdminDto): Promise<ApiResponse> {
-    const response = await apiClient.post<ApiResponse>('/api/install/create-admin', adminInfo);
+  static async createAdminUser(adminInfo: CreateAdminDto): Promise<CreateAdminResponseDto> {
+    const response = await apiClient.post<CreateAdminResponseDto>('/api/install/create-admin', adminInfo);
     return response.data;
   }
 
@@ -106,7 +130,7 @@ export class InstallApi {
   }
 
   // 诊断数据库状态
-  static async diagnoseDatabase(): Promise<any> {
+  static async diagnoseDatabase(): Promise<unknown> {
     const response = await apiClient.get('/api/install/diagnose-database');
     return response.data;
   }

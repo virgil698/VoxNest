@@ -707,3 +707,216 @@ a:active {
 .fade-in {
   animation: fadeIn 0.3s ease-out;
 }
+
+/* 编辑器文本选择优化 */
+.voxnest-editor {
+  /* 确保文本可以被选择 */
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+}
+
+.voxnest-editor .md-editor {
+  /* 编辑器内容区域选择 */
+  user-select: text !important;
+}
+
+.voxnest-editor .md-editor-text,
+.voxnest-editor .md-editor-text-area,
+.voxnest-editor .cm-editor,
+.voxnest-editor .cm-content {
+  /* 编辑器文本区域选择 */
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+}
+
+/* 确保编辑器内的文本光标正常显示 */
+.voxnest-editor .md-editor-text-area {
+  cursor: text;
+}
+
+/* 选中文本的样式优化 */
+.voxnest-editor ::selection {
+  background-color: #b3d4fc;
+  color: #000;
+}
+
+.voxnest-editor ::-moz-selection {
+  background-color: #b3d4fc;
+  color: #000;
+}
+
+/* 编辑器工具栏不应该被选中 */
+.voxnest-editor .md-editor-toolbar {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+/* 预览区域也应该支持文本选择 */
+.voxnest-editor .md-editor-preview-wrapper {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+
+/* 视频插入按钮样式优化 - 与其他工具栏按钮保持一致 */
+.w-md-editor-toolbar .w-md-editor-toolbar-item[aria-label="insert video"] {
+  /* 完全匹配md-editor-rt原生按钮样式 */
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 3px;
+  color: #525252;
+  font-size: 14px;
+  line-height: 1;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  padding: 0;
+  margin: 0;
+  vertical-align: middle;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.w-md-editor-toolbar .w-md-editor-toolbar-item[aria-label="insert video"]:hover {
+  background-color: #f5f5f5;
+  color: #262626;
+}
+
+.w-md-editor-toolbar .w-md-editor-toolbar-item[aria-label="insert video"]:active {
+  background-color: #e6f7ff;
+  color: #1890ff;
+}
+
+.w-md-editor-toolbar .w-md-editor-toolbar-item[aria-label="insert video"]:focus {
+  background-color: #e6f7ff;
+  color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* 图标样式调整 */
+.w-md-editor-toolbar .w-md-editor-toolbar-item[aria-label="insert video"] .anticon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* 暗色主题适配 */
+.w-md-editor.w-md-editor-dark .w-md-editor-toolbar .w-md-editor-toolbar-item[aria-label="insert video"] {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.w-md-editor.w-md-editor-dark .w-md-editor-toolbar .w-md-editor-toolbar-item[aria-label="insert video"]:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.w-md-editor.w-md-editor-dark .w-md-editor-toolbar .w-md-editor-toolbar-item[aria-label="insert video"]:active,
+.w-md-editor.w-md-editor-dark .w-md-editor-toolbar .w-md-editor-toolbar-item[aria-label="insert video"]:focus {
+  background-color: rgba(24, 144, 255, 0.2);
+  color: #1890ff;
+}
+
+/* 确保与工具栏分隔符对齐 */
+.w-md-editor-toolbar .w-md-editor-toolbar-divider + .w-md-editor-toolbar-item[aria-label="insert video"],
+.w-md-editor-toolbar .w-md-editor-toolbar-item[aria-label="insert video"] + .w-md-editor-toolbar-divider {
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+/* ====== 编辑器内容区域和代码块样式优化 ====== */
+
+/* 编辑器主要内容区域背景色优化 - 与页面背景保持一致 */
+.voxnest-editor,
+.w-md-editor {
+  background: #F8F9FA !important;
+}
+
+.voxnest-editor .md-editor,
+.w-md-editor .w-md-editor-text-area,
+.w-md-editor .w-md-editor-text,
+.w-md-editor .w-md-editor-input,
+.w-md-editor .w-md-editor-preview,
+.w-md-editor .w-md-editor-preview-wrapper {
+  background: #F8F9FA !important;
+}
+
+/* VuePress主题代码块样式补充 - 减少强制覆盖，让VuePress主题样式生效 */
+.w-md-editor-preview pre,
+.md-editor-preview pre,
+.wmde-markdown pre,
+.voxnest-editor pre {
+  margin: 20px 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+}
+
+/* 只在必要时添加微调样式，不强制覆盖VuePress主题 */
+.w-md-editor-preview pre:hover,
+.md-editor-preview pre:hover,
+.wmde-markdown pre:hover,
+.voxnest-editor pre:hover {
+  transform: translateY(-1px);
+  transition: transform 0.2s ease;
+}
+
+/* 让VuePress主题的行内代码样式生效，只添加必要的补充 */
+.w-md-editor-preview code,
+.md-editor-preview code,
+.wmde-markdown code,
+.voxnest-editor code {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+}
+
+/* 确保代码块内的代码继承主题样式 */
+.w-md-editor-preview pre code,
+.md-editor-preview pre code,
+.wmde-markdown pre code,
+.voxnest-editor pre code {
+  background: inherit;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* 编辑器分割线样式优化 */
+.w-md-editor .w-md-editor-bar {
+  background: #E5E7EB !important;
+}
+
+.w-md-editor .w-md-editor-bar:hover {
+  background: var(--primary-color) !important;
+}
+
+/* 编辑器工具栏背景优化 */
+.w-md-editor .w-md-editor-toolbar {
+  background: #FFFFFF !important;
+  border-bottom: 1px solid #E5E7EB !important;
+}
+
+/* 移动端VuePress主题优化 */
+@media (max-width: 768px) {
+  .w-md-editor-preview pre,
+  .md-editor-preview pre,
+  .wmde-markdown pre,
+  .voxnest-editor pre {
+    margin: 16px 0 !important;
+    overflow-x: auto !important;
+  }
+  
+  /* 让VuePress主题的移动端样式生效 */
+  .w-md-editor-preview,
+  .md-editor-preview,
+  .wmde-markdown {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+}

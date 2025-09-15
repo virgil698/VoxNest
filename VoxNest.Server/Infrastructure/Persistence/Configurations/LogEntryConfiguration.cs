@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using VoxNest.Server.Domain.Entities.System;
+using VoxNest.Server.Infrastructure.Persistence.Constants;
 
 namespace VoxNest.Server.Infrastructure.Persistence.Configurations;
 
@@ -11,7 +12,7 @@ public class LogEntryConfiguration : IEntityTypeConfiguration<LogEntry>
 {
     public void Configure(EntityTypeBuilder<LogEntry> builder)
     {
-        builder.ToTable("LogEntries");
+        builder.ToTable(TableNames.LogEntries);
 
         // 主键
         builder.HasKey(l => l.Id);

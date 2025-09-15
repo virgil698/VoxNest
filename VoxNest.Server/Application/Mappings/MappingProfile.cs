@@ -2,6 +2,7 @@ using AutoMapper;
 using VoxNest.Server.Application.DTOs.Auth;
 using VoxNest.Server.Application.DTOs.Post;
 using VoxNest.Server.Application.DTOs.Log;
+using VoxNest.Server.Application.DTOs.Admin;
 using VoxNest.Server.Domain.Entities.Content;
 using VoxNest.Server.Domain.Entities.User;
 using VoxNest.Server.Domain.Entities.System;
@@ -18,6 +19,7 @@ public class MappingProfile : Profile
         CreateUserMappings();
         CreatePostMappings();
         CreateLogMappings();
+        CreateAdminMappings();
     }
 
     private void CreateUserMappings()
@@ -62,5 +64,13 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.LevelName, opt => opt.MapFrom(src => src.Level.ToString()))
             .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.ToString()))
             .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User != null ? src.User.Username : null));
+    }
+
+    private void CreateAdminMappings()
+    {
+        // SiteSetting -> SiteSettingDto
+        CreateMap<SiteSetting, SiteSettingDto>()
+            .ForMember(dest => dest.TypeName, opt => opt.MapFrom(src => src.Type.ToString()))
+            .ForMember(dest => dest.UpdatedByName, opt => opt.MapFrom(src => src.UpdatedBy != null ? src.UpdatedBy.Username : null));
     }
 }

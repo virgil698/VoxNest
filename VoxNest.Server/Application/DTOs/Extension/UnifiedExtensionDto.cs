@@ -108,7 +108,7 @@ namespace VoxNest.Server.Application.DTOs.Extension
         public string? Tags { get; set; }
         public string? SortBy { get; set; } = "CreatedAt";
         public bool SortDescending { get; set; } = true;
-        public int Page { get; set; } = 1;
+        public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 20;
     }
     
@@ -137,15 +137,7 @@ namespace VoxNest.Server.Application.DTOs.Extension
         /// </summary>
         public Dictionary<string, int> ExtensionsByStatus { get; set; } = new();
         
-        /// <summary>
-        /// 插件特定统计
-        /// </summary>
-        public PluginStatsDto? PluginStats { get; set; }
-        
-        /// <summary>
-        /// 主题特定统计
-        /// </summary>
-        public ThemeStatsDto? ThemeStats { get; set; }
+        // Plugin and Theme specific stats removed - using unified extension stats
     }
     
     /// <summary>

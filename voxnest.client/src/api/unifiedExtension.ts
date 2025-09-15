@@ -16,7 +16,7 @@ export interface UnifiedExtension {
   repository?: string;
   type: 'plugin' | 'theme';
   status: 'active' | 'inactive' | 'error' | 'loading';
-  originalStatus?: any;
+  originalStatus?: 'active' | 'inactive' | 'error' | 'loading';
   fileSize: number;
   config?: string;
   iconPath?: string;
@@ -96,7 +96,7 @@ export interface ExtensionAction {
   action: 'enable' | 'disable' | 'activate' | 'install' | 'uninstall';
   extensionType: 'plugin' | 'theme';
   extensionId: number;
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
 }
 
 // 批量扩展操作请求
@@ -107,7 +107,7 @@ export interface BatchExtensionAction {
     type: 'plugin' | 'theme';
     uniqueId: string;
   }>;
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
 }
 
 // 分页结果
@@ -193,7 +193,7 @@ export const unifiedExtensionApi = {
   /**
    * 获取扩展manifest
    */
-  async getExtensionManifest(uniqueId: string, type: 'plugin' | 'theme'): Promise<ApiResponse<any>> {
+  async getExtensionManifest(uniqueId: string, type: 'plugin' | 'theme'): Promise<ApiResponse<Record<string, unknown>>> {
     const response = await apiClient.get(`/api/extension/unified/${type}/${uniqueId}/manifest`);
     return response.data;
   },
@@ -201,7 +201,7 @@ export const unifiedExtensionApi = {
   /**
    * 验证扩展兼容性
    */
-  async validateCompatibility(uniqueId: string, type: 'plugin' | 'theme'): Promise<ApiResponse<Record<string, any>>> {
+  async validateCompatibility(uniqueId: string, type: 'plugin' | 'theme'): Promise<ApiResponse<Record<string, unknown>>> {
     const response = await apiClient.get(`/api/extension/unified/${type}/${uniqueId}/compatibility`);
     return response.data;
   },
@@ -209,7 +209,7 @@ export const unifiedExtensionApi = {
   /**
    * 获取扩展依赖关系图
    */
-  async getDependencyGraph(): Promise<ApiResponse<Record<string, any>>> {
+  async getDependencyGraph(): Promise<ApiResponse<Record<string, unknown>>> {
     const response = await apiClient.get('/api/extension/unified/dependency-graph');
     return response.data;
   },
@@ -461,7 +461,7 @@ export const extensionInstallerApi = {
   /**
    * 验证扩展文件
    */
-  async validateExtensionFile(extensionFile: File): Promise<ApiResponse<any>> {
+  async validateExtensionFile(extensionFile: File): Promise<ApiResponse<Record<string, unknown>>> {
     const formData = new FormData();
     formData.append('extensionFile', extensionFile);
 

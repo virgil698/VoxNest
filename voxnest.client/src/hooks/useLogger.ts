@@ -16,7 +16,7 @@ export function useLogger(defaultSource?: string) {
     details?: string,
     source?: string,
     exception?: Error,
-    metadata?: any
+    metadata?: Record<string, unknown>
   ) => {
     try {
       await LogApi.log(
@@ -35,35 +35,35 @@ export function useLogger(defaultSource?: string) {
   /**
    * 记录调试日志
    */
-  const debug = useCallback((message: string, details?: string, metadata?: any) => {
+  const debug = useCallback((message: string, details?: string, metadata?: Record<string, unknown>) => {
     log(LogLevel.Debug, message, details, undefined, undefined, metadata);
   }, [log]);
 
   /**
    * 记录信息日志
    */
-  const info = useCallback((message: string, details?: string, metadata?: any) => {
+  const info = useCallback((message: string, details?: string, metadata?: Record<string, unknown>) => {
     log(LogLevel.Info, message, details, undefined, undefined, metadata);
   }, [log]);
 
   /**
    * 记录警告日志
    */
-  const warning = useCallback((message: string, details?: string, metadata?: any) => {
+  const warning = useCallback((message: string, details?: string, metadata?: Record<string, unknown>) => {
     log(LogLevel.Warning, message, details, undefined, undefined, metadata);
   }, [log]);
 
   /**
    * 记录错误日志
    */
-  const error = useCallback((message: string, exception?: Error, metadata?: any) => {
+  const error = useCallback((message: string, exception?: Error, metadata?: Record<string, unknown>) => {
     log(LogLevel.Error, message, undefined, undefined, exception, metadata);
   }, [log]);
 
   /**
    * 记录致命错误日志
    */
-  const fatal = useCallback((message: string, exception?: Error, metadata?: any) => {
+  const fatal = useCallback((message: string, exception?: Error, metadata?: Record<string, unknown>) => {
     log(LogLevel.Fatal, message, undefined, undefined, exception, metadata);
   }, [log]);
 
@@ -153,7 +153,7 @@ export function useLogger(defaultSource?: string) {
 export function useGlobalErrorHandler(source?: string) {
   const logger = useLogger(source);
 
-  const handleError = useCallback((error: Error, errorInfo?: any) => {
+  const handleError = useCallback((error: Error, errorInfo?: Record<string, unknown>) => {
     logger.error('Unhandled error', error, {
       errorInfo,
       url: window.location.href,
@@ -164,26 +164,29 @@ export function useGlobalErrorHandler(source?: string) {
   // 全局错误监听
   const setupGlobalErrorHandling = useCallback(() => {
     // 监听JavaScript错误
-    window.addEventListener('error', (event) => {
+    const errorHandler = (event: ErrorEvent) => {
       handleError(event.error || new Error(event.message), {
         filename: event.filename,
         lineno: event.lineno,
         colno: event.colno
       });
-    });
+    };
 
     // 监听Promise rejection
-    window.addEventListener('unhandledrejection', (event) => {
+    const rejectionHandler = (event: PromiseRejectionEvent) => {
       handleError(
         event.reason instanceof Error ? event.reason : new Error(String(event.reason)),
         { type: 'unhandledrejection' }
       );
-    });
+    };
+
+    window.addEventListener('error', errorHandler);
+    window.addEventListener('unhandledrejection', rejectionHandler);
 
     // 清理函数
     return () => {
-      window.removeEventListener('error', handleError as any);
-      window.removeEventListener('unhandledrejection', handleError as any);
+      window.removeEventListener('error', errorHandler);
+      window.removeEventListener('unhandledrejection', rejectionHandler);
     };
   }, [handleError]);
 

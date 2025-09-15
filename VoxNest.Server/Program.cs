@@ -84,15 +84,15 @@ var app = builder.Build();
 app.ConfigureVoxNestPipeline();
 app.ConfigureDevelopmentEnvironment();
 
-// 初始化数据库
+// 初始化种子数据
 const string installLockFile = "install.lock";
 try
 {
-    // 如果系统已完全安装，执行正常的数据库迁移
+    // 如果系统已完全安装，植入种子数据
     if (File.Exists(installLockFile) && File.Exists(configFile))
     {
-        Console.WriteLine("✅ 系统已安装，执行数据库迁移检查...");
-        await app.EnsureDatabaseMigratedAsync();
+        Console.WriteLine("✅ 系统已安装，植入种子数据...");
+        await app.EnsureDatabaseSeededAsync();
     }
     else
     {
@@ -107,8 +107,8 @@ try
 }
 catch (Exception ex)
 {
-    app.Logger.LogError(ex, "数据库初始化检查失败");
-    Console.WriteLine($"❌ 数据库初始化失败: {ex.Message}");
+    app.Logger.LogError(ex, "种子数据初始化失败");
+    Console.WriteLine($"❌ 种子数据初始化失败: {ex.Message}");
 }
 
 // 配置路由

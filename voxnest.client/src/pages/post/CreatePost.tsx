@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Form, Input, Button, Card, message, Space } from 'antd';
+import { Form, Input, Button, Card, message, Space, Modal, Select } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, SaveOutlined, PlayCircleOutlined } from '@ant-design/icons';
 import { usePostStore } from '../../stores/postStore';
 import type { CreatePostRequest } from '../../types/post';
-import MDEditor from '@uiw/react-md-editor';
-import '@uiw/react-md-editor/markdown-editor.css';
-import '@uiw/react-markdown-preview/markdown.css';
-import rehypeSanitize from 'rehype-sanitize';
-import { videoEmbedSchema, processAllVideoEmbeds } from '../../utils/videoEmbedConfig';
+import { MdEditor } from 'md-editor-rt';
+import 'md-editor-rt/lib/style.css';
+import { processVideoMarkdown } from '../../utils/videoEmbedConfig';
 import '../../styles/components/Post.css';
 
 const { TextArea } = Input;
@@ -19,18 +17,98 @@ const CreatePost: React.FC = () => {
   const [form] = Form.useForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [markdownContent, setMarkdownContent] = useState<string | undefined>('');
+  
+  // 视频插入模态框相关状态
+  const [videoModalVisible, setVideoModalVisible] = useState(false);
+  const [videoForm] = Form.useForm();
+  const [videoSource, setVideoSource] = useState<string>('');
+  const [videoUrl, setVideoUrl] = useState<string>('');
+
+  // 自定义视频插入工具栏组件
+  const VideoToolbar: React.FC = () => {
+    return (
+      <button
+        type="button"
+        className="w-md-editor-toolbar-item"
+        title="插入视频"
+        aria-label="insert video"
+        onClick={handleVideoInsert}
+      >
+        <PlayCircleOutlined />
+      </button>
+    );
+  };
 
   // 优化MDEditor的onChange处理，避免循环引用
   const handleMarkdownChange = useCallback((val: string | undefined) => {
-    // 处理视频嵌入优化
-    const processedContent = val ? processAllVideoEmbeds(val) : val;
-    setMarkdownContent(processedContent);
+    // 在编辑器中保持原始的 [!video](url) 格式，不转换为 iframe
+    // 只在预览时进行转换，确保存储的内容是安全的
+    setMarkdownContent(val);
     // 使用异步更新避免循环引用
     setTimeout(() => {
-      form.setFieldValue('content', processedContent);
+      form.setFieldValue('content', val);
     }, 0);
   }, [form]);
 
+  // 处理视频插入
+  const handleVideoInsert = () => {
+    setVideoModalVisible(true);
+  };
+
+  // 确认插入视频
+  const handleVideoConfirm = () => {
+    if (!videoSource || !videoUrl) {
+      message.error('请选择视频源并填写视频地址');
+      return;
+    }
+
+    let videoMarkdown = '';
+    if (videoSource === 'youtube') {
+      // 提取YouTube视频ID
+      let videoId = '';
+      try {
+        const url = new URL(videoUrl);
+        if (url.hostname.includes('youtube.com') && url.searchParams.has('v')) {
+          videoId = url.searchParams.get('v') || '';
+        } else if (url.hostname.includes('youtu.be')) {
+          videoId = url.pathname.slice(1);
+        } else if (url.pathname.includes('embed/')) {
+          videoId = url.pathname.split('embed/')[1].split('?')[0];
+        }
+        
+        if (videoId) {
+          videoMarkdown = `[!video](https://www.youtube.com/embed/${videoId})`;
+        } else {
+          videoMarkdown = `[!video](${videoUrl})`;
+        }
+      } catch {
+        videoMarkdown = `[!video](${videoUrl})`;
+      }
+    } else if (videoSource === 'bilibili') {
+      videoMarkdown = `[!video](${videoUrl})`;
+    }
+
+    // 插入到编辑器中
+    const currentContent = markdownContent || '';
+    const newContent = currentContent + '\n\n' + videoMarkdown + '\n\n';
+    setMarkdownContent(newContent);
+    form.setFieldValue('content', newContent);
+
+    // 关闭模态框并重置表单
+    setVideoModalVisible(false);
+    setVideoSource('');
+    setVideoUrl('');
+    videoForm.resetFields();
+    message.success('视频已插入到编辑器中');
+  };
+
+  // 取消视频插入
+  const handleVideoCancel = () => {
+    setVideoModalVisible(false);
+    setVideoSource('');
+    setVideoUrl('');
+    videoForm.resetFields();
+  };
 
   // 设置工具栏按钮的中文提示（性能优化版本）
   useEffect(() => {
@@ -93,6 +171,7 @@ const CreatePost: React.FC = () => {
           else if (ariaLabel.includes('preview')) tooltipText = '预览模式（只显示渲染结果）';
           else if (ariaLabel.includes('edit')) tooltipText = '编辑模式（只显示Markdown源代码）';
           else if (ariaLabel.includes('live')) tooltipText = '分屏模式（左侧代码右侧预览）';
+          else if (ariaLabel.includes('video')) tooltipText = '插入视频';
         }
         
         // 特殊处理预览模式按钮（简化版本）
@@ -179,8 +258,9 @@ const CreatePost: React.FC = () => {
       const post = await createPost(values);
       message.success('帖子发布成功！');
       navigate(`/posts/${post.id}`);
-    } catch (error: any) {
-      message.error(error.message || '发布帖子失败，请稍后重试');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '发布帖子失败，请稍后重试';
+      message.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -312,11 +392,11 @@ const CreatePost: React.FC = () => {
                   border: '2px solid var(--border-color)',
                   transition: 'all 0.3s ease'
                 }}
-                onFocus={(e) => {
+                onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
                   e.target.style.borderColor = 'var(--primary-color)';
                   e.target.style.boxShadow = '0 0 0 4px rgba(79, 70, 229, 0.1)';
                 }}
-                onBlur={(e) => {
+                onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
                   e.target.style.borderColor = 'var(--border-color)';
                   e.target.style.boxShadow = 'none';
                 }}
@@ -332,20 +412,22 @@ const CreatePost: React.FC = () => {
             >
               <TextArea
                 placeholder="请输入帖子摘要，让读者快速了解内容要点（可选）"
-                rows={3}
+                autoSize={{ minRows: 3, maxRows: 8 }}
                 showCount
                 maxLength={500}
                 style={{
                   borderRadius: '12px',
                   fontSize: '15px',
                   border: '2px solid var(--border-color)',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.3s ease',
+                  resize: 'none',
+                  overflow: 'hidden'
                 }}
-                onFocus={(e) => {
+                onFocus={(e: React.FocusEvent<HTMLTextAreaElement>) => {
                   e.target.style.borderColor = 'var(--primary-color)';
                   e.target.style.boxShadow = '0 0 0 4px rgba(79, 70, 229, 0.1)';
                 }}
-                onBlur={(e) => {
+                onBlur={(e: React.FocusEvent<HTMLTextAreaElement>) => {
                   e.target.style.borderColor = 'var(--border-color)';
                   e.target.style.boxShadow = 'none';
                 }}
@@ -366,27 +448,106 @@ const CreatePost: React.FC = () => {
                 transition: 'all 0.3s ease',
                 background: 'white'
               }}>
-                <MDEditor
-                  value={markdownContent}
+                <MdEditor
+                  modelValue={markdownContent || ''}
                   onChange={handleMarkdownChange}
-                  preview="edit"
-                  hideToolbar={false}
-                  height={450}
-                  data-color-mode="light"
-                  previewOptions={{
-                    rehypePlugins: [[rehypeSanitize, videoEmbedSchema]]
+                  preview={true}
+                  // 支持快捷键（通过内置功能）
+                  onSave={() => {
+                    // 可以添加保存逻辑
+                    console.log('保存快捷键被触发');
                   }}
-                  textareaProps={{
-                    placeholder: '支持 Markdown 语法和视频嵌入：\n\n# 一级标题\n## 二级标题\n\n**粗体文字** *斜体文字*\n\n- 无序列表\n1. 有序列表\n\n> 引用内容\n\n[链接文字](URL)\n![图片描述](图片URL)\n\n```javascript\n// 代码块\nconsole.log("Hello World!");\n```\n\n🎬 支持视频嵌入：\n\nB站视频：\n<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=883823306&bvid=BV1fK4y1s7Qf&cid=213186693&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>\n\nYouTube视频：\n<iframe width="560" height="315" src="https://www.youtube.com/embed/视频ID" title="YouTube video player" frameborder="0" allowfullscreen></iframe>\n\n让你的帖子更精彩！',
-                    style: {
-                      fontSize: '15px',
-                      lineHeight: '1.6',
-                      fontFamily: 'inherit',
-                      resize: 'vertical'
-                    }
-                  }}
+                  toolbars={[
+                    'bold',
+                    'underline', 
+                    'italic',
+                    'strikeThrough',
+                    '-',
+                    'title',
+                    'sub',
+                    'sup',
+                    'quote',
+                    'unorderedList',
+                    'orderedList',
+                    'task',
+                    '-',
+                    'codeRow',
+                    'code',
+                    'link',
+                    'image',
+                    'table',
+                    0, // 自定义视频插入按钮
+                    '-',
+                    'revoke',
+                    'next',
+                    'save',
+                    '=',
+                    'pageFullscreen',
+                    'fullscreen',
+                    'preview',
+                    'htmlPreview',
+                    'catalog'
+                  ]}
+                  defToolbars={[<VideoToolbar key="video-toolbar" />]}
+                  toolbarsExclude={['github']}
+                  theme="light"
+                  previewTheme="vuepress"
+                  codeTheme="github"
+                  language="zh-CN"
+                  placeholder="支持 Markdown 语法和视频嵌入：
+
+# 一级标题
+## 二级标题
+
+**粗体文字** *斜体文字*
+
+- 无序列表
+1. 有序列表
+
+> 引用内容
+
+[链接文字](URL)
+![图片描述](图片URL)
+
+```javascript
+// 代码块
+console.log('Hello World!');
+```
+
+🎬 支持视频嵌入：
+
+B站视频：
+<iframe src='//player.bilibili.com/player.html?isOutside=true&aid=883823306&bvid=BV1fK4y1s7Qf&cid=213186693&p=1' scrolling='no' border='0' frameborder='no' framespacing='0' allowfullscreen='true'></iframe>
+
+YouTube视频：
+<iframe width='560' height='315' src='https://www.youtube.com/embed/视频ID' title='YouTube video player' frameborder='0' allowfullscreen></iframe>
+
+让你的帖子更精彩！"
                   style={{
-                    backgroundColor: 'transparent'
+                    backgroundColor: 'transparent',
+                    height: '450px',
+                    // 确保文本可以被选择
+                    userSelect: 'text',
+                    WebkitUserSelect: 'text',
+                    MozUserSelect: 'text',
+                    msUserSelect: 'text'
+                  }}
+                  // 添加编辑器类名以便自定义样式
+                  className="voxnest-editor"
+                  onHtmlChanged={(html) => {
+                    console.log('📝 [MdEditor] onHtmlChanged 被调用，HTML长度:', html.length);
+                    // 在HTML生成后立即处理视频嵌入
+                    const processedHtml = processVideoMarkdown(html);
+                    console.log('📝 [MdEditor] 处理后HTML长度:', processedHtml.length);
+                    return processedHtml;
+                  }}
+                  sanitize={(html) => {
+                    console.log('🧹 [MdEditor] sanitize 被调用，HTML长度:', html.length);
+                    // 在sanitize过程中处理视频嵌入，确保视频iframe不被过滤
+                    const processedHtml = processVideoMarkdown(html);
+                    console.log('🧹 [MdEditor] sanitize 处理后HTML长度:', processedHtml.length);
+                    // 返回处理后的HTML，保留安全的视频嵌入
+                    return processedHtml;
                   }}
                 />
               </div>
@@ -460,6 +621,111 @@ const CreatePost: React.FC = () => {
           </Form>
         </Card>
       </div>
+
+      {/* 视频插入模态框 */}
+      <Modal
+        title={
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <PlayCircleOutlined style={{ marginRight: '8px', color: 'var(--primary-color)' }} />
+            插入视频
+          </div>
+        }
+        open={videoModalVisible}
+        onOk={handleVideoConfirm}
+        onCancel={handleVideoCancel}
+        okText="插入视频"
+        cancelText="取消"
+        width={600}
+        destroyOnClose
+      >
+        <Form
+          form={videoForm}
+          layout="vertical"
+          style={{ marginTop: '20px' }}
+        >
+          <Form.Item
+            label="视频源"
+            name="videoSource"
+            rules={[{ required: true, message: '请选择视频源' }]}
+          >
+            <Select
+              placeholder="请选择视频源"
+              size="large"
+              value={videoSource}
+              onChange={setVideoSource}
+              style={{ borderRadius: '8px' }}
+            >
+              <Select.Option value="youtube">YouTube</Select.Option>
+              <Select.Option value="bilibili">BiliBili</Select.Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            label="视频地址"
+            name="videoUrl"
+            rules={[{ required: true, message: '请输入视频地址' }]}
+          >
+            <Input
+              placeholder={
+                videoSource === 'youtube' 
+                  ? '请输入YouTube视频链接，例如：https://www.youtube.com/watch?v=VIDEO_ID'
+                  : videoSource === 'bilibili'
+                  ? '请输入BiliBili视频链接，例如：https://www.bilibili.com/video/BV1234567890'
+                  : '请先选择视频源'
+              }
+              size="large"
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              style={{ borderRadius: '8px' }}
+            />
+          </Form.Item>
+
+          {videoSource && videoUrl && (
+            <Form.Item label="预览">
+              <div style={{
+                background: '#f8f9fa',
+                border: '1px solid #e9ecef',
+                borderRadius: '8px',
+                padding: '12px',
+                fontSize: '14px',
+                fontFamily: 'monospace',
+                color: '#495057'
+              }}>
+                {videoSource === 'youtube' ? (
+                  <div>
+                    <div style={{ marginBottom: '8px', fontWeight: '500' }}>Markdown代码：</div>
+                    <div style={{ background: 'white', padding: '8px', borderRadius: '4px', border: '1px solid #dee2e6' }}>
+                      [!video]({(() => {
+                        try {
+                          const url = new URL(videoUrl);
+                          let videoId = '';
+                          if (url.hostname.includes('youtube.com') && url.searchParams.has('v')) {
+                            videoId = url.searchParams.get('v') || '';
+                          } else if (url.hostname.includes('youtu.be')) {
+                            videoId = url.pathname.slice(1);
+                          } else if (url.pathname.includes('embed/')) {
+                            videoId = url.pathname.split('embed/')[1].split('?')[0];
+                          }
+                          return videoId ? `https://www.youtube.com/embed/${videoId}` : videoUrl;
+                        } catch {
+                          return videoUrl;
+                        }
+                      })()})
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ marginBottom: '8px', fontWeight: '500' }}>Markdown代码：</div>
+                    <div style={{ background: 'white', padding: '8px', borderRadius: '4px', border: '1px solid #dee2e6' }}>
+                      [!video]({videoUrl})
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Form.Item>
+          )}
+        </Form>
+      </Modal>
     </div>
   );
 };

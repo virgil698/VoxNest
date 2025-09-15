@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using VoxNest.Server.Domain.Entities.Content;
-using VoxNest.Server.Domain.Entities.Extension;
 using VoxNest.Server.Domain.Entities.System;
 using VoxNest.Server.Domain.Entities.User;
 
@@ -102,24 +101,7 @@ public class VoxNestDbContext : DbContext
 
     #endregion
 
-    #region Extension Entities
-
-    /// <summary>
-    /// 插件表
-    /// </summary>
-    public DbSet<Plugin> Plugins { get; set; }
-
-    /// <summary>
-    /// 插件版本表
-    /// </summary>
-    public DbSet<PluginVersion> PluginVersions { get; set; }
-
-    /// <summary>
-    /// 主题表
-    /// </summary>
-    public DbSet<Theme> Themes { get; set; }
-
-    #endregion
+    // Extension entities removed - now using file-system based extension management
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

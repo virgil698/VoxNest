@@ -5,6 +5,15 @@ import type { InstallStatusDto } from '../api/install';
 import { installLockManager } from '../utils/installLock';
 import SimpleLoading from './common/SimpleLoading';
 
+interface NetworkError {
+  code?: string;
+  response?: {
+    status?: number;
+  };
+  status?: number;
+  message?: string;
+}
+
 interface InstallGuardProps {
   children: React.ReactNode;
 }
@@ -71,7 +80,7 @@ const InstallGuard: React.FC<InstallGuardProps> = ({ children }) => {
                             errorMessage.includes('Network') || 
                             errorMessage.includes('Failed to fetch') ||
                             errorMessage.includes('ERR_CONNECTION') ||
-                            (error as any)?.code === 'NETWORK_ERROR';
+                            (error as NetworkError)?.code === 'NETWORK_ERROR';
       
       if (isNetworkError) {
         console.log('🌐 检测到网络错误，可能是后端未启动，跳转到安装页面');
@@ -80,7 +89,7 @@ const InstallGuard: React.FC<InstallGuardProps> = ({ children }) => {
       }
       
       // 如果是API错误（404, 500等），也跳转到安装页面
-      const statusCode = (error as any)?.response?.status || (error as any)?.status;
+      const statusCode = (error as NetworkError)?.response?.status || (error as NetworkError)?.status;
       if (statusCode) {
         console.log(`🔧 API返回状态码 ${statusCode}，跳转到安装页面`);
         window.location.href = '/install';
@@ -144,10 +153,10 @@ const InstallGuard: React.FC<InstallGuardProps> = ({ children }) => {
                   type="primary"
                   onClick={checkInstallStatus}
                   size="large"
-                  onMouseEnter={(e) => {
+                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
                     (e.currentTarget as HTMLElement).style.animation = 'errorShake 0.3s ease-in-out';
                   }}
-                  onAnimationEnd={(e) => {
+                  onAnimationEnd={(e: React.AnimationEvent<HTMLButtonElement>) => {
                     (e.currentTarget as HTMLElement).style.animation = '';
                   }}
                   style={{

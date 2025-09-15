@@ -1,9 +1,8 @@
 /**
  * 基于文件系统的扩展管理服务
- * 直接从 voxnest.client/extensions 文件夹读取和管理扩展
+ * 专注于读取和管理 voxnest.client/extensions 文件夹中的扩展
  */
 
-using System.IO.Compression;
 using System.Text.Json;
 using VoxNest.Server.Application.DTOs.Extension;
 using VoxNest.Server.Application.Interfaces;
@@ -32,8 +31,21 @@ namespace VoxNest.Server.Application.Services
             _extensionsPath = Path.Combine(solutionDir, "voxnest.client", "extensions");
             _extensionsJsonPath = Path.Combine(_extensionsPath, "extensions.json");
             
+            _logger.LogInformation("当前目录: {CurrentDir}", currentDir);
+            _logger.LogInformation("解决方案目录: {SolutionDir}", solutionDir);
             _logger.LogInformation("扩展路径: {ExtensionsPath}", _extensionsPath);
             _logger.LogInformation("扩展配置文件: {ExtensionsJsonPath}", _extensionsJsonPath);
+            _logger.LogInformation("扩展目录存在: {DirectoryExists}", Directory.Exists(_extensionsPath));
+            
+            if (Directory.Exists(_extensionsPath))
+            {
+                var subdirs = Directory.GetDirectories(_extensionsPath);
+                _logger.LogInformation("找到 {Count} 个子目录", subdirs.Length);
+                foreach (var dir in subdirs)
+                {
+                    _logger.LogInformation("  - {Directory}", Path.GetFileName(dir));
+                }
+            }
         }
 
         /// <summary>
@@ -79,7 +91,7 @@ namespace VoxNest.Server.Application.Services
 
                                     var extension = new UnifiedExtensionDto
                                     {
-                                        Id = allExtensions.Count + 1, // 虚拟ID
+                                        Id = 0, // 文件系统扩展没有数据库ID
                                         UniqueId = manifest.Id,
                                         Name = manifest.Name,
                                         Description = manifest.Description,
@@ -88,16 +100,15 @@ namespace VoxNest.Server.Application.Services
                                         Homepage = manifest.Homepage,
                                         Repository = manifest.Repository,
                                         Type = manifest.Type,
-                                        Status = isEnabled ? "active" : (isInstalled ? "inactive" : "uninstalled"),
+                                        Status = isEnabled ? "active" : "inactive",
                                         FileSize = CalculateDirectorySize(extensionDir),
-                                        Config = JsonSerializer.Serialize(manifest.Config),
-                                        Tags = JsonSerializer.Serialize(manifest.Tags),
-                                        Dependencies = JsonSerializer.Serialize(manifest.Dependencies),
-                                        IsBuiltIn = false,
-                                        IsVerified = true,
+                                        Config = manifest.Config != null ? JsonSerializer.Serialize(manifest.Config) : null,
+                                        Tags = manifest.Tags != null ? string.Join(",", manifest.Tags) : null,
+                                        Dependencies = manifest.Dependencies != null ? string.Join(",", manifest.Dependencies) : null,
+                                        InstalledAt = isInstalled ? Directory.GetCreationTime(extensionDir) : null,
+                                        ActivatedAt = isEnabled ? Directory.GetLastWriteTime(extensionDir) : null,
                                         CreatedAt = Directory.GetCreationTime(extensionDir),
                                         UpdatedAt = Directory.GetLastWriteTime(extensionDir),
-                                        // InstallPath = extensionDir, // 该属性不存在，移除
                                         
                                         // 插件特有字段
                                         MinVoxNestVersion = manifest.Framework?.MinVersion,
@@ -106,17 +117,6 @@ namespace VoxNest.Server.Application.Services
                                         // 主题特有字段
                                         Variables = manifest.Theme != null ? JsonSerializer.Serialize(manifest.Theme) : null,
                                         SupportedModes = manifest.Theme?.Supports != null ? string.Join(",", manifest.Theme.Supports) : null,
-                                        
-                                        // 能力声明 - 暂时注释，需要检查DTO定义
-                                        // Capabilities = new ExtensionCapabilities
-                                        // {
-                                        //     HasUI = manifest.Capabilities?.UI ?? false,
-                                        //     HasAPI = manifest.Capabilities?.API ?? false,
-                                        //     HasStorage = manifest.Capabilities?.Storage ?? false,
-                                        //     HasTheming = manifest.Capabilities?.Theming ?? false,
-                                        //     HasLayout = manifest.Capabilities?.Layout ?? false,
-                                        //     RequiresReload = true
-                                        // }
                                     };
 
                                     allExtensions.Add(extension);
@@ -136,11 +136,11 @@ namespace VoxNest.Server.Application.Services
 
                 // 分页
                 var pagedExtensions = filteredExtensions
-                    .Skip((query.Page - 1) * query.PageSize)
+                    .Skip((query.PageNumber - 1) * query.PageSize)
                     .Take(query.PageSize)
                     .ToList();
 
-                return PagedResult<UnifiedExtensionDto>.Success(pagedExtensions, totalCount, query.Page, query.PageSize);
+                return PagedResult<UnifiedExtensionDto>.Success(pagedExtensions, totalCount, query.PageNumber, query.PageSize);
             }
             catch (Exception ex)
             {
@@ -150,139 +150,77 @@ namespace VoxNest.Server.Application.Services
         }
 
         /// <summary>
-        /// 安装扩展（上传ZIP并解压）
+        /// 安装扩展
         /// </summary>
-        public async Task<ApiResponse<ExtensionInstallResultDto>> InstallExtensionAsync(ExtensionUploadDto uploadDto, int userId)
+        public async Task<Result> InstallExtensionAsync(string extensionId, int userId)
         {
             try
             {
-                _logger.LogInformation("开始安装扩展: {FileName}", uploadDto.ExtensionFile.FileName);
+                _logger.LogInformation("开始安装扩展: {ExtensionId}", extensionId);
 
-                // 验证ZIP文件并读取manifest
-                var manifestInfo = await ValidateAndExtractManifestAsync(uploadDto.ExtensionFile);
-                if (manifestInfo == null)
+                var extensionPath = Path.Combine(_extensionsPath, extensionId);
+                if (!Directory.Exists(extensionPath))
                 {
-                    return ApiResponse<ExtensionInstallResultDto>.CreateError("扩展文件无效或缺少manifest.json");
+                    return Result.Failure($"扩展目录不存在: {extensionId}");
                 }
 
-                var targetPath = Path.Combine(_extensionsPath, manifestInfo.Id);
+                // 更新extensions.json配置，标记为已安装
+                await ToggleExtensionInConfigAsync(extensionId, true);
 
-                // 检查是否已存在且不允许覆盖
-                if (Directory.Exists(targetPath) && !uploadDto.OverrideExisting)
-                {
-                    return ApiResponse<ExtensionInstallResultDto>.CreateError($"扩展 {manifestInfo.Name} 已存在，请选择覆盖安装");
-                }
-
-                // 备份现有扩展（如果覆盖）
-                string? backupPath = null;
-                if (Directory.Exists(targetPath))
-                {
-                    backupPath = targetPath + $"_backup_{DateTime.Now:yyyyMMddHHmmss}";
-                    Directory.Move(targetPath, backupPath);
-                }
-
-                try
-                {
-                    // 解压扩展文件
-                    await ExtractExtensionAsync(uploadDto.ExtensionFile, targetPath);
-                    
-                    // 更新 extensions.json
-                    await UpdateExtensionsConfigAsync(manifestInfo, uploadDto.AutoEnable);
-
-                    // 清理备份
-                    if (backupPath != null && Directory.Exists(backupPath))
-                    {
-                        Directory.Delete(backupPath, true);
-                    }
-
-                    // 触发热重载
-                    await TriggerHotReloadAsync();
-
-                    var result = new ExtensionInstallResultDto
-                    {
-                        Success = true,
-                        ExtensionId = manifestInfo.Id,
-                        ExtensionName = manifestInfo.Name,
-                        Version = manifestInfo.Version,
-                        Type = manifestInfo.Type,
-                        InstallPath = targetPath,
-                        Enabled = uploadDto.AutoEnable,
-                        Message = "扩展安装成功",
-                        InstalledAt = DateTime.UtcNow
-                    };
-
-                    return ApiResponse<ExtensionInstallResultDto>.CreateSuccess(result);
-                }
-                catch (Exception ex)
-                {
-                    // 安装失败，恢复备份
-                    _logger.LogError(ex, "扩展安装过程中发生错误，正在恢复备份");
-                    
-                    if (Directory.Exists(targetPath))
-                    {
-                        Directory.Delete(targetPath, true);
-                    }
-                    if (backupPath != null && Directory.Exists(backupPath))
-                    {
-                        Directory.Move(backupPath, targetPath);
-                    }
-                    throw;
-                }
+                _logger.LogInformation("扩展安装成功: {ExtensionId}", extensionId);
+                return Result.Success("扩展安装成功");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "安装扩展失败: {FileName}", uploadDto.ExtensionFile.FileName);
-                return ApiResponse<ExtensionInstallResultDto>.CreateError("安装失败: " + ex.Message);
+                _logger.LogError(ex, "安装扩展失败: {ExtensionId}", extensionId);
+                return Result.Failure($"安装扩展失败: {ex.Message}");
             }
         }
 
         /// <summary>
         /// 卸载扩展（删除文件夹和从配置移除）
         /// </summary>
-        public async Task<ApiResponse<string>> UninstallExtensionAsync(string extensionId)
+        public async Task<Result> UninstallExtensionAsync(string extensionId)
         {
             try
             {
                 var extensionPath = Path.Combine(_extensionsPath, extensionId);
-                
-                if (Directory.Exists(extensionPath))
+                if (!Directory.Exists(extensionPath))
                 {
-                    // 删除扩展文件夹
-                    Directory.Delete(extensionPath, true);
-                    _logger.LogInformation("已删除扩展文件夹: {ExtensionId}", extensionId);
+                    return Result.Failure($"扩展目录不存在: {extensionId}");
                 }
 
-                // 从 extensions.json 移除
-                await RemoveFromExtensionsConfigAsync(extensionId);
+                // 从配置中移除
+                await ToggleExtensionInConfigAsync(extensionId, false);
 
-                // 触发热重载
-                await TriggerHotReloadAsync();
-
-                return ApiResponse<string>.CreateSuccess($"扩展 {extensionId} 已成功卸载");
+                _logger.LogInformation("扩展卸载成功: {ExtensionId}", extensionId);
+                return Result.Success("扩展卸载成功");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "卸载扩展失败: {ExtensionId}", extensionId);
-                return ApiResponse<string>.CreateError("卸载失败: " + ex.Message);
+                return Result.Failure($"卸载扩展失败: {ex.Message}");
             }
         }
 
         /// <summary>
         /// 启用/禁用扩展
         /// </summary>
-        public async Task<ApiResponse<string>> ToggleExtensionAsync(string extensionId, bool enabled)
+        public async Task<Result> ToggleExtensionAsync(string extensionId, bool enabled)
         {
             try
             {
-                await UpdateExtensionStatusAsync(extensionId, enabled);
-                await TriggerHotReloadAsync();
+                await ToggleExtensionInConfigAsync(extensionId, enabled);
                 
-                return ApiResponse<string>.CreateSuccess($"扩展 {extensionId} 已{(enabled ? "启用" : "禁用")}");
+                var action = enabled ? "启用" : "禁用";
+                _logger.LogInformation("扩展{Action}成功: {ExtensionId}", action, extensionId);
+                return Result.Success($"扩展{action}成功");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "切换扩展状态失败: {ExtensionId}", extensionId);
-                return ApiResponse<string>.CreateError("操作失败: " + ex.Message);
+                var action = enabled ? "启用" : "禁用";
+                _logger.LogError(ex, "扩展{Action}失败: {ExtensionId}", action, extensionId);
+                return Result.Failure($"扩展{action}失败: {ex.Message}");
             }
         }
 
@@ -293,34 +231,29 @@ namespace VoxNest.Server.Application.Services
         {
             try
             {
-                var extensions = await GetAllExtensionsAsync(new UnifiedExtensionQueryDto { Page = 1, PageSize = 1000 });
+                var extensions = await GetAllExtensionsAsync(new UnifiedExtensionQueryDto { PageSize = int.MaxValue });
                 
-                if (extensions.IsSuccess)
+                var stats = new UnifiedExtensionStatsDto
                 {
-                    var stats = new UnifiedExtensionStatsDto
-                    {
-                        TotalExtensions = extensions.Data!.Count,
-                        TotalPlugins = extensions.Data!.Count(e => e.Type == "plugin"),
-                        TotalThemes = extensions.Data!.Count(e => e.Type == "theme"),
-                        ActiveExtensions = extensions.Data!.Count(e => e.Status == "active"),
-                        InactiveExtensions = extensions.Data!.Count(e => e.Status == "inactive"),
-                        ErrorExtensions = extensions.Data!.Count(e => e.Status == "error"),
-                        // UninstalledExtensions = extensions.Data!.Count(e => e.Status == "uninstalled"), // 该属性不存在
-                        ExtensionsByType = extensions.Data!.GroupBy(e => e.Type)
-                            .ToDictionary(g => g.Key, g => g.Count()),
-                        ExtensionsByStatus = extensions.Data!.GroupBy(e => e.Status)
-                            .ToDictionary(g => g.Key, g => g.Count())
-                    };
+                    TotalExtensions = extensions.TotalCount,
+                    ActiveExtensions = extensions.Data!.Count(e => e.Status == "active"),
+                    InactiveExtensions = extensions.Data!.Count(e => e.Status == "inactive"),
+                    TotalPlugins = extensions.Data!.Count(e => e.Type == "plugin"),
+                    TotalThemes = extensions.Data!.Count(e => e.Type == "theme"),
+                    ExtensionsByType = extensions.Data!
+                        .GroupBy(e => e.Type)
+                        .ToDictionary(g => g.Key, g => g.Count()),
+                    ExtensionsByStatus = extensions.Data!
+                        .GroupBy(e => e.Status)
+                        .ToDictionary(g => g.Key, g => g.Count())
+                };
 
-                    return ApiResponse<UnifiedExtensionStatsDto>.CreateSuccess(stats);
-                }
-
-                return ApiResponse<UnifiedExtensionStatsDto>.CreateError("获取统计失败");
+                return ApiResponse<UnifiedExtensionStatsDto>.CreateSuccess(stats);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "获取扩展统计失败");
-                return ApiResponse<UnifiedExtensionStatsDto>.CreateError("获取统计失败: " + ex.Message);
+                return ApiResponse<UnifiedExtensionStatsDto>.CreateError("获取扩展统计失败");
             }
         }
 
@@ -360,6 +293,58 @@ namespace VoxNest.Server.Application.Services
             }
         }
 
+        private async Task ToggleExtensionInConfigAsync(string extensionId, bool enabled)
+        {
+            var config = await ReadExtensionsConfigAsync() ?? new ExtensionsConfig();
+            
+            var existing = config.Extensions.FirstOrDefault(e => e.Id == extensionId);
+            if (existing != null)
+            {
+                existing.Enabled = enabled;
+            }
+            else
+            {
+                // 如果不存在，尝试从manifest.json读取信息并添加
+                var manifestPath = Path.Combine(_extensionsPath, extensionId, "manifest.json");
+                if (File.Exists(manifestPath))
+                {
+                    try
+                    {
+                        var manifestContent = await File.ReadAllTextAsync(manifestPath);
+                        var manifest = JsonSerializer.Deserialize<ExtensionManifest>(manifestContent, new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
+
+                        if (manifest != null)
+                        {
+                            config.Extensions.Add(new ExtensionConfigItem
+                            {
+                                Id = manifest.Id,
+                                Name = manifest.Name,
+                                Version = manifest.Version,
+                                Type = manifest.Type,
+                                Description = manifest.Description,
+                                Author = manifest.Author,
+                                Main = manifest.Entry,
+                                Enabled = enabled,
+                                Dependencies = manifest.Dependencies ?? new List<string>(),
+                                Permissions = manifest.Permissions ?? new List<string>(),
+                                Tags = manifest.Tags ?? new List<string>(),
+                                Slots = manifest.Slots ?? new List<string>()
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "读取扩展manifest失败: {ExtensionId}", extensionId);
+                    }
+                }
+            }
+
+            await SaveExtensionsConfigAsync(config);
+        }
+
         private async Task SaveExtensionsConfigAsync(ExtensionsConfig config)
         {
             try
@@ -383,175 +368,27 @@ namespace VoxNest.Server.Application.Services
             }
         }
 
-        private async Task UpdateExtensionsConfigAsync(ExtensionManifest manifest, bool enabled)
-        {
-            var config = await ReadExtensionsConfigAsync() ?? new ExtensionsConfig
-            {
-                Meta = new ExtensionsMeta(),
-                Extensions = new List<ExtensionConfigItem>()
-            };
-
-            var existingExtension = config.Extensions.FirstOrDefault(e => e.Id == manifest.Id);
-            if (existingExtension != null)
-            {
-                // 更新现有扩展
-                existingExtension.Name = manifest.Name;
-                existingExtension.Version = manifest.Version;
-                existingExtension.Type = manifest.Type;
-                existingExtension.Description = manifest.Description;
-                existingExtension.Author = manifest.Author;
-                existingExtension.Main = manifest.Main;
-                existingExtension.Enabled = enabled;
-                existingExtension.Dependencies = manifest.Dependencies ?? new List<string>();
-                existingExtension.Permissions = manifest.Permissions ?? new List<string>();
-                existingExtension.Tags = manifest.Tags ?? new List<string>();
-                existingExtension.Slots = manifest.Slots ?? new List<string>();
-                existingExtension.Capabilities = manifest.Capabilities;
-            }
-            else
-            {
-                // 添加新扩展
-                config.Extensions.Add(new ExtensionConfigItem
-                {
-                    Id = manifest.Id,
-                    Name = manifest.Name,
-                    Version = manifest.Version,
-                    Type = manifest.Type,
-                    Description = manifest.Description,
-                    Author = manifest.Author,
-                    Main = manifest.Main,
-                    Enabled = enabled,
-                    Dependencies = manifest.Dependencies ?? new List<string>(),
-                    Permissions = manifest.Permissions ?? new List<string>(),
-                    Tags = manifest.Tags ?? new List<string>(),
-                    Slots = manifest.Slots ?? new List<string>(),
-                    Capabilities = manifest.Capabilities
-                });
-            }
-
-            await SaveExtensionsConfigAsync(config);
-        }
-
-        private async Task RemoveFromExtensionsConfigAsync(string extensionId)
-        {
-            var config = await ReadExtensionsConfigAsync();
-            if (config != null)
-            {
-                config.Extensions.RemoveAll(e => e.Id == extensionId);
-                await SaveExtensionsConfigAsync(config);
-            }
-        }
-
-        private async Task UpdateExtensionStatusAsync(string extensionId, bool enabled)
-        {
-            var config = await ReadExtensionsConfigAsync();
-            if (config != null)
-            {
-                var extension = config.Extensions.FirstOrDefault(e => e.Id == extensionId);
-                if (extension != null)
-                {
-                    extension.Enabled = enabled;
-                    await SaveExtensionsConfigAsync(config);
-                }
-            }
-        }
-
-        private async Task<ExtensionManifest?> ValidateAndExtractManifestAsync(IFormFile zipFile)
-        {
-            try
-            {
-                using var stream = zipFile.OpenReadStream();
-                using var archive = new System.IO.Compression.ZipArchive(stream, System.IO.Compression.ZipArchiveMode.Read);
-
-                var manifestEntry = archive.GetEntry("manifest.json");
-                if (manifestEntry == null)
-                {
-                    return null;
-                }
-
-                using var manifestStream = manifestEntry.Open();
-                using var reader = new StreamReader(manifestStream);
-                var manifestContent = await reader.ReadToEndAsync();
-
-                var manifest = JsonSerializer.Deserialize<ExtensionManifest>(manifestContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return manifest;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "验证扩展清单失败");
-                return null;
-            }
-        }
-
-        private async Task ExtractExtensionAsync(IFormFile zipFile, string targetPath)
-        {
-            Directory.CreateDirectory(targetPath);
-
-            using var stream = zipFile.OpenReadStream();
-            using var archive = new System.IO.Compression.ZipArchive(stream, System.IO.Compression.ZipArchiveMode.Read);
-
-            foreach (var entry in archive.Entries)
-            {
-                if (entry.FullName.EndsWith("/")) continue; // 跳过目录
-
-                var destinationPath = Path.Combine(targetPath, entry.FullName);
-                var destinationDir = Path.GetDirectoryName(destinationPath);
-
-                if (!string.IsNullOrEmpty(destinationDir))
-                {
-                    Directory.CreateDirectory(destinationDir);
-                }
-
-                using (var entryStream = entry.Open())
-                using (var fileStream = File.Create(destinationPath))
-                {
-                    await entryStream.CopyToAsync(fileStream);
-                }
-            }
-
-            await Task.CompletedTask;
-        }
-
-        private async Task TriggerHotReloadAsync()
-        {
-            try
-            {
-                // 这里可以触发前端热重载
-                // 可能通过 SignalR 或其他实时通信方式通知前端
-                _logger.LogInformation("触发扩展热重载");
-                
-                // TODO: 实现具体的热重载通知机制
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "触发热重载失败");
-                // 移除未使用的ex变量警告
-            }
-        }
-
         private List<UnifiedExtensionDto> ApplyFilters(List<UnifiedExtensionDto> extensions, UnifiedExtensionQueryDto query)
         {
-            var result = extensions.AsEnumerable();
+            var result = extensions.AsQueryable();
 
+            // 搜索过滤
             if (!string.IsNullOrEmpty(query.Search))
             {
                 result = result.Where(e => e.Name.Contains(query.Search, StringComparison.OrdinalIgnoreCase) ||
-                                          e.Description?.Contains(query.Search, StringComparison.OrdinalIgnoreCase) == true);
+                                          (e.Description != null && e.Description.Contains(query.Search, StringComparison.OrdinalIgnoreCase)));
             }
 
+            // 类型过滤
             if (!string.IsNullOrEmpty(query.Type) && query.Type != "all")
             {
-                result = result.Where(e => e.Type == query.Type);
+                result = result.Where(e => e.Type.Equals(query.Type, StringComparison.OrdinalIgnoreCase));
             }
 
+            // 状态过滤
             if (!string.IsNullOrEmpty(query.Status) && query.Status != "all")
             {
-                result = result.Where(e => e.Status == query.Status);
+                result = result.Where(e => e.Status.Equals(query.Status, StringComparison.OrdinalIgnoreCase));
             }
 
             return result.ToList();
@@ -600,16 +437,6 @@ namespace VoxNest.Server.Application.Services
         public List<string> Permissions { get; set; } = new();
         public List<string> Tags { get; set; } = new();
         public List<string> Slots { get; set; } = new();
-        public ExtensionCapabilitiesConfig? Capabilities { get; set; }
-    }
-
-    public class ExtensionCapabilitiesConfig
-    {
-        public bool UI { get; set; }
-        public bool API { get; set; }
-        public bool Storage { get; set; }
-        public bool Theming { get; set; }
-        public bool Layout { get; set; }
     }
 
     public class ExtensionManifest
@@ -617,23 +444,19 @@ namespace VoxNest.Server.Application.Services
         public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string Version { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
         public string Author { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public string Entry { get; set; } = string.Empty;
         public string? Homepage { get; set; }
         public string? Repository { get; set; }
-        public string Main { get; set; } = string.Empty;
-        public List<string>? Files { get; set; }
-        public ExtensionFramework? Framework { get; set; }
-        public List<string>? Permissions { get; set; }
-        public List<string>? Slots { get; set; }
         public List<string>? Dependencies { get; set; }
-        public Dictionary<string, object>? Config { get; set; }
         public List<string>? Tags { get; set; }
-        public List<string>? Hooks { get; set; }
-        public ExtensionCapabilitiesConfig? Capabilities { get; set; }
+        public List<string>? Slots { get; set; }
+        public List<string> Permissions { get; set; } = new();
+        public Dictionary<string, object>? Config { get; set; }
+        public ExtensionFramework? Framework { get; set; }
         public ExtensionTheme? Theme { get; set; }
-        public ExtensionPreview? Preview { get; set; }
     }
 
     public class ExtensionFramework
@@ -644,15 +467,7 @@ namespace VoxNest.Server.Application.Services
 
     public class ExtensionTheme
     {
-        public string? PrimaryColor { get; set; }
-        public string? BorderRadius { get; set; }
-        public List<string>? GradientColors { get; set; }
         public List<string>? Supports { get; set; }
-    }
-
-    public class ExtensionPreview
-    {
-        public List<string>? Screenshots { get; set; }
-        public string? Description { get; set; }
+        public Dictionary<string, object>? Variables { get; set; }
     }
 }

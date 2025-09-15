@@ -15,6 +15,19 @@ export interface ErrorResponse {
   success: boolean;
 }
 
+// HTTP错误对象接口
+interface HttpErrorObject {
+  response?: {
+    data?: ErrorResponse;
+    status?: number;
+    statusText?: string;
+  };
+  request?: unknown;
+  message?: string;
+  status?: number;
+  statusText?: string;
+}
+
 // API基础配置 - 从配置函数获取
 const API_BASE_URL = getApiBaseUrl();
 
@@ -125,7 +138,7 @@ apiClient.interceptors.response.use(
 );
 
 // API响应类型
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   message: string;
   data?: T;
@@ -138,7 +151,7 @@ export interface ApiResponse<T = any> {
   method?: string;
 }
 
-export interface PaginatedApiResponse<T = any> extends ApiResponse<T[]> {
+export interface PaginatedApiResponse<T = unknown> extends ApiResponse<T[]> {
   pagination: {
     currentPage: number;
     pageSize: number;
@@ -150,15 +163,17 @@ export interface PaginatedApiResponse<T = any> extends ApiResponse<T[]> {
 }
 
 // 错误处理工具函数
-export const handleApiError = (error: any, customMessage?: string) => {
+export const handleApiError = (error: unknown, customMessage?: string) => {
+  const errorObj = error as HttpErrorObject; // Type assertion for error object
+  const responseData = errorObj?.response?.data;
   const errorInfo = {
     title: customMessage || '操作失败',
-    message: error.message || '未知错误',
-    errorCode: error.errorCode || 'UNKNOWN_ERROR',
-    details: error.details,
-    traceId: error.traceId,
-    requestId: error.requestId,
-    timestamp: error.timestamp || new Date().toISOString()
+    message: responseData?.message || errorObj?.message || '未知错误',
+    errorCode: responseData?.errorCode || 'UNKNOWN_ERROR',
+    details: responseData?.details,
+    traceId: responseData?.traceId,
+    requestId: responseData?.traceId, // 使用traceId作为requestId
+    timestamp: responseData?.timestamp || new Date().toISOString()
   };
 
   // 构建错误消息内容
@@ -190,18 +205,18 @@ export const handleApiError = (error: any, customMessage?: string) => {
 
 // 通用API请求方法
 export const api = {
-  get: <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<ApiResponse<T>>> =>
+  get: <T = unknown>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<ApiResponse<T>>> =>
     apiClient.get(url, config),
   
-  post: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<ApiResponse<T>>> =>
+  post: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<AxiosResponse<ApiResponse<T>>> =>
     apiClient.post(url, data, config),
   
-  put: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<ApiResponse<T>>> =>
+  put: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<AxiosResponse<ApiResponse<T>>> =>
     apiClient.put(url, data, config),
   
-  delete: <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<ApiResponse<T>>> =>
+  delete: <T = unknown>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<ApiResponse<T>>> =>
     apiClient.delete(url, config),
   
-  patch: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<ApiResponse<T>>> =>
+  patch: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<AxiosResponse<ApiResponse<T>>> =>
     apiClient.patch(url, data, config),
 };

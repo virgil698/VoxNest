@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Card, 
@@ -27,10 +27,9 @@ import { usePostStore } from '../../stores/postStore';
 import { useAuthStore } from '../../stores/authStore';
 import { adminApi, type SiteStats } from '../../api/admin';
 import dayjs from 'dayjs';
-import MDEditor from '@uiw/react-md-editor';
-import '@uiw/react-markdown-preview/markdown.css';
-import rehypeSanitize from 'rehype-sanitize';
-import { videoEmbedSchema, processAllVideoEmbeds } from '../../utils/videoEmbedConfig';
+import { MdPreview } from 'md-editor-rt';
+import 'md-editor-rt/lib/preview.css';
+import { processVideoMarkdown } from '../../utils/videoEmbedConfig';
 
 const { Title, Text } = Typography;
 
@@ -60,7 +59,7 @@ const PostDetail: React.FC = () => {
   };
 
   // 优化的在线用户计算逻辑
-  const calculateOnlineUsers = () => {
+  const calculateOnlineUsers = useCallback(() => {
     // 生成或获取设备唯一标识
     const getDeviceId = () => {
       let deviceId = localStorage.getItem('voxnest_device_id');
@@ -102,7 +101,7 @@ const PostDetail: React.FC = () => {
     
     const totalOnlineUsers = baseOnlineUsers + sessionBasedUsers + randomVariation;
     setOnlineUsers(Math.max(1, totalOnlineUsers)); // 确保至少显示1个在线用户
-  };
+  }, [siteStats, setOnlineUsers]);
 
   useEffect(() => {
     if (id) {
@@ -133,7 +132,7 @@ const PostDetail: React.FC = () => {
     if (siteStats) {
       calculateOnlineUsers();
     }
-  }, [siteStats]);
+  }, [siteStats, calculateOnlineUsers]);
 
   // 定期更新在线用户数和活跃状态
   useEffect(() => {
@@ -180,7 +179,7 @@ const PostDetail: React.FC = () => {
         document.removeEventListener('scroll', handleActivity);
       };
     }
-  }, [siteStats]);
+  }, [siteStats, calculateOnlineUsers]);
 
   const handleBack = () => {
     navigate(-1);
@@ -193,8 +192,9 @@ const PostDetail: React.FC = () => {
       await deletePost(currentPost.id);
       message.success('帖子删除成功');
       navigate('/');
-    } catch (error: any) {
-      message.error(error.message || '删除帖子失败');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '删除帖子失败';
+      message.error(errorMessage);
     }
   };
 
@@ -396,15 +396,32 @@ const PostDetail: React.FC = () => {
             lineHeight: '1.8',
             margin: 0
           }}>
-            <MDEditor.Markdown 
-              source={processAllVideoEmbeds(currentPost.content || '')}
+            <MdPreview 
+              modelValue={currentPost.content || ''}
+              theme="light"
+              previewTheme="vuepress"
+              codeTheme="github"
               style={{ 
                 backgroundColor: 'transparent',
                 fontSize: '16px',
                 lineHeight: '1.8',
                 color: 'var(--text-primary)'
               }}
-              rehypePlugins={[[rehypeSanitize, videoEmbedSchema]]}
+              onHtmlChanged={(html) => {
+                console.log('📖 [PostDetail] onHtmlChanged 被调用，HTML长度:', html.length);
+                // 在HTML生成后立即处理视频嵌入
+                const processedHtml = processVideoMarkdown(html);
+                console.log('📖 [PostDetail] 处理后HTML长度:', processedHtml.length);
+                return processedHtml;
+              }}
+              sanitize={(html) => {
+                console.log('🧹 [PostDetail] sanitize 被调用，HTML长度:', html.length);
+                // 在sanitize过程中处理视频嵌入，确保视频iframe不被过滤
+                const processedHtml = processVideoMarkdown(html);
+                console.log('🧹 [PostDetail] sanitize 处理后HTML长度:', processedHtml.length);
+                // 返回处理后的HTML，保留安全的视频嵌入
+                return processedHtml;
+              }}
             />
           </div>
         </div>

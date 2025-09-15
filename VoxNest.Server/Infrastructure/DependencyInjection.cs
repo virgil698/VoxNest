@@ -61,15 +61,12 @@ public static class DependencyInjection
         services.AddScoped<IInstallLockService, InstallLockService>();
         services.AddScoped<ILogService, LogService>();
         services.AddScoped<IAdminService, AdminService>();
-        services.AddScoped<IPluginService, PluginService>();
-        services.AddScoped<IThemeService, ThemeService>();
-        services.AddScoped<IUnifiedExtensionService, UnifiedExtensionService>();
-        services.AddScoped<IExtensionInstallerService, ExtensionInstallerService>();
+        // Plugin, Theme, UnifiedExtension services removed - using FileSystemExtensionService only
         services.AddScoped<IFileSystemExtensionService, FileSystemExtensionService>();
         services.AddScoped<ISystemInfoService, SystemInfoService>();
+        services.AddScoped<IConfigurationReloadService, ConfigurationReloadService>();
         
         // 注册基础设施服务
-        services.AddScoped<IDatabaseMigrationService, DatabaseMigrationService>();
         services.AddScoped<IDatabasePerformanceService, DatabasePerformanceService>();
 
         return services;

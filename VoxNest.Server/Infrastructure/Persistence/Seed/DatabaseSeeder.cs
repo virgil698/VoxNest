@@ -19,6 +19,7 @@ public static class DatabaseSeeder
         await SeedRolesAsync(context);
         await SeedPermissionsAsync(context);
         await SeedRolePermissionsAsync(context);
+        await SiteSettingsSeeder.SeedAsync(context);
     }
 
     /// <summary>

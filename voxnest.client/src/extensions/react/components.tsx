@@ -3,6 +3,8 @@
  * 提供槽位和集成的 React 集成
  */
 
+/* eslint-disable react-refresh/only-export-components */
+
 import React, { useContext, useEffect, useState, useMemo } from 'react';
 import type { 
   ExtensionFramework, 
@@ -188,7 +190,7 @@ export function ConditionalSlot({
 
 export function SlotDebugger({ slotId }: { slotId: string }) {
   const framework = useExtensionFramework();
-  const [debugInfo] = useState<any>(null); // 移除未使用的setter
+  const [debugInfo] = useState<Record<string, unknown> | null>(null); // 移除未使用的setter
 
   useEffect(() => {
     const updateDebugInfo = () => {
@@ -226,13 +228,27 @@ export function SlotDebugger({ slotId }: { slotId: string }) {
 
 // ==================== 框架状态组件 ====================
 
+interface FrameworkStats {
+  status: string;
+  integrations: {
+    total: number;
+    withHooks: number;
+    hookCounts: Record<string, number>;
+  };
+  slots: {
+    total: number;
+    components: number;
+    breakdown: Record<string, number>;
+  };
+}
+
 export function FrameworkStatus() {
   const framework = useExtensionFramework();
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<FrameworkStats | null>(null);
 
   useEffect(() => {
     const updateStats = () => {
-      setStats(framework.getStats());
+      setStats(framework.getStats() as unknown as FrameworkStats);
     };
 
     updateStats();

@@ -17,7 +17,7 @@ const AdminSetupStep: React.FC<AdminSetupStepProps> = ({ onSubmit, loading }) =>
   };
 
   // 密码强度验证
-  const validatePassword = (_: any, value: string) => {
+  const validatePassword = (_: unknown, value: string) => {
     if (!value) {
       return Promise.reject(new Error('请输入密码'));
     }
@@ -34,7 +34,7 @@ const AdminSetupStep: React.FC<AdminSetupStepProps> = ({ onSubmit, loading }) =>
   };
 
   // 确认密码验证
-  const validateConfirmPassword = (_: any, value: string) => {
+  const validateConfirmPassword = (_: unknown, value: string) => {
     if (!value) {
       return Promise.reject(new Error('请确认密码'));
     }

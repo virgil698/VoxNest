@@ -5,7 +5,16 @@
 
 import type { Logger } from '../core/types';
 
-// 扩展元数据接口
+// 文件资源配置
+export interface FileResource {
+  path: string;
+  type: 'ts' | 'tsx' | 'js' | 'jsx' | 'css' | 'scss' | 'sass';
+  order?: number; // 加载顺序
+  condition?: string; // 加载条件表达式
+  async?: boolean; // 是否异步加载
+}
+
+// 扩展元数据接口（增强版）
 export interface ExtensionManifest {
   id: string;
   name: string;
@@ -13,12 +22,40 @@ export interface ExtensionManifest {
   author: string;
   description?: string;
   type: 'plugin' | 'theme';
-  entry?: string; // 主入口文件
-  styles?: string[]; // CSS 文件列表
-  scripts?: string[]; // JS 文件列表
+  
+  // 多文件支持
+  entry?: string; // 主入口文件（向后兼容）
+  files?: FileResource[]; // 多文件配置
+  
+  // 资源文件
+  styles?: string[]; // CSS 文件列表（向后兼容）
+  scripts?: string[]; // JS 文件列表（向后兼容）
+  assets?: string[]; // 其他资源文件
+  
+  // 依赖和配置
   dependencies?: string[];
-  config?: Record<string, any>;
+  peerDependencies?: string[];
+  config?: Record<string, unknown>;
+  
+  // 控制选项
   enabled?: boolean;
+  autoLoad?: boolean; // 是否自动加载
+  priority?: number; // 加载优先级
+  
+  // 生命周期钩子
+  hooks?: {
+    beforeLoad?: string; // 加载前执行的脚本
+    afterLoad?: string; // 加载后执行的脚本
+    beforeUnload?: string; // 卸载前执行的脚本
+  };
+  
+  // 权限和限制
+  permissions?: string[];
+  restrictions?: {
+    pages?: string[]; // 限制在特定页面
+    roles?: string[]; // 限制用户角色
+    features?: string[]; // 需要的功能特性
+  };
 }
 
 // 发现的扩展信息
@@ -99,7 +136,7 @@ export class ExtensionDiscovery {
           this.logger.warn(`Failed to load manifest for ${dirName}:`, error);
         }
       }
-    } catch (error) {
+    } catch {
       this.logger.debug(`Directory ${typeDir} not found or inaccessible`);
     }
 
@@ -118,7 +155,7 @@ export class ExtensionDiscovery {
         const data = await response.json();
         return data.directories || [];
       }
-    } catch (error) {
+    } catch {
       this.logger.debug(`No index.json found for ${path}`);
     }
 
@@ -178,13 +215,14 @@ export class ExtensionDiscovery {
   /**
    * 验证清单文件格式
    */
-  private validateManifest(manifest: any): boolean {
+  private validateManifest(manifest: unknown): boolean {
     if (!manifest || typeof manifest !== 'object') {
       return false;
     }
 
     const required = ['id', 'name', 'version', 'author', 'type'];
-    return required.every(field => manifest[field] && typeof manifest[field] === 'string');
+    const manifestObj = manifest as Record<string, unknown>;
+    return required.every(field => manifestObj[field] && typeof manifestObj[field] === 'string');
   }
 
   /**

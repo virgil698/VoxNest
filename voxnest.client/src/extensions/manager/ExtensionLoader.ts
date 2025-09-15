@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import type { Logger, ExtensionFramework } from '../core/types';
+import type { Logger, ExtensionFramework, Integration } from '../core/types';
 import type { DiscoveredExtension, ExtensionManifest } from './ExtensionDiscovery';
 
 // 加载状态
@@ -22,7 +22,7 @@ export interface LoadedExtension {
   manifest: ExtensionManifest;
   basePath: string;
   status: LoadingStatus;
-  instance?: any; // 加载的扩展实例
+  instance?: { init?: (framework: ExtensionFramework) => void; [key: string]: unknown }; // 加载的扩展实例
   error?: Error;
   loadedAt?: Date;
 }
@@ -108,8 +108,10 @@ export class ExtensionLoader {
       }
 
       // 应用主题变量
-      if (extension.manifest.config?.variables) {
-        this.applyThemeVariables(extension.manifest.config.variables);
+      if (extension.manifest.config?.variables && 
+          typeof extension.manifest.config.variables === 'object' &&
+          extension.manifest.config.variables !== null) {
+        this.applyThemeVariables(extension.manifest.config.variables as Record<string, string>);
       }
 
       // 加载主题脚本（如果有）
@@ -215,7 +217,7 @@ export class ExtensionLoader {
   /**
    * 加载入口模块
    */
-  private async loadEntryModule(entryPath: string, basePath: string): Promise<any> {
+  private async loadEntryModule(entryPath: string, basePath: string): Promise<{ init?: (framework: ExtensionFramework) => void; [key: string]: unknown }> {
     // 构建API文件访问路径
     const extensionId = basePath.split('/').pop();
     const type = basePath.includes('plugins') ? 'plugins' : 'themes';
@@ -234,11 +236,13 @@ export class ExtensionLoader {
   /**
    * 将插件注册到框架
    */
-  private async registerPluginToFramework(instance: any, manifest: ExtensionManifest): Promise<void> {
+  private async registerPluginToFramework(instance: { init?: (framework: ExtensionFramework) => void; [key: string]: unknown }, manifest: ExtensionManifest): Promise<void> {
     try {
       // 如果是集成对象
-      if (instance.name && instance.hooks) {
-        this.framework.register(instance);
+      if (typeof instance === 'object' && instance !== null && 
+          'name' in instance && 'hooks' in instance && 
+          typeof instance.name === 'string') {
+        this.framework.register(instance as unknown as Integration);
         this.logger.debug(`Registered integration: ${instance.name}`);
         return;
       }
@@ -251,10 +255,10 @@ export class ExtensionLoader {
       }
 
       // 如果是直接的组件
-      if (typeof instance === 'function' || React.isValidElement(instance)) {
+      if (typeof instance === 'function') {
         // 注册到默认槽位
         this.framework.slots.register('plugin.components', {
-          component: instance,
+          component: instance as React.ComponentType<Record<string, unknown>>,
           source: manifest.id,
           name: manifest.name,
           priority: 0

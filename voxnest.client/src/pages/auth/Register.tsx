@@ -6,6 +6,26 @@ import { useAuthStore } from '../../stores/authStore';
 import { authApi } from '../../api/auth';
 import type { RegisterRequest } from '../../types/auth';
 
+interface AuthError {
+  errorInfo?: {
+    message?: string;
+    status?: number;
+    statusText?: string;
+    errors?: string[];
+    details?: string;
+    errorCode?: string;
+    traceId?: string;
+  };
+  response?: {
+    status?: number;
+    data?: {
+      message?: string;
+      errors?: string[];
+    };
+  };
+  message?: string;
+}
+
 const { Title, Text } = Typography;
 
 const Register: React.FC = () => {
@@ -35,7 +55,7 @@ const Register: React.FC = () => {
           return Promise.reject(new Error('用户名已存在'));
         }
       }
-    } catch (error) {
+    } catch {
       return Promise.reject(new Error('检查用户名失败'));
     } finally {
       setCheckingUsername(false);
@@ -55,7 +75,7 @@ const Register: React.FC = () => {
           return Promise.reject(new Error('邮箱已被注册'));
         }
       }
-    } catch (error) {
+    } catch {
       return Promise.reject(new Error('检查邮箱失败'));
     } finally {
       setCheckingEmail(false);
@@ -67,8 +87,8 @@ const Register: React.FC = () => {
       await register(values);
       message.success('注册成功！请登录您的账户');
       navigate('/auth/login');
-    } catch (error: any) {
-      const errorInfo = (error as any).errorInfo;
+    } catch (error: unknown) {
+      const errorInfo = (error as AuthError).errorInfo;
       
       if (errorInfo) {
         // 构建详细错误消息
@@ -111,7 +131,7 @@ const Register: React.FC = () => {
         console.groupEnd();
       } else {
         // 降级处理：使用简单的message提示
-        message.error(error.message || '注册失败，请稍后重试');
+        message.error((error as Error).message || '注册失败，请稍后重试');
         console.error('注册错误（无详细信息）:', error);
       }
     }
@@ -183,7 +203,7 @@ const Register: React.FC = () => {
                 pattern: /^[a-zA-Z0-9_]+$/, 
                 message: '用户名只能包含字母、数字和下划线' 
               },
-              { validator: (_, value) => checkUsername(value) },
+              { validator: (_: unknown, value: string) => checkUsername(value) },
             ]}
             hasFeedback
             validateDebounce={800}
@@ -207,7 +227,7 @@ const Register: React.FC = () => {
               { required: true, message: '请输入邮箱地址' },
               { type: 'email', message: '请输入有效的邮箱地址' },
               { max: 255, message: '邮箱地址长度不能超过255个字符' },
-              { validator: (_, value) => checkEmail(value) },
+              { validator: (_: unknown, value: string) => checkEmail(value) },
             ]}
             hasFeedback
             validateDebounce={800}
@@ -251,8 +271,8 @@ const Register: React.FC = () => {
             dependencies={['password']}
             rules={[
               { required: true, message: '请确认密码' },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
+              ({ getFieldValue }: { getFieldValue: (name: string) => string }) => ({
+                validator(_: unknown, value: string) {
                   if (!value || getFieldValue('password') === value) {
                     return Promise.resolve();
                   }

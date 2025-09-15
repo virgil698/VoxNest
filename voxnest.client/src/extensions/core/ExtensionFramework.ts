@@ -16,6 +16,8 @@ import type {
 import { createLogger } from './Logger';
 import { EnhancedSlotManager } from './SlotManager';
 import { EnhancedIntegrationManager } from './IntegrationManager';
+import { StyleManager } from './StyleManager';
+import { ResourceLoader } from '../manager/ResourceLoader';
 
 export class VoxNestExtensionFramework implements ExtensionFramework {
   private _status: ExtensionFramework['status'] = 'initializing';
@@ -23,10 +25,14 @@ export class VoxNestExtensionFramework implements ExtensionFramework {
   private _slots: SlotManager;
   private _integrations: IntegrationManager;
   private _logger: Logger;
+  private _styleManager: StyleManager;
+  private _resourceLoader: ResourceLoader;
 
   constructor() {
     this._logger = createLogger('Framework');
     this._slots = new EnhancedSlotManager(this._logger);
+    this._styleManager = new StyleManager(this._logger);
+    this._resourceLoader = new ResourceLoader(this._logger);
     
     // 创建集成上下文
     const context: IntegrationContext = {
@@ -38,7 +44,7 @@ export class VoxNestExtensionFramework implements ExtensionFramework {
     
     this._integrations = new EnhancedIntegrationManager(context);
     
-    this._logger.debug('Framework instance created');
+    this._logger.debug('Enhanced Framework instance created with StyleManager and ResourceLoader');
   }
 
   get status() { return this._status; }
@@ -46,6 +52,8 @@ export class VoxNestExtensionFramework implements ExtensionFramework {
   get slots() { return this._slots; }
   get integrations() { return this._integrations; }
   get logger() { return this._logger; }
+  get styleManager() { return this._styleManager; }
+  get resourceLoader() { return this._resourceLoader; }
 
   async initialize(config: VoxNestConfig = {}): Promise<void> {
     try {
@@ -143,7 +151,7 @@ export class VoxNestExtensionFramework implements ExtensionFramework {
 
   // 开发者辅助方法
   listSlots(): string[] {
-    return (this._slots as EnhancedSlotManager).getAllSlots();
+    return Object.keys((this._slots as EnhancedSlotManager).getAllSlots());
   }
 
   debugSlot(slotId: string): {

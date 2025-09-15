@@ -45,8 +45,8 @@ public interface IInstallService
     /// 创建管理员账户
     /// </summary>
     /// <param name="adminInfo">管理员信息</param>
-    /// <returns>创建结果</returns>
-    Task<Result> CreateAdminUserAsync(CreateAdminDto adminInfo);
+    /// <returns>创建结果，包含认证信息</returns>
+    Task<Result<CreateAdminResponseDto>> CreateAdminUserAsync(CreateAdminDto adminInfo);
 
     /// <summary>
     /// 完成安装

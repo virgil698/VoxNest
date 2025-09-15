@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using VoxNest.Server.Domain.Entities.System;
+using VoxNest.Server.Infrastructure.Persistence.Constants;
 
 namespace VoxNest.Server.Infrastructure.Persistence.Configurations;
 
@@ -11,7 +12,7 @@ public class InstallLockConfiguration : IEntityTypeConfiguration<InstallLock>
 {
     public void Configure(EntityTypeBuilder<InstallLock> builder)
     {
-        builder.ToTable("InstallLocks");
+        builder.ToTable(TableNames.InstallLocks);
 
         // 主键
         builder.HasKey(x => x.LockKey);

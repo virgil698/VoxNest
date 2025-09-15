@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { Post, PostListItem, CreatePostRequest } from '../types/post';
 import { postApi } from '../api/post';
 import type { PostListParams } from '../api/post';
+import type { PaginatedApiResponse } from '../api/client';
 
 interface PostState {
   // 帖子列表相关
@@ -61,7 +62,7 @@ export const usePostStore = create<PostState>((set, get) => ({
       const response = await postApi.getPosts(params);
       
       if (response.data.success) {
-        const responseData = response.data as any;
+        const responseData = response.data as PaginatedApiResponse<PostListItem>;
         const data = responseData.data || [];
         const pagination = responseData.pagination || {};
         
@@ -78,11 +79,12 @@ export const usePostStore = create<PostState>((set, get) => ({
       } else {
         throw new Error(response.data.message || '获取帖子列表失败');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       set({ isLoadingList: false });
       
       // 如果是404错误，设置为空列表而不是抛出错误
-      if (error.response?.status === 404 || error.status === 404) {
+      if ((error as { response?: { status?: number }; status?: number }).response?.status === 404 || 
+          (error as { response?: { status?: number }; status?: number }).status === 404) {
         console.log('📝 暂无帖子数据，设置为空列表');
         set({
           posts: [],
@@ -116,7 +118,7 @@ export const usePostStore = create<PostState>((set, get) => ({
       } else {
         throw new Error(response.data.message || '获取帖子详情失败');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       set({ isLoadingDetail: false });
       console.error('加载帖子详情失败:', error);
       throw error;
@@ -142,7 +144,7 @@ export const usePostStore = create<PostState>((set, get) => ({
       } else {
         throw new Error(response.data.message || '创建帖子失败');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('创建帖子失败:', error);
       throw error;
     }
@@ -156,7 +158,7 @@ export const usePostStore = create<PostState>((set, get) => ({
       const response = await postApi.getMyPosts(params);
       
       if (response.data.success) {
-        const responseData = response.data as any;
+        const responseData = response.data as PaginatedApiResponse<PostListItem>;
         const data = responseData.data || [];
         const pagination = responseData.pagination || {};
         
@@ -169,11 +171,12 @@ export const usePostStore = create<PostState>((set, get) => ({
       } else {
         throw new Error(response.data.message || '获取我的帖子失败');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       set({ isLoadingMyPosts: false });
       
       // 如果是404错误，设置为空列表而不是抛出错误
-      if (error.response?.status === 404 || error.status === 404) {
+      if ((error as { response?: { status?: number }; status?: number }).response?.status === 404 || 
+          (error as { response?: { status?: number }; status?: number }).status === 404) {
         console.log('📝 暂无个人帖子数据，设置为空列表');
         set({
           myPosts: [],
@@ -206,7 +209,7 @@ export const usePostStore = create<PostState>((set, get) => ({
       } else {
         throw new Error(response.data.message || '删除帖子失败');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('删除帖子失败:', error);
       throw error;
     }

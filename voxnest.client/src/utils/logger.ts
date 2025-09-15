@@ -182,7 +182,7 @@ export class Logger {
   /**
    * 记录用户行为
    */
-  async logUserBehavior(action: string, details?: string, metadata?: any): Promise<void> {
+  async logUserBehavior(action: string, details?: string, metadata?: Record<string, unknown>): Promise<void> {
     try {
       await LogApi.info(`User action: ${action}`, details || `User performed: ${action}`, 'UserBehavior', {
         action,

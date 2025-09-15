@@ -2,6 +2,9 @@
 
 declare global {
   interface Window {
-    extensionFramework: any;
+    extensionFramework: {
+      getStats: () => Record<string, unknown>;
+      [key: string]: unknown;
+    };
   }
 }

@@ -1,0 +1,11 @@
+{
+  "extensionId": "cookie-consent",
+  "extensionName": "cookie-consent",
+  "extensionType": "plugin",
+  "enabled": true,
+  "userConfig": {},
+  "defaultConfig": {},
+  "schema": null,
+  "createdAt": "2025-09-15T17:51:33.6917015Z",
+  "updatedAt": "2025-09-15T17:51:33.6918062Z"
+}

@@ -101,10 +101,24 @@ public class InstallController : BaseApiController
         }
 
         LogApiCall("创建管理员用户", new { username = adminInfo.Username, email = adminInfo.Email });
-        return await ExecuteAsync(
-            () => _installService.CreateAdminUserAsync(adminInfo),
-            "创建管理员用户"
-        );
+        
+        var result = await _installService.CreateAdminUserAsync(adminInfo);
+        
+        if (result.IsSuccess)
+        {
+            return Ok(new ApiResponse<CreateAdminResponseDto>
+            {
+                Success = true,
+                Data = result.Data,
+                Message = result.Data?.Message ?? "管理员账户创建成功"
+            });
+        }
+
+        return BadRequest(new ApiResponse<CreateAdminResponseDto>
+        {
+            Success = false,
+            Message = result.Message
+        });
     }
 
     /// <summary>

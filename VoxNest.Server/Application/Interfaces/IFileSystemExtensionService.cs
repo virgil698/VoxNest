@@ -16,19 +16,19 @@ namespace VoxNest.Server.Application.Interfaces
         Task<PagedResult<UnifiedExtensionDto>> GetAllExtensionsAsync(UnifiedExtensionQueryDto query);
 
         /// <summary>
-        /// 安装扩展（上传ZIP并解压）
+        /// 安装扩展
         /// </summary>
-        Task<ApiResponse<ExtensionInstallResultDto>> InstallExtensionAsync(ExtensionUploadDto uploadDto, int userId);
+        Task<Result> InstallExtensionAsync(string extensionId, int userId);
 
         /// <summary>
         /// 卸载扩展（删除文件夹和从配置移除）
         /// </summary>
-        Task<ApiResponse<string>> UninstallExtensionAsync(string extensionId);
+        Task<Result> UninstallExtensionAsync(string extensionId);
 
         /// <summary>
         /// 启用/禁用扩展
         /// </summary>
-        Task<ApiResponse<string>> ToggleExtensionAsync(string extensionId, bool enabled);
+        Task<Result> ToggleExtensionAsync(string extensionId, bool enabled);
 
         /// <summary>
         /// 获取扩展统计信息

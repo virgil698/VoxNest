@@ -3,7 +3,7 @@
  * 参考 Astro 内置集成，提供核心功能
  */
 
-import type { Integration } from '../core/types';
+import type { Integration, IntegrationContext } from '../core/types';
 
 // ==================== React 集成 ====================
 
@@ -271,7 +271,7 @@ export function createCustomIntegration(
 
 export function createSimpleIntegration(
   name: string,
-  onReady?: (context: any) => void | Promise<void>
+  onReady?: (context: IntegrationContext) => void | Promise<void>
 ): Integration {
   return {
     name,
@@ -285,7 +285,7 @@ export function createComponentIntegration(
   name: string,
   components: Array<{
     slotId: string;
-    component: React.ComponentType<any>;
+    component: React.ComponentType<Record<string, unknown>>;
     priority?: number;
   }>
 ): Integration {

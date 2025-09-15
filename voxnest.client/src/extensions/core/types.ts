@@ -17,27 +17,105 @@ export interface VoxNestConfig {
   /** 自动注册内置集成 */
   autoRegisterBuiltins?: boolean;
   /** 自定义配置 */
-  custom?: Record<string, any>;
+  custom?: Record<string, unknown>;
 }
 
 // ==================== 组件系统 ====================
 
 export interface ComponentRegistration {
   /** 组件实现 */
-  component: React.ComponentType<any>;
+  component: React.ComponentType<Record<string, unknown>>;
   /** 注册源标识 */
   source: string;
   /** 渲染优先级 */
   priority?: number;
   /** 渲染条件 */
-  condition?: (props?: any) => boolean;
+  condition?: (props?: Record<string, unknown>) => boolean;
   /** 组件属性 */
-  props?: Record<string, any>;
+  props?: Record<string, unknown>;
   /** 组件名称 */
   name?: string;
   /** 组件描述 */
   description?: string;
+  /** 自定义样式 */
+  styles?: string | Record<string, string>;
+  /** CSS类名 */
+  className?: string;
+  /** 是否替换现有组件 */
+  replace?: boolean;
+  /** 包装器配置 */
+  wrapper?: {
+    element?: string;
+    className?: string;
+    styles?: Record<string, string>;
+  };
 }
+
+/** 样式注入配置 */
+export interface StyleInjection {
+  /** 样式内容 */
+  content: string;
+  /** 样式ID */
+  id: string;
+  /** 注册源 */
+  source: string;
+  /** 优先级 */
+  priority?: number;
+  /** 是否为主题样式 */
+  isTheme?: boolean;
+}
+
+/** 界面区域枚举 */
+export const UISlots = {
+  // 全局区域
+  APP_ROOT: 'app.root',
+  APP_HEADER: 'app.header',
+  APP_FOOTER: 'app.footer',
+  APP_SIDEBAR: 'app.sidebar',
+  APP_MAIN: 'app.main',
+  
+  // 导航区域
+  NAV_PRIMARY: 'nav.primary',
+  NAV_SECONDARY: 'nav.secondary',
+  NAV_USER: 'nav.user',
+  NAV_BREADCRUMB: 'nav.breadcrumb',
+  
+  // 内容区域
+  CONTENT_HEADER: 'content.header',
+  CONTENT_MAIN: 'content.main',
+  CONTENT_FOOTER: 'content.footer',
+  CONTENT_SIDEBAR: 'content.sidebar',
+  
+  // 页面特定区域
+  HOME_HERO: 'home.hero',
+  HOME_FEATURES: 'home.features',
+  HOME_STATS: 'home.stats',
+  
+  POST_HEADER: 'post.header',
+  POST_CONTENT: 'post.content',
+  POST_ACTIONS: 'post.actions',
+  POST_SIDEBAR: 'post.sidebar',
+  
+  // 模态框和覆盖层
+  MODAL_ROOT: 'modal.root',
+  OVERLAY_ROOT: 'overlay.root',
+  NOTIFICATION_ROOT: 'notification.root',
+  
+  // 管理面板
+  ADMIN_HEADER: 'admin.header',
+  ADMIN_SIDEBAR: 'admin.sidebar',
+  ADMIN_TOOLBAR: 'admin.toolbar',
+  
+  // 表单和输入
+  FORM_BEFORE: 'form.before',
+  FORM_AFTER: 'form.after',
+  INPUT_BEFORE: 'input.before',
+  INPUT_AFTER: 'input.after',
+  
+  // 自定义插槽
+  PLUGIN_AREA: 'plugin.area',
+  THEME_AREA: 'theme.area'
+} as const;
 
 export interface SlotManager {
   /** 注册组件到槽位 */
@@ -51,9 +129,35 @@ export interface SlotManager {
   /** 检查槽位是否有组件 */
   hasComponents(slotId: string): boolean;
   /** 渲染槽位 */
-  render(slotId: string, props?: any): React.ReactNode;
+  render(slotId: string, props?: Record<string, unknown>): React.ReactNode;
   /** 清空槽位 */
   clear(slotId: string): void;
+  
+  // 样式管理
+  /** 注入样式 */
+  injectStyle(injection: StyleInjection): void;
+  /** 移除样式 */
+  removeStyle(id: string): void;
+  /** 按源移除所有样式 */
+  removeStylesBySource(source: string): void;
+  /** 获取所有注入的样式 */
+  getAllStyles(): StyleInjection[];
+  
+  // 高级功能
+  /** 修改现有组件的属性 */
+  modifyComponent(slotId: string, source: string, updates: Partial<ComponentRegistration>): void;
+  /** 替换组件 */
+  replaceComponent(slotId: string, oldSource: string, newRegistration: ComponentRegistration): void;
+  /** 包装组件 */
+  wrapComponent(slotId: string, source: string, wrapper: ComponentRegistration): void;
+  /** 设置槽位可见性 */
+  setSlotVisibility(slotId: string, visible: boolean): void;
+  /** 获取槽位可见性 */
+  getSlotVisibility(slotId: string): boolean;
+  /** 获取所有槽位信息 */
+  getAllSlots(): Record<string, ComponentRegistration[]>;
+  /** 获取槽位统计 */
+  getStats(): Record<string, number>;
 }
 
 // ==================== 集成系统 ====================
@@ -87,6 +191,9 @@ export interface IntegrationContext {
   logger: Logger;
   /** 组件槽位管理器 */
   slots: SlotManager;
+  /** 扩展配置管理器 */
+  configManager?: import('./ConfigManager').ExtensionConfigManager;
+  [key: string]: unknown;
 }
 
 // ==================== 扩展框架 ====================
@@ -110,7 +217,7 @@ export interface ExtensionFramework {
   /** 销毁框架 */
   destroy(): Promise<void>;
   /** 获取统计信息 */
-  getStats(): any;
+  getStats(): Record<string, unknown>;
 }
 
 export interface IntegrationManager {
@@ -132,11 +239,11 @@ export interface IntegrationManager {
 // ==================== 日志系统 ====================
 
 export interface Logger {
-  trace(message: string, ...args: any[]): void;
-  debug(message: string, ...args: any[]): void;
-  info(message: string, ...args: any[]): void;
-  warn(message: string, ...args: any[]): void;
-  error(message: string, ...args: any[]): void;
+  trace(message: string, ...args: unknown[]): void;
+  debug(message: string, ...args: unknown[]): void;
+  info(message: string, ...args: unknown[]): void;
+  warn(message: string, ...args: unknown[]): void;
+  error(message: string, ...args: unknown[]): void;
   createChild(name: string): Logger;
 }
 
@@ -146,7 +253,7 @@ export type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
 
-export type ComponentProps<T = any> = T & {
+export type ComponentProps<T = Record<string, unknown>> = T & {
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -160,7 +267,7 @@ export interface SlotProps {
   /** 槽位 ID */
   id: string;
   /** 传递给组件的属性 */
-  props?: any;
+  props?: Record<string, unknown>;
   /** 无组件时的后备内容 */
   fallback?: React.ReactNode;
   /** 容器样式类 */

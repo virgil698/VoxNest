@@ -2,13 +2,16 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router-dom'
 import { ConfigProvider, theme } from 'antd'
+import { QueryClientProvider } from '@tanstack/react-query'
 import zhCN from 'antd/locale/zh_CN'
 import './index.css'
 import { router } from './router'
 import InstallGuard from './components/InstallGuard'
+import ConditionalDevTools from './components/ConditionalDevTools'
 import { ExtensionProvider, initializeFramework, getFramework } from './extensions'
 import { publicExtensionLoader } from './extensions/manager/PublicExtensionLoader'
 import { logger } from './utils/logger'
+import { queryClient } from './lib/queryClient'
 
 // VoxNest 白色主题配置
 const whiteTheme = {
@@ -94,8 +97,19 @@ setTimeout(async () => {
           continue;
         }
         
-        // 初始化扩展
-        const initialized = await publicExtensionLoader.initializeExtension(manifest.id, framework);
+        // 初始化扩展 
+        const frameworkAdapter = {
+          slots: {
+            register: (slotId: string, registration: unknown) => framework.slots.register(slotId, registration as { component: React.ComponentType; source: string; priority?: number; name?: string; condition?: () => boolean }),
+            injectStyle: (injection: unknown) => framework.slots.injectStyle(injection as { content: string; id: string; source: string; isTheme?: boolean })
+          },
+          logger: framework.logger,
+          register: (integration: unknown) => {
+            const typedIntegration = integration as { name: string; hooks?: { [key: string]: unknown } };
+            framework.register(typedIntegration);
+          }
+        };
+        const initialized = await publicExtensionLoader.initializeExtension(manifest.id, frameworkAdapter);
         
         if (initialized) {
           console.log(`✅ 扩展 ${manifest.name} 初始化成功`);
@@ -105,6 +119,35 @@ setTimeout(async () => {
       } catch (error) {
         console.error(`扩展 ${manifest.name} 处理失败:`, error);
       }
+    }
+    
+    // === 初始化扩展配置 ===
+    console.log('⚙️ 初始化扩展配置系统...');
+    try {
+      const { ExtensionConfigInitializer } = await import('./extensions/core/ExtensionConfigInitializer');
+      
+      // 创建Logger适配器
+      const extensionLogger = {
+        trace: (message: string, ...args: unknown[]) => console.log(`[TRACE] ${message}`, ...args),
+        debug: (message: string, ...args: unknown[]) => console.log(`[DEBUG] ${message}`, ...args),
+        info: (message: string, ...args: unknown[]) => console.log(`[INFO] ${message}`, ...args),
+        warn: (message: string, ...args: unknown[]) => console.warn(`[WARN] ${message}`, ...args),
+        error: (message: string, ...args: unknown[]) => console.error(`[ERROR] ${message}`, ...args),
+        createChild: (name: string) => ({
+          trace: (message: string, ...args: unknown[]) => console.log(`[TRACE][${name}] ${message}`, ...args),
+          debug: (message: string, ...args: unknown[]) => console.log(`[DEBUG][${name}] ${message}`, ...args),
+          info: (message: string, ...args: unknown[]) => console.log(`[INFO][${name}] ${message}`, ...args),
+          warn: (message: string, ...args: unknown[]) => console.warn(`[WARN][${name}] ${message}`, ...args),
+          error: (message: string, ...args: unknown[]) => console.error(`[ERROR][${name}] ${message}`, ...args),
+          createChild: (childName: string) => extensionLogger.createChild(`${name}.${childName}`)
+        })
+      };
+      
+      const configInitializer = new ExtensionConfigInitializer(extensionLogger);
+      await configInitializer.initializeAllConfigs();
+      console.log('✅ 扩展配置系统初始化完成');
+    } catch (error) {
+      console.warn('⚠️ 扩展配置初始化失败，将使用默认配置:', error);
     }
     
     // 打印扩展统计信息
@@ -150,20 +193,23 @@ setTimeout(async () => {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ExtensionProvider
-      config={{
-        appName: 'VoxNest',
-        appVersion: '1.0.0',
-        logLevel: 'debug',
-        autoRegisterBuiltins: true,
-        dev: process.env.NODE_ENV === 'development'
-      }}
-    >
-      <ConfigProvider locale={zhCN} theme={whiteTheme}>
-        <InstallGuard>
-          <RouterProvider router={router} />
-        </InstallGuard>
-      </ConfigProvider>
-    </ExtensionProvider>
+    <QueryClientProvider client={queryClient}>
+      <ExtensionProvider
+        config={{
+          appName: 'VoxNest',
+          appVersion: '1.0.0',
+          logLevel: 'debug',
+          autoRegisterBuiltins: true,
+          dev: process.env.NODE_ENV === 'development'
+        }}
+      >
+        <ConfigProvider locale={zhCN} theme={whiteTheme}>
+          <InstallGuard>
+            <RouterProvider router={router} />
+          </InstallGuard>
+        </ConfigProvider>
+      </ExtensionProvider>
+      <ConditionalDevTools />
+    </QueryClientProvider>
   </StrictMode>,
 )

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Card, List, Avatar, Tag, Space, Typography, Button, Spin, Empty, message, Row, Col, Statistic } from 'antd';
 import { 
   EyeOutlined, 
@@ -12,11 +12,19 @@ import { Users, UserCheck, FileText, BarChart3, Megaphone, Flame, Tags } from 'l
 import { useNavigate } from 'react-router-dom';
 import { usePostStore } from '../stores/postStore';
 import { useAuthStore } from '../stores/authStore';
+import type { PostListItem, Tag as PostTag } from '../types/post';
 import { useFrameworkStatus } from '../extensions';
 import { adminApi, type SiteStats } from '../api/admin';
 
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
+
+interface ApiError {
+  response?: {
+    status?: number;
+  };
+  status?: number;
+}
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 // 配置dayjs
@@ -91,7 +99,7 @@ const Home: React.FC = () => {
   };
 
   // 优化的在线用户计算逻辑
-  const calculateOnlineUsers = () => {
+  const calculateOnlineUsers = useCallback(() => {
     // 生成或获取设备唯一标识
     const getDeviceId = () => {
       let deviceId = localStorage.getItem('voxnest_device_id');
@@ -133,7 +141,7 @@ const Home: React.FC = () => {
     
     const totalOnlineUsers = baseOnlineUsers + sessionBasedUsers + randomVariation;
     setOnlineUsers(Math.max(1, totalOnlineUsers)); // 确保至少显示1个在线用户
-  };
+  }, [siteStats, setOnlineUsers]);
 
   // 页面加载时获取帖子列表
   useEffect(() => {
@@ -155,7 +163,7 @@ const Home: React.FC = () => {
     if (siteStats) {
       calculateOnlineUsers();
     }
-  }, [siteStats]);
+  }, [siteStats, calculateOnlineUsers]);
 
   // 定期更新在线用户数和活跃状态
   useEffect(() => {
@@ -202,15 +210,16 @@ const Home: React.FC = () => {
         document.removeEventListener('scroll', handleActivity);
       };
     }
-  }, [siteStats]);
+  }, [siteStats, calculateOnlineUsers]);
 
   // 加载更多帖子
   const handleLoadMore = async () => {
     try {
       await loadPosts({ pageNumber: currentPage + 1, pageSize: 10 });
-    } catch (error: any) {
+    } catch (error: unknown) {
       // 404错误已经在store中处理了，不显示错误信息
-      if (error.response?.status !== 404 && error.status !== 404) {
+      const isNotFoundError = (error as ApiError)?.response?.status === 404 || (error as ApiError)?.status === 404;
+      if (!isNotFoundError) {
         message.error('加载更多帖子失败');
       }
     }
@@ -231,7 +240,7 @@ const Home: React.FC = () => {
   };
 
   // 渲染帖子状态图标
-  const renderStatusIcon = (post: any) => {
+  const renderStatusIcon = (post: PostListItem) => {
     const icons = [];
     
     if (post.isPinned) {
@@ -254,7 +263,7 @@ const Home: React.FC = () => {
   };
 
   // 渲染帖子项
-  const renderPostItem = (post: any) => (
+  const renderPostItem = (post: PostListItem) => (
     <List.Item key={post.id}>
       <Card 
         hoverable 
@@ -288,7 +297,7 @@ const Home: React.FC = () => {
             {post.category && (
               <Tag color="blue">{post.category.name}</Tag>
             )}
-            {post.tags.map((tag: any) => (
+            {post.tags.map((tag: PostTag) => (
               <Tag key={tag.id} color={tag.color || 'default'}>
                 {tag.name}
               </Tag>
@@ -434,11 +443,11 @@ const Home: React.FC = () => {
                 }}
                 size="small"
                 title="关闭面板（今日不再显示）"
-                onMouseEnter={(e) => {
+                onMouseEnter={(e: React.MouseEvent<HTMLElement>) => {
                   e.currentTarget.style.backgroundColor = 'rgba(255, 77, 79, 0.1)';
                   e.currentTarget.style.color = '#ff4d4f';
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={(e: React.MouseEvent<HTMLElement>) => {
                   e.currentTarget.style.backgroundColor = 'transparent';
                   e.currentTarget.style.color = '#999';
                 }}

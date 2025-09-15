@@ -1,0 +1,298 @@
+{
+  "id": "cookie-consent",
+  "name": "Cookie 同意横幅",
+  "version": "1.0.0",
+  "author": "VoxNest Team",
+  "description": "符合 GDPR 和 CCPA 规定的 Cookie 同意横幅插件，提供可自定义的同意管理功能",
+  "type": "plugin",
+  
+  "entry": "CookieConsentIntegration.tsx",
+  
+  "files": [
+    {
+      "path": "cookieManager.ts",
+      "type": "ts",
+      "order": 0
+    },
+    {
+      "path": "CookieSettings.tsx", 
+      "type": "tsx",
+      "order": 1
+    },
+    {
+      "path": "CookieConsent.tsx",
+      "type": "tsx",
+      "order": 2
+    },
+    {
+      "path": "CookieConsentIntegration.tsx",
+      "type": "tsx",
+      "order": 3
+    },
+    {
+      "path": "styles.css",
+      "type": "css",
+      "order": 4
+    }
+  ],
+  
+  "autoLoad": true,
+  "priority": 100,
+  
+  "permissions": [
+    "storage.local",
+    "cookies.read",
+    "cookies.write"
+  ],
+  
+  "defaultConfig": {
+    "position": "bottom-center",
+    "theme": "light",
+    "showDetailsLink": true,
+    "autoAcceptDelay": 0,
+    "showRejectAll": true,
+    "showAcceptAll": true,
+    "companyName": "VoxNest",
+    "privacyPolicyUrl": "/privacy",
+    "cookiePolicyUrl": "/cookies",
+    "essential": {
+      "enabled": true,
+      "required": true
+    },
+    "analytics": {
+      "enabled": true,
+      "required": false,
+      "providers": ["google-analytics", "matomo"]
+    },
+    "marketing": {
+      "enabled": true,
+      "required": false,
+      "providers": ["facebook-pixel", "google-ads"]
+    },
+    "functional": {
+      "enabled": true,
+      "required": false,
+      "providers": ["youtube", "maps"]
+    }
+  },
+
+  "configSchema": {
+    "title": "Cookie 同意横幅设置",
+    "description": "配置 Cookie 同意横幅的外观和行为，确保符合 GDPR 和 CCPA 法规要求",
+    "groups": [
+      {
+        "id": "appearance",
+        "title": "外观设置",
+        "description": "配置横幅的位置、主题和视觉效果",
+        "order": 1
+      },
+      {
+        "id": "behavior",
+        "title": "行为设置", 
+        "description": "配置用户交互和自动化行为",
+        "order": 2
+      },
+      {
+        "id": "categories",
+        "title": "Cookie 类别",
+        "description": "配置不同类型的 Cookie 设置",
+        "order": 3
+      },
+      {
+        "id": "legal",
+        "title": "法律信息",
+        "description": "配置隐私政策和相关法律链接",
+        "order": 4
+      }
+    ],
+    "properties": {
+      "position": {
+        "type": "select",
+        "title": "横幅位置",
+        "description": "选择 Cookie 横幅在页面中的显示位置",
+        "default": "bottom-center",
+        "required": true,
+        "group": "appearance",
+        "order": 1,
+        "options": [
+          { "label": "底部居中", "value": "bottom-center" },
+          { "label": "底部左侧", "value": "bottom-left" },
+          { "label": "底部右侧", "value": "bottom-right" },
+          { "label": "顶部居中", "value": "top-center" },
+          { "label": "顶部左侧", "value": "top-left" },
+          { "label": "顶部右侧", "value": "top-right" },
+          { "label": "左侧浮动", "value": "left-float" },
+          { "label": "右侧浮动", "value": "right-float" }
+        ]
+      },
+      "theme": {
+        "type": "select",
+        "title": "主题样式",
+        "description": "选择横幅的视觉主题",
+        "default": "light",
+        "required": true,
+        "group": "appearance",
+        "order": 2,
+        "options": [
+          { "label": "浅色主题", "value": "light" },
+          { "label": "深色主题", "value": "dark" },
+          { "label": "自动跟随系统", "value": "auto" }
+        ]
+      },
+      "showDetailsLink": {
+        "type": "boolean",
+        "title": "显示详细设置链接",
+        "description": "是否在横幅中显示 '管理 Cookie 设置' 链接",
+        "default": true,
+        "group": "appearance",
+        "order": 3
+      },
+      "showRejectAll": {
+        "type": "boolean",
+        "title": "显示拒绝全部按钮",
+        "description": "是否显示拒绝所有非必要 Cookie 的按钮",
+        "default": true,
+        "group": "behavior",
+        "order": 1
+      },
+      "showAcceptAll": {
+        "type": "boolean",
+        "title": "显示接受全部按钮",
+        "description": "是否显示接受所有 Cookie 的按钮",
+        "default": true,
+        "group": "behavior",
+        "order": 2
+      },
+      "autoAcceptDelay": {
+        "type": "number",
+        "title": "自动接受延迟 (秒)",
+        "description": "设置多少秒后自动接受 Cookie（0 表示不自动接受）",
+        "default": 0,
+        "min": 0,
+        "max": 300,
+        "group": "behavior",
+        "order": 3
+      },
+      "companyName": {
+        "type": "string",
+        "title": "公司名称",
+        "description": "在横幅中显示的公司或网站名称",
+        "default": "VoxNest",
+        "required": true,
+        "group": "legal",
+        "order": 1
+      },
+      "privacyPolicyUrl": {
+        "type": "url",
+        "title": "隐私政策链接",
+        "description": "隐私政策页面的 URL 地址",
+        "default": "/privacy",
+        "required": true,
+        "group": "legal",
+        "order": 2
+      },
+      "cookiePolicyUrl": {
+        "type": "url",
+        "title": "Cookie 政策链接", 
+        "description": "Cookie 政策页面的 URL 地址",
+        "default": "/cookies",
+        "group": "legal",
+        "order": 3
+      },
+      "essential.enabled": {
+        "type": "boolean",
+        "title": "启用必要 Cookie",
+        "description": "必要 Cookie 用于网站基本功能，通常不可关闭",
+        "default": true,
+        "group": "categories",
+        "order": 1
+      },
+      "analytics.enabled": {
+        "type": "boolean", 
+        "title": "启用分析 Cookie",
+        "description": "允许用户选择是否接受网站分析和统计相关的 Cookie",
+        "default": true,
+        "group": "categories",
+        "order": 2
+      },
+      "analytics.providers": {
+        "type": "array",
+        "title": "分析服务提供商",
+        "description": "选择使用的分析服务（多选）",
+        "default": ["google-analytics", "matomo"],
+        "group": "categories",
+        "order": 3,
+        "depends": "analytics.enabled",
+        "dependsValue": true,
+        "format": "tags",
+        "options": [
+          { "label": "Google Analytics", "value": "google-analytics" },
+          { "label": "Matomo", "value": "matomo" },
+          { "label": "Adobe Analytics", "value": "adobe-analytics" },
+          { "label": "百度统计", "value": "baidu-analytics" },
+          { "label": "腾讯统计", "value": "tencent-analytics" }
+        ]
+      },
+      "marketing.enabled": {
+        "type": "boolean",
+        "title": "启用营销 Cookie",
+        "description": "允许用户选择是否接受营销和广告相关的 Cookie",
+        "default": true,
+        "group": "categories",
+        "order": 4
+      },
+      "marketing.providers": {
+        "type": "array",
+        "title": "营销服务提供商",
+        "description": "选择使用的营销服务（多选）",
+        "default": ["facebook-pixel", "google-ads"],
+        "group": "categories", 
+        "order": 5,
+        "depends": "marketing.enabled",
+        "dependsValue": true,
+        "format": "tags",
+        "options": [
+          { "label": "Facebook Pixel", "value": "facebook-pixel" },
+          { "label": "Google Ads", "value": "google-ads" },
+          { "label": "LinkedIn Insight", "value": "linkedin-insight" },
+          { "label": "Twitter Pixel", "value": "twitter-pixel" },
+          { "label": "微信广告", "value": "wechat-ads" }
+        ]
+      },
+      "functional.enabled": {
+        "type": "boolean",
+        "title": "启用功能 Cookie",
+        "description": "允许用户选择是否接受增强功能相关的 Cookie",
+        "default": true,
+        "group": "categories",
+        "order": 6
+      },
+      "functional.providers": {
+        "type": "array",
+        "title": "功能服务提供商",
+        "description": "选择使用的功能增强服务（多选）",
+        "default": ["youtube", "maps"],
+        "group": "categories",
+        "order": 7,
+        "depends": "functional.enabled",
+        "dependsValue": true,
+        "format": "tags",
+        "options": [
+          { "label": "YouTube", "value": "youtube" },
+          { "label": "Google Maps", "value": "maps" },
+          { "label": "Vimeo", "value": "vimeo" },
+          { "label": "Spotify", "value": "spotify" },
+          { "label": "在线客服", "value": "live-chat" }
+        ]
+      }
+    },
+    "required": ["position", "theme", "companyName", "privacyPolicyUrl"]
+  },
+  
+  "hooks": {
+    "beforeLoad": "console.log('Loading Cookie Consent Plugin...')",
+    "afterLoad": "console.log('Cookie Consent Plugin loaded successfully')"
+  },
+  
+  "enabled": true
+}

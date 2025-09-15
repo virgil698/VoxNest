@@ -2,7 +2,7 @@
  * 统一扩展管理页面 - 管理插件和主题
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card,
   Table,
@@ -36,7 +36,7 @@ import {
   DeleteOutlined,
   CloudUploadOutlined
 } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
+import type { ColumnsType } from 'antd/lib/table';
 import { type UnifiedExtension, type UnifiedExtensionQuery, type ExtensionInstallResult } from '../../api/unifiedExtension';
 import { fileSystemExtensionApi, fileSystemExtensionUtils } from '../../api/fileSystemExtension';
 import ExtensionUploader from '../../components/admin/ExtensionUploader';
@@ -82,25 +82,15 @@ const ExtensionManagement: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
-  // 初始化加载扩展列表
-  useEffect(() => {
-    loadExtensions();
-  }, []);
-
-  // 筛选扩展
-  useEffect(() => {
-    filterExtensions();
-  }, [extensions, searchText, statusFilter, typeFilter, activeTab]);
-
   // 加载扩展列表
-  const loadExtensions = async () => {
+  const loadExtensions = useCallback(async () => {
     setLoading(true);
     try {
       // 构建查询参数
       const query: UnifiedExtensionQuery = {
         search: searchText || undefined,
-        type: typeFilter === 'all' ? undefined : (typeFilter as any),
-        status: statusFilter === 'all' ? undefined : (statusFilter as any),
+        type: typeFilter === 'all' ? undefined : (typeFilter as 'plugin' | 'theme'),
+        status: statusFilter === 'all' ? undefined : (statusFilter as 'active' | 'inactive' | 'error'),
         page: 1,
         pageSize: 1000 // 获取所有数据用于前端筛选和统计
       };
@@ -158,10 +148,10 @@ const ExtensionManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchText, typeFilter, statusFilter]);
 
   // 筛选扩展
-  const filterExtensions = () => {
+  const filterExtensions = useCallback(() => {
     let filtered = [...extensions];
 
     // 按标签页筛选
@@ -198,7 +188,20 @@ const ExtensionManagement: React.FC = () => {
     }
 
     setFilteredExtensions(filtered);
-  };
+  }, [extensions, searchText, statusFilter, typeFilter, activeTab]);
+
+  // 初始化加载扩展列表（避免频繁重载）
+  useEffect(() => {
+    // 只在扩展列表为空时加载
+    if (extensions.length === 0) {
+      loadExtensions();
+    }
+  }, []); // 移除依赖，避免循环加载
+
+  // 筛选扩展
+  useEffect(() => {
+    filterExtensions();
+  }, [extensions, searchText, statusFilter, typeFilter, activeTab, filterExtensions]);
 
   // 启用/禁用扩展
   const handleToggleExtension = async (extension: Extension) => {
@@ -312,7 +315,7 @@ const ExtensionManagement: React.FC = () => {
       title: '扩展信息',
       key: 'info',
       width: 300,
-      render: (_, record) => (
+      render: (_: unknown, record: Extension) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <Avatar
             size={40}
@@ -344,7 +347,7 @@ const ExtensionManagement: React.FC = () => {
       dataIndex: 'status',
       key: 'status',
       width: 100,
-      render: (status) => getStatusTag(status),
+      render: (status: string) => getStatusTag(status),
       filters: [
         { text: '运行中', value: 'active' },
         { text: '未启用', value: 'inactive' },
@@ -355,7 +358,7 @@ const ExtensionManagement: React.FC = () => {
       title: '功能',
       key: 'features',
       width: 200,
-      render: (_, record) => (
+      render: (_: unknown, record: Extension) => (
         <div>
             {record.capabilities?.slots && record.capabilities.slots.length > 0 && (
               <div style={{ marginBottom: 4 }}>
@@ -390,7 +393,7 @@ const ExtensionManagement: React.FC = () => {
       title: '操作',
       key: 'actions',
       width: 200,
-      render: (_, record) => (
+      render: (_: unknown, record: Extension) => (
         <Space size="small">
           <Switch
             size="small"
@@ -508,7 +511,7 @@ const ExtensionManagement: React.FC = () => {
               placeholder="搜索扩展名称、描述或标签"
               style={{ width: 300 }}
               value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchText(e.target.value)}
               allowClear
             />
             <Select
@@ -593,7 +596,7 @@ const ExtensionManagement: React.FC = () => {
             pageSize: 10,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total, range) =>
+            showTotal: (total: number, range: [number, number]) =>
               `第 ${range[0]}-${range[1]} 项，共 ${total} 项`,
           }}
           locale={{
@@ -695,7 +698,7 @@ const ExtensionManagement: React.FC = () => {
                 <List
                   size="small"
                   dataSource={selectedExtension.capabilities.slots}
-                  renderItem={slot => (
+                  renderItem={(slot: string) => (
                     <List.Item>
                       <Text code>{slot}</Text>
                     </List.Item>
@@ -710,7 +713,7 @@ const ExtensionManagement: React.FC = () => {
                 <List
                   size="small"
                   dataSource={selectedExtension.capabilities.hooks}
-                  renderItem={hook => (
+                  renderItem={(hook: string) => (
                     <List.Item>
                       <Text code>{hook}</Text>
                     </List.Item>

@@ -26,15 +26,48 @@ export interface ExtensionManifest {
     storage?: boolean;
     theming?: boolean;
     layout?: boolean;
-    [key: string]: any;
+    [key: string]: boolean | undefined;
   };
-  config?: Record<string, any>;
-  [key: string]: any;
+  config?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+interface HookContext {
+  logger?: {
+    info: (message: string) => void;
+    debug: (message: string) => void;
+    error: (message: string) => void;
+  };
+  slots?: {
+    unregisterBySource: (source: string) => void;
+  };
+  [key: string]: unknown;
+}
+
+interface ExtensionFramework {
+  slots: {
+    register: (slotId: string, registration: unknown) => void;
+    injectStyle: (injection: unknown) => void;
+  };
+  logger?: {
+    info: (message: string) => void;
+    debug: (message: string) => void;
+    error: (message: string) => void;
+  };
+  register?: (integration: unknown) => void;
+  [key: string]: unknown;
+}
+
+interface ExtensionModule {
+  default?: unknown;
+  initializeCookieConsent?: (framework: ExtensionFramework) => void;
+  initializeThemeToggle?: (framework: ExtensionFramework) => void;
+  [key: string]: unknown;
 }
 
 export interface LoadedExtension {
   manifest: ExtensionManifest;
-  module: any;
+  module: ExtensionModule;
   initialized: boolean;
   error?: string;
 }
@@ -90,7 +123,7 @@ export class PublicExtensionLoader {
       console.warn(`⏸️  扩展 ${manifest.name} 已禁用，跳过加载`);
       const disabledExtension: LoadedExtension = {
         manifest,
-        module: null,
+        module: { default: null },
         initialized: false,
         error: '扩展已禁用'
       };
@@ -126,7 +159,7 @@ export class PublicExtensionLoader {
       console.error(`❌ 加载扩展 ${manifest.name} 失败:`, error);
       const failedExtension: LoadedExtension = {
         manifest,
-        module: null,
+        module: { default: null },
         initialized: false,
         error: error instanceof Error ? error.message : '加载失败'
       };
@@ -140,28 +173,28 @@ export class PublicExtensionLoader {
    * 加载 TypeScript/TSX 模块
    * 通过动态导入加载真实的扩展模块
    */
-  private async loadTsxModule(extensionPath: string, manifest: ExtensionManifest): Promise<any> {
+  private async loadTsxModule(extensionPath: string, manifest: ExtensionManifest): Promise<ExtensionModule> {
     try {
       // 尝试直接动态导入 TSX 文件（通过 Vite 的转译支持）
       console.log(`📁 正在动态加载模块: ${extensionPath}`);
       
-      if (manifest.id === 'DemoPlugin') {
-        // 直接导入演示插件的 TSX 文件（使用相对路径，更可靠）
-        const module = await import('../../../extensions/DemoPlugin/DemoPlugin');
+      if (manifest.id === 'cookie-consent') {
+        // 直接导入 Cookie 同意横幅插件的 TSX 文件（使用相对路径，更可靠）
+        const module = await import('../../../extensions/CookieConsent/CookieConsent');
         
         return {
           ...module,
           // 确保关键导出可用
-          default: module.DemoPlugin || module.default
+          default: module.initializeCookieConsent || module.default
         };
-      } else if (manifest.id === 'ExampleIntegration') {
-        // 直接导入示例主题的 TSX 文件（使用相对路径，更可靠）
-        const module = await import('../../../extensions/ExampleIntegration/ExampleIntegration');
+      } else if (manifest.id === 'dark-mode-theme') {
+        // 直接导入明暗模式主题的 TSX 文件（使用相对路径，更可靠）
+        const module = await import('../../../extensions/DarkModeTheme/ThemeToggle');
         
         return {
           ...module,
           // 确保关键导出可用
-          default: module.ExampleTheme || module.default
+          default: module.initializeThemeToggle || module.default
         };
       } else {
         // 通用加载逻辑：尝试从扩展路径加载
@@ -182,151 +215,173 @@ export class PublicExtensionLoader {
   /**
    * 回退模块加载（当动态导入失败时使用）
    */
-  private async loadFallbackModule(manifest: ExtensionManifest): Promise<any> {
-    if (manifest.id === 'DemoPlugin') {
-      return await this.loadDemoPlugin();
-    } else if (manifest.id === 'ExampleIntegration') {
-      return await this.loadExampleTheme();
+  private async loadFallbackModule(manifest: ExtensionManifest): Promise<ExtensionModule> {
+    if (manifest.id === 'cookie-consent') {
+      return await this.loadCookieConsentPlugin();
+    } else if (manifest.id === 'dark-mode-theme') {
+      return await this.loadDarkModeTheme();
     }
     
     throw new Error(`不支持的扩展: ${manifest.id}`);
   }
 
   /**
-   * 加载演示插件模块
+   * 加载 Cookie 同意横幅插件模块
    */
-  private async loadDemoPlugin(): Promise<any> {
-    // 在实际项目中，这里会从服务器加载编译后的模块
-    // 现在我们返回一个模拟的模块结构
+  private async loadCookieConsentPlugin(): Promise<ExtensionModule> {
     return {
-      initializeDemoPlugin: (framework: any) => {
-        console.log('🔌 从 public/extensions 初始化演示插件...');
+      initializeCookieConsent: (framework: ExtensionFramework) => {
+        console.log('🍪 初始化 Cookie 同意横幅插件...');
         
-        // 这里应该是实际的插件初始化代码
-        // 由于我们不能直接执行 TSX，这里使用预编译的版本
-        
-        // 创建设置按钮组件 - 返回 React 元素
-        const SettingsButton = () => {
-          const handleClick = () => {
-            console.log('演示插件：设置按钮被点击');
-            
-            // 显示消息
-            console.log('演示插件体验已开打开！');
-            
-            // 尝试显示浏览器通知
-            if ('Notification' in window && Notification.permission === 'granted') {
-              new Notification('VoxNest', {
-                body: '演示插件体验已开打开！',
-                icon: '/vite.svg'
-              });
-            } else {
-              // 创建临时提示
-              const toast = document.createElement('div');
-              toast.textContent = '演示插件体验已开打开！';
-              toast.style.cssText = `
-                position: fixed; top: 20px; right: 20px; z-index: 10000;
-                background: #52c41a; color: white; padding: 12px 20px;
-                border-radius: 6px; font-family: Arial, sans-serif;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-              `;
-              document.body.appendChild(toast);
-              setTimeout(() => toast.remove(), 3000);
-            }
+        // 创建简化的 Cookie 同意横幅组件
+        function CookieConsentBanner() {
+          const [visible, setVisible] = React.useState(() => {
+            return !localStorage.getItem('cookie-consent');
+          });
+
+          const handleAccept = () => {
+            localStorage.setItem('cookie-consent', JSON.stringify({
+              accepted: true,
+              timestamp: new Date().toISOString()
+            }));
+            setVisible(false);
+            console.log('用户接受了 Cookie 策略');
           };
 
-          // 返回 React 元素而不是原生 DOM 元素
-          return React.createElement('button', {
-            onClick: handleClick,
-            title: '演示插件设置',
-            className: 'ant-btn ant-btn-text',
-            style: { 
-              color: '#666', 
-              border: '1px solid #d9d9d9', 
-              borderRadius: '6px',
-              padding: '4px 8px'
+          const handleDecline = () => {
+            localStorage.setItem('cookie-consent', JSON.stringify({
+              accepted: false,
+              timestamp: new Date().toISOString()
+            }));
+            setVisible(false);
+            console.log('用户拒绝了 Cookie 策略');
+          };
+
+          if (!visible) return null;
+
+          return React.createElement('div', {
+            style: {
+              position: 'fixed',
+              bottom: '20px',
+              left: '20px',
+              right: '20px',
+              maxWidth: '600px',
+              margin: '0 auto',
+              background: 'white',
+              border: '1px solid #d9d9d9',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              padding: '16px',
+              zIndex: 10000,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px'
             }
-          }, '演示');
-        };
+          }, [
+            React.createElement('div', {
+              key: 'content',
+              style: { flex: 1, fontSize: '14px', lineHeight: '1.5' }
+            }, '本站使用 Cookie 以提供更好的用户体验。继续使用本站即表示您同意我们的 Cookie 政策。'),
+            React.createElement('div', {
+              key: 'actions',
+              style: { display: 'flex', gap: '8px', flexShrink: 0 }
+            }, [
+              React.createElement('button', {
+                key: 'decline',
+                onClick: handleDecline,
+                className: 'ant-btn',
+                style: { fontSize: '12px', height: '32px', padding: '0 12px' }
+              }, '拒绝'),
+              React.createElement('button', {
+                key: 'accept',
+                onClick: handleAccept,
+                className: 'ant-btn ant-btn-primary',
+                style: { fontSize: '12px', height: '32px', padding: '0 12px' }
+              }, '接受')
+            ])
+          ]);
+        }
 
         // 注册到框架
-        framework.slots.register('header.right', {
-          component: SettingsButton,
-          source: 'demo-plugin',
-          priority: 10,
-          name: 'Demo Settings Button'
+        framework.slots.register('overlay.root', {
+          component: CookieConsentBanner,
+          source: 'cookie-consent',
+          priority: 100,
+          name: 'Cookie Consent Banner'
         });
 
-        console.log('✅ 演示插件初始化成功（来自 public/extensions）');
-      },
-      
-      DemoPlugin: {
-        id: 'voxnest-demo-plugin',
-        name: '演示插件',
-        version: '1.0.0'
+        console.log('✅ Cookie 同意横幅插件初始化成功');
       }
     };
   }
 
   /**
-   * 加载示例主题模块
+   * 加载明暗模式主题模块
    */
-  private async loadExampleTheme(): Promise<any> {
+  private async loadDarkModeTheme(): Promise<ExtensionModule> {
     return {
-      // 完整的主题集成对象，模拟原始 ExampleIntegration.tsx 的结构
+      // 明暗模式主题集成对象
       default: {
-        id: 'voxnest-example-theme',
-        name: '示例主题扩展',
-        version: '1.0.0',
+        id: 'voxnest-dark-mode-theme',
+        name: '明暗模式主题',
+        version: '2.0.0',
         type: 'integration',
         
         // 组件插槽
         slots: {
           'header.right': [
             {
-              component: () => {
-                const [count, setCount] = React.useState(3);
-                
-                return React.createElement('div', {
-                  style: { position: 'relative', display: 'inline-block' }
-                }, React.createElement('span', {
-                  className: 'ant-badge',
-                  style: { position: 'relative' }
+              component: function ThemeToggleButton() {
+                const [isDark, setIsDark] = React.useState(() => {
+                  return localStorage.getItem('theme-mode') === 'dark';
+                });
+
+                const toggleTheme = () => {
+                  const newMode = isDark ? 'light' : 'dark';
+                  setIsDark(!isDark);
+                  localStorage.setItem('theme-mode', newMode);
+                  
+                  // 应用主题到文档
+                  document.documentElement.setAttribute('data-theme', newMode);
+                  document.body.className = document.body.className.replace(/theme-\w+/g, '') + ` theme-${newMode}`;
+                  
+                  console.log(`主题已切换到: ${newMode}`);
+                };
+
+                // 初始化主题
+                React.useEffect(() => {
+                  const currentMode = isDark ? 'dark' : 'light';
+                  document.documentElement.setAttribute('data-theme', currentMode);
+                  document.body.className = document.body.className.replace(/theme-\w+/g, '') + ` theme-${currentMode}`;
+                }, [isDark]);
+
+                return React.createElement('button', {
+                  onClick: toggleTheme,
+                  className: 'ant-btn ant-btn-text',
+                  style: { 
+                    color: '#666', 
+                    padding: '4px 8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  },
+                  title: isDark ? '切换到亮色模式' : '切换到暗色模式'
                 }, [
-                  count > 0 && React.createElement('span', {
-                    key: 'badge',
-                    className: 'ant-badge-count ant-badge-count-sm',
-                    style: { 
-                      background: '#ff4d4f', 
-                      position: 'absolute',
-                      top: '-8px',
-                      right: '-8px',
-                      zIndex: 1,
-                      minWidth: '16px',
-                      height: '16px',
-                      borderRadius: '8px',
-                      color: 'white',
-                      fontSize: '10px',
-                      lineHeight: '16px',
-                      textAlign: 'center'
-                    }
-                  }, count),
-                  React.createElement('button', {
-                    key: 'button',
-                    onClick: () => setCount(prev => Math.max(0, prev - 1)),
-                    className: 'ant-btn ant-btn-text',
-                    style: { color: '#666', padding: '4px 8px' },
-                    title: '通知'
-                  }, '🔔')
-                ]));
+                  React.createElement('span', { key: 'icon' }, isDark ? '☀️' : '🌙'),
+                  React.createElement('span', { key: 'text', style: { fontSize: '12px' } }, isDark ? '亮色' : '暗色')
+                ]);
               },
-              source: 'example-theme',
+              source: 'dark-mode-theme',
               priority: 20,
-              name: 'Notification Button'
+              name: 'Theme Toggle Button'
             }
           ],
-          'sidebar.top': [
+          'sidebar.top': [],
+          'admin.sidebar': [
             {
-              component: () => {
+              component: function ThemeManagementCard() {
+                const [stats] = React.useState({ totalThemes: 2, activeTheme: 'auto' });
+                
                 return React.createElement('div', {
                   className: 'ant-card ant-card-bordered ant-card-small',
                   style: { marginBottom: '16px' }
@@ -338,7 +393,7 @@ export class PublicExtensionLoader {
                   }, React.createElement('div', {
                     className: 'ant-card-head-title',
                     style: { fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }
-                  }, ['🚀', '快速操作'])),
+                  }, ['🎨', '主题管理'])),
                   React.createElement('div', {
                     key: 'body',
                     className: 'ant-card-body',
@@ -346,81 +401,103 @@ export class PublicExtensionLoader {
                   }, React.createElement('div', {
                     style: { display: 'flex', flexDirection: 'column', gap: '8px' }
                   }, [
+                    React.createElement('div', {
+                      key: 'stats',
+                      style: { fontSize: '12px', color: '#666', marginBottom: '8px' }
+                    }, `可用主题: ${stats.totalThemes} | 当前: ${stats.activeTheme}`),
                     React.createElement('button', {
-                      key: 'create',
+                      key: 'customize',
                       className: 'ant-btn ant-btn-primary ant-btn-block',
                       style: { height: '32px' }
-                    }, '创建新帖子'),
+                    }, '自定义主题'),
                     React.createElement('button', {
-                      key: 'draft',
+                      key: 'reset',
                       className: 'ant-btn ant-btn-block',
                       style: { height: '32px' }
-                    }, '查看草稿'),
-                    React.createElement('button', {
-                      key: 'manage',
-                      className: 'ant-btn ant-btn-block',
-                      style: { height: '32px' }
-                    }, '管理分类')
+                    }, '重置主题')
                   ]))
                 ]);
               },
-              source: 'example-theme',
+              source: 'dark-mode-theme',
               priority: 15,
-              name: 'Quick Actions Card'
+              name: 'Theme Management Card'
             }
           ],
-          'content.before': [
+          'content.before': [],
+          'overlay.root': [
             {
-              component: () => {
-                const [visible, setVisible] = React.useState(true);
+              component: function ThemeScheduler() {
+                const [scheduledMode, setScheduledMode] = React.useState<'light' | 'dark' | null>(null);
+                const [visible, setVisible] = React.useState(false);
                 
-                if (!visible) return null;
+                React.useEffect(() => {
+                  const checkSchedule = () => {
+                    const hour = new Date().getHours();
+                    if (hour >= 20 || hour <= 7) {
+                      if (localStorage.getItem('theme-mode') !== 'dark') {
+                        setScheduledMode('dark');
+                        setVisible(true);
+                      }
+                    } else {
+                      if (localStorage.getItem('theme-mode') !== 'light') {
+                        setScheduledMode('light');
+                        setVisible(true);
+                      }
+                    }
+                  };
+                  
+                  const interval = setInterval(checkSchedule, 60000); // 每分钟检查一次
+                  checkSchedule(); // 立即检查一次
+                  
+                  return () => clearInterval(interval);
+                }, []);
+                
+                if (!visible || !scheduledMode) return null;
+                
+                const handleApply = () => {
+                  localStorage.setItem('theme-mode', scheduledMode);
+                  document.documentElement.setAttribute('data-theme', scheduledMode);
+                  document.body.className = document.body.className.replace(/theme-\w+/g, '') + ` theme-${scheduledMode}`;
+                  setVisible(false);
+                  console.log(`自动切换到${scheduledMode === 'dark' ? '暗色' : '亮色'}模式`);
+                };
                 
                 return React.createElement('div', {
                   style: {
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: 'white',
-                    padding: '16px',
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    background: 'white',
+                    border: '1px solid #d9d9d9',
                     borderRadius: '8px',
-                    marginBottom: '16px',
-                    position: 'relative'
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    padding: '12px 16px',
+                    zIndex: 9999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    fontSize: '14px'
                   }
                 }, [
+                  React.createElement('span', { key: 'icon' }, scheduledMode === 'dark' ? '🌙' : '☀️'),
+                  React.createElement('span', { key: 'text' }, `建议切换到${scheduledMode === 'dark' ? '暗色' : '亮色'}模式`),
                   React.createElement('button', {
-                    key: 'close',
+                    key: 'apply',
+                    onClick: handleApply,
+                    className: 'ant-btn ant-btn-primary ant-btn-sm',
+                    style: { height: '24px', padding: '0 8px', fontSize: '12px' }
+                  }, '应用'),
+                  React.createElement('button', {
+                    key: 'dismiss',
                     onClick: () => setVisible(false),
-                    style: {
-                      position: 'absolute',
-                      top: '8px',
-                      right: '8px',
-                      background: 'transparent',
-                      border: 'none',
-                      color: 'white',
-                      cursor: 'pointer',
-                      fontSize: '18px'
-                    }
-                  }, '×'),
-                  React.createElement('div', {
-                    key: 'content',
-                    style: { display: 'flex', alignItems: 'center', gap: '12px' }
-                  }, [
-                    React.createElement('span', { key: 'icon', style: { fontSize: '24px' } }, '🎉'),
-                    React.createElement('div', { key: 'text' }, [
-                      React.createElement('h4', {
-                        key: 'title',
-                        style: { margin: 0, marginBottom: '4px' }
-                      }, '🔥 扩展系统现已激活！'),
-                      React.createElement('p', {
-                        key: 'desc',
-                        style: { margin: 0, opacity: 0.9, fontSize: '14px' }
-                      }, '体验强大的插件和主题扩展功能，让 VoxNest 更加个性化！')
-                    ])
-                  ])
+                    className: 'ant-btn ant-btn-text ant-btn-sm',
+                    style: { height: '24px', padding: '0 8px', fontSize: '12px' }
+                  }, '忽略')
                 ]);
               },
-              source: 'example-theme',
-              priority: 25,
-              name: 'Feature Highlight'
+              source: 'dark-mode-theme',
+              priority: 90,
+              name: 'Theme Scheduler'
             }
           ],
           'footer.right': [
@@ -443,7 +520,7 @@ export class PublicExtensionLoader {
                   }, 'v1.0.0')
                 ]);
               },
-              source: 'example-theme',
+              source: 'dark-mode-theme',
               priority: 5,
               name: 'Status Indicator'
             }
@@ -452,22 +529,36 @@ export class PublicExtensionLoader {
         
         // 生命周期钩子
         hooks: {
-          'app:init': (context: any) => {
-            context.logger?.info('Example Theme: Initializing...');
+          'app:init': (context: HookContext) => {
+            context.logger?.info('Dark Mode Theme: Initializing...');
           },
-          'app:ready': (context: any) => {
-            context.logger?.info('Example Theme: Component system is ready!');
+          'app:ready': (context: HookContext) => {
+            context.logger?.info('Dark Mode Theme: Component system is ready!');
+            
+            // 初始化主题检测
+            const savedMode = localStorage.getItem('theme-mode');
+            if (savedMode) {
+              document.documentElement.setAttribute('data-theme', savedMode);
+              document.body.className = document.body.className.replace(/theme-\w+/g, '') + ` theme-${savedMode}`;
+            } else {
+              // 检测系统偏好
+              const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+              const mode = prefersDark ? 'dark' : 'light';
+              localStorage.setItem('theme-mode', mode);
+              document.documentElement.setAttribute('data-theme', mode);
+              document.body.className = document.body.className.replace(/theme-\w+/g, '') + ` theme-${mode}`;
+            }
           },
-          'app:start': (context: any) => {
-            context.logger?.debug('Example Theme: App is starting...');
+          'app:start': (context: HookContext) => {
+            context.logger?.debug('Dark Mode Theme: App is starting...');
           },
-          'app:started': (context: any) => {
-            context.logger?.info('Example Theme: App has started successfully!');
+          'app:started': (context: HookContext) => {
+            context.logger?.info('Dark Mode Theme: App has started successfully!');
           },
-          'app:destroy': (context: any) => {
-            context.logger?.info('Example Theme: Cleaning up...');
-            context.slots?.unregisterBySource('example-theme');
-            context.logger?.info('Example Theme: Cleanup completed');
+          'app:destroy': (context: HookContext) => {
+            context.logger?.info('Dark Mode Theme: Cleaning up...');
+            context.slots?.unregisterBySource('dark-mode-theme');
+            context.logger?.info('Dark Mode Theme: Cleanup completed');
           }
         }
       }
@@ -477,7 +568,7 @@ export class PublicExtensionLoader {
   /**
    * 初始化已加载的扩展
    */
-  async initializeExtension(extensionId: string, framework: any): Promise<boolean> {
+  async initializeExtension(extensionId: string, framework: ExtensionFramework): Promise<boolean> {
     const loadedExtension = this.loadedExtensions.get(extensionId);
     
     if (!loadedExtension || loadedExtension.error) {
@@ -498,12 +589,13 @@ export class PublicExtensionLoader {
         if (module.initialize && typeof module.initialize === 'function') {
           console.log(`🔌 调用插件初始化方法: ${extensionId}.initialize`);
           module.initialize(framework);
-        } else if (module.initializeDemoPlugin && typeof module.initializeDemoPlugin === 'function') {
-          console.log(`🔌 调用插件初始化方法: ${extensionId}.initializeDemoPlugin`);
-          module.initializeDemoPlugin(framework);
-        } else if (module.default && module.default.initialize && typeof module.default.initialize === 'function') {
+        } else if (module.initializeCookieConsent && typeof module.initializeCookieConsent === 'function') {
+          console.log(`🔌 调用插件初始化方法: ${extensionId}.initializeCookieConsent`);
+          module.initializeCookieConsent(framework);
+        } else if (module.default && typeof module.default === 'object' && module.default !== null &&
+                   'initialize' in module.default && typeof (module.default as Record<string, unknown>).initialize === 'function') {
           console.log(`🔌 调用插件默认初始化方法: ${extensionId}.default.initialize`);
-          module.default.initialize(framework);
+          ((module.default as Record<string, unknown>).initialize as (framework: ExtensionFramework) => void)(framework);
         } else {
           console.warn(`插件 ${extensionId} 没有可识别的初始化方法`);
           console.log('可用的模块属性:', Object.keys(module));
@@ -514,15 +606,17 @@ export class PublicExtensionLoader {
         if (module.initialize && typeof module.initialize === 'function') {
           console.log(`🎨 调用主题初始化方法: ${extensionId}.initialize`);
           module.initialize(framework);
-        } else if (module.initializeExampleTheme && typeof module.initializeExampleTheme === 'function') {
-          console.log(`🎨 调用主题初始化方法: ${extensionId}.initializeExampleTheme`);
-          module.initializeExampleTheme(framework);
-        } else if (module.default && module.default.initialize && typeof module.default.initialize === 'function') {
+        } else if (module.initializeThemeToggle && typeof module.initializeThemeToggle === 'function') {
+          console.log(`🎨 调用主题初始化方法: ${extensionId}.initializeThemeToggle`);
+          module.initializeThemeToggle(framework);
+        } else if (module.default && typeof module.default === 'object' && module.default !== null &&
+                   'initialize' in module.default && typeof (module.default as Record<string, unknown>).initialize === 'function') {
           console.log(`🎨 调用主题默认初始化方法: ${extensionId}.default.initialize`);
-          module.default.initialize(framework);
-        } else if (module.default && module.default.slots) {
+          ((module.default as Record<string, unknown>).initialize as (framework: ExtensionFramework) => void)(framework);
+        } else if (module.default && typeof module.default === 'object' && module.default !== null &&
+                   'slots' in module.default) {
           console.log(`🎨 注册主题集成对象: ${extensionId}.default`);
-          framework.register(module.default);
+          (framework.register as ((integration: unknown) => void))?.(module.default);
         } else {
           console.warn(`主题 ${extensionId} 没有可识别的集成对象或初始化方法`);
           console.log('可用的模块属性:', Object.keys(module));

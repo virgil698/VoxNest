@@ -3,6 +3,24 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { User, LoginRequest, RegisterRequest } from '../types/auth';
 import { authApi } from '../api/auth';
 
+interface AuthError {
+  response?: {
+    status?: number;
+    statusText?: string;
+    data?: {
+      message?: string;
+      errorCode?: string;
+      details?: string;
+      traceId?: string;
+    };
+  };
+  message?: string;
+}
+
+interface EnhancedError extends Error {
+  errorInfo?: unknown;
+}
+
 interface AuthState {
   user: User | null;
   token: string | null;
@@ -15,6 +33,7 @@ interface AuthState {
   logout: () => void;
   getCurrentUser: () => Promise<void>;
   setLoading: (loading: boolean) => void;
+  setAuth: (token: string, user: User) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -46,22 +65,23 @@ export const useAuthStore = create<AuthState>()(
           } else {
             throw new Error(response.data.message || '登录失败');
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           set({ isLoading: false });
           
           // 构建详细的错误信息
+          const errorObj = error as AuthError; // Type assertion for error response structure
           const errorInfo = {
-            status: error.response?.status || 'UNKNOWN',
-            statusText: error.response?.statusText || '未知错误',
-            message: error.response?.data?.message || error.message || '登录失败',
-            errorCode: error.response?.data?.errorCode || 'UNKNOWN_ERROR',
-            details: error.response?.data?.details || '',
-            traceId: error.response?.data?.traceId || '',
+            status: errorObj.response?.status || 'UNKNOWN',
+            statusText: errorObj.response?.statusText || '未知错误',
+            message: errorObj.response?.data?.message || errorObj.message || '登录失败',
+            errorCode: errorObj.response?.data?.errorCode || 'UNKNOWN_ERROR',
+            details: errorObj.response?.data?.details || '',
+            traceId: errorObj.response?.data?.traceId || '',
           };
           
           // 抛出包含完整错误信息的错误
           const enhancedError = new Error(errorInfo.message);
-          (enhancedError as any).errorInfo = errorInfo;
+          (enhancedError as EnhancedError).errorInfo = errorInfo;
           throw enhancedError;
         }
       },
@@ -77,22 +97,23 @@ export const useAuthStore = create<AuthState>()(
           } else {
             throw new Error(response.data.message || '注册失败');
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           set({ isLoading: false });
           
           // 构建详细的错误信息
+          const errorObj = error as AuthError; // Type assertion for error response structure
           const errorInfo = {
-            status: error.response?.status || 'UNKNOWN',
-            statusText: error.response?.statusText || '未知错误',
-            message: error.response?.data?.message || error.message || '注册失败',
-            errorCode: error.response?.data?.errorCode || 'UNKNOWN_ERROR',
-            details: error.response?.data?.details || '',
-            traceId: error.response?.data?.traceId || '',
+            status: errorObj.response?.status || 'UNKNOWN',
+            statusText: errorObj.response?.statusText || '未知错误',
+            message: errorObj.response?.data?.message || errorObj.message || '注册失败',
+            errorCode: errorObj.response?.data?.errorCode || 'UNKNOWN_ERROR',
+            details: errorObj.response?.data?.details || '',
+            traceId: errorObj.response?.data?.traceId || '',
           };
           
           // 抛出包含完整错误信息的错误
           const enhancedError = new Error(errorInfo.message);
-          (enhancedError as any).errorInfo = errorInfo;
+          (enhancedError as EnhancedError).errorInfo = errorInfo;
           throw enhancedError;
         }
       },
@@ -131,7 +152,7 @@ export const useAuthStore = create<AuthState>()(
           } else {
             throw new Error('获取用户信息失败');
           }
-        } catch (error: any) {
+        } catch {
           // 如果获取用户信息失败，可能是token过期，执行注销
           get().logout();
           set({ isLoading: false });
@@ -140,6 +161,19 @@ export const useAuthStore = create<AuthState>()(
 
       setLoading: (loading: boolean) => {
         set({ isLoading: loading });
+      },
+
+      setAuth: (token: string, user: User) => {
+        // 存储到localStorage
+        localStorage.setItem('access_token', token);
+        localStorage.setItem('user_info', JSON.stringify(user));
+        
+        set({
+          user,
+          token,
+          isAuthenticated: true,
+          isLoading: false,
+        });
       },
     }),
     {

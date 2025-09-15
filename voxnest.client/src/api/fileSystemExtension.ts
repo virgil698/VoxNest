@@ -34,7 +34,7 @@ export const fileSystemExtensionApi = {
    * 获取所有扩展（已安装和未安装）
    */
   async getExtensions(query: UnifiedExtensionQuery): Promise<PagedResult<UnifiedExtension>> {
-    const response = await apiClient.get('/api/filesystem-extension', { 
+    const response = await apiClient.get('/api/extension', { 
       params: {
         page: query.page || 1,
         pageSize: query.pageSize || 10,
@@ -50,7 +50,7 @@ export const fileSystemExtensionApi = {
    * 获取扩展统计信息
    */
   async getExtensionStats(): Promise<ApiResponse<UnifiedExtensionStats>> {
-    const response = await apiClient.get('/api/filesystem-extension/stats');
+    const response = await apiClient.get('/api/extension/stats');
     return response.data;
   },
 
@@ -67,7 +67,7 @@ export const fileSystemExtensionApi = {
       formData.append('InstallNote', uploadData.installNote);
     }
 
-    const response = await apiClient.post('/api/filesystem-extension/install', formData, {
+    const response = await apiClient.post('/api/extension/install', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -79,7 +79,7 @@ export const fileSystemExtensionApi = {
    * 卸载扩展
    */
   async uninstallExtension(extensionId: string): Promise<ApiResponse<string>> {
-    const response = await apiClient.delete(`/api/filesystem-extension/${extensionId}`);
+    const response = await apiClient.delete(`/api/extension/${extensionId}`);
     return response.data;
   },
 
@@ -87,7 +87,7 @@ export const fileSystemExtensionApi = {
    * 启用扩展
    */
   async enableExtension(extensionId: string): Promise<ApiResponse<string>> {
-    const response = await apiClient.post(`/api/filesystem-extension/${extensionId}/enable`);
+    const response = await apiClient.post(`/api/extension/${extensionId}/enable`);
     return response.data;
   },
 
@@ -95,7 +95,7 @@ export const fileSystemExtensionApi = {
    * 禁用扩展
    */
   async disableExtension(extensionId: string): Promise<ApiResponse<string>> {
-    const response = await apiClient.post(`/api/filesystem-extension/${extensionId}/disable`);
+    const response = await apiClient.post(`/api/extension/${extensionId}/disable`);
     return response.data;
   },
 
@@ -103,7 +103,7 @@ export const fileSystemExtensionApi = {
    * 重载扩展
    */
   async reloadExtension(extensionId: string): Promise<ApiResponse<string>> {
-    const response = await apiClient.post(`/api/filesystem-extension/${extensionId}/reload`);
+    const response = await apiClient.post(`/api/extension/${extensionId}/reload`);
     return response.data;
   },
 
@@ -111,23 +111,23 @@ export const fileSystemExtensionApi = {
    * 触发热重载
    */
   async triggerHotReload(): Promise<ApiResponse<string>> {
-    const response = await apiClient.post('/api/filesystem-extension/hot-reload');
+    const response = await apiClient.post('/api/extension/hot-reload');
     return response.data;
   },
 
   /**
    * 获取扩展配置
    */
-  async getExtensionsConfig(): Promise<ApiResponse<any>> {
-    const response = await apiClient.get('/api/filesystem-extension/config');
+  async getExtensionsConfig(): Promise<ApiResponse<unknown>> {
+    const response = await apiClient.get('/api/extension/config');
     return response.data;
   },
 
   /**
    * 验证扩展结构
    */
-  async validateExtensionStructure(): Promise<ApiResponse<any>> {
-    const response = await apiClient.post('/api/filesystem-extension/validate-structure');
+  async validateExtensionStructure(): Promise<ApiResponse<unknown>> {
+    const response = await apiClient.post('/api/extension/validate-structure');
     return response.data;
   }
 };

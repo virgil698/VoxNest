@@ -1,4 +1,4 @@
-import React, { useState, useEffect, startTransition } from 'react';
+import React, { useState, useEffect, useCallback, startTransition } from 'react';
 import {
   Row,
   Col,
@@ -23,15 +23,13 @@ import {
   TagsOutlined,
 } from '@ant-design/icons';
 import { AdminApi } from '../../api/admin';
-import type { SiteOverview, SystemInfo } from '../../api/admin';
+import type { SiteOverview, SystemInfo, UserActivity, PostActivity } from '../../api/admin';
 import { useLogger } from '../../hooks/useLogger';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
 
-interface DashboardProps {}
-
-const Dashboard: React.FC<DashboardProps> = () => {
+const Dashboard: React.FC = () => {
   const [overview, setOverview] = useState<SiteOverview | null>(null);
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,7 +37,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
   const logger = useLogger('Admin.Dashboard');
 
   // 加载概览数据
-  const loadOverview = async () => {
+  const loadOverview = useCallback(async () => {
     startTransition(() => {
       setLoading(true);
     });
@@ -62,10 +60,10 @@ const Dashboard: React.FC<DashboardProps> = () => {
         setLoading(false);
       });
     }
-  };
+  }, [logger]);
 
   // 加载系统信息
-  const loadSystemInfo = async () => {
+  const loadSystemInfo = useCallback(async () => {
     setSystemInfoLoading(true);
     
     try {
@@ -79,7 +77,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
     } finally {
       setSystemInfoLoading(false);
     }
-  };
+  }, [logger]);
 
   useEffect(() => {
     // 使用 startTransition 包装异步操作
@@ -87,8 +85,13 @@ const Dashboard: React.FC<DashboardProps> = () => {
     
     const loadData = async () => {
       try {
-        await loadOverview();
-        await loadSystemInfo();
+        // 避免重复加载，如果数据已存在且较新则跳过
+        if (!overview) {
+          await loadOverview();
+        }
+        if (!systemInfo) {
+          await loadSystemInfo();
+        }
       } catch (error) {
         // 错误已在各自的函数中处理
         console.warn('Dashboard data loading failed:', error);
@@ -100,7 +103,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
     return () => {
       controller.abort();
     };
-  }, []);
+  }, []); // 移除依赖，避免循环加载
 
   if (loading) {
     return (
@@ -335,7 +338,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                   <Progress
                     percent={Math.round(systemInfo.storageUsagePercent)}
                     size="small"
-                    format={(percent) => `${percent}%`}
+                    format={(percent?: number) => `${percent}%`}
                   />
                   <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
                     {formatBytes(systemInfo.usedStorage)} / {formatBytes(systemInfo.totalStorage)}
@@ -362,7 +365,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
             <List
               size="small"
               dataSource={overview.recentActivity.recentRegistrations}
-              renderItem={(user) => (
+              renderItem={(user: UserActivity) => (
                 <List.Item>
                   <div style={{ width: '100%' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -385,7 +388,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
             <List
               size="small"
               dataSource={overview.recentActivity.recentPosts}
-              renderItem={(post) => (
+              renderItem={(post: PostActivity) => (
                 <List.Item>
                   <div style={{ width: '100%' }}>
                     <div style={{ marginBottom: '4px' }}>

@@ -1,6 +1,7 @@
 import React, { useState, Suspense } from 'react';
 import { Layout, Menu, Avatar, Dropdown, Space, Button, Badge, Typography, Spin, Alert } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Slot, ConditionalSlot } from '../../extensions';
 import {
   DashboardOutlined,
   SettingOutlined,
@@ -12,14 +13,13 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   BellOutlined,
-  HomeOutlined
+  HomeOutlined,
+  ControlOutlined
 } from '@ant-design/icons';
 import { useAuthStore } from '../../stores/authStore';
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
-
-interface AdminLayoutProps {}
 
 // 错误边界组件
 class AdminErrorBoundary extends React.Component<
@@ -66,7 +66,7 @@ class AdminErrorBoundary extends React.Component<
   }
 }
 
-const AdminLayout: React.FC<AdminLayoutProps> = () => {
+const AdminLayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [openKeys, setOpenKeys] = useState<string[]>([]);
   const navigate = useNavigate();
@@ -104,6 +104,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
       key: '/admin/extensions',
       icon: <AppstoreOutlined />,
       label: '扩展管理',
+    },
+    {
+      key: '/admin/extension-settings',
+      icon: <ControlOutlined />,
+      label: '扩展设置',
     },
     {
       key: '/admin/logs',
@@ -260,7 +265,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
           selectedKeys={menuState.selectedKeys}
           openKeys={menuState.openKeys}
           items={menuItems}
-          onClick={({ key }) => handleMenuClick(key)}
+          onClick={({ key }: { key: string }) => handleMenuClick(key)}
           onOpenChange={handleOpenChange}
           style={{
             border: 'none',
@@ -305,6 +310,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
             <Badge count={0} showZero={false}>
               <Button type="text" icon={<BellOutlined />} />
             </Badge>
+            
+            {/* 用户导航扩展槽位 */}
+            <ConditionalSlot id="nav.user" />
 
             {/* 用户信息 */}
             <Dropdown
@@ -380,6 +388,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
           </AdminErrorBoundary>
         </Content>
       </Layout>
+      
+      {/* 全局覆盖层 - 用于模态框、通知、Cookie横幅等 */}
+      <Slot id="overlay.root" wrapper={false} />
     </Layout>
   );
 };

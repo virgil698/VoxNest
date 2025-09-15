@@ -17,7 +17,7 @@ import {
   SettingOutlined
 } from '@ant-design/icons';
 import { useAuthStore } from '../../stores/authStore';
-import { ConditionalSlot } from '../../extensions';
+import { ConditionalSlot, Slot } from '../../extensions';
 import type { MenuProps } from 'antd';
 
 const { Header, Content, Footer } = AntdLayout;
@@ -204,7 +204,7 @@ export const EnhancedLayout: React.FC = () => {
               <Input
                 placeholder="搜索话题、内容或用户..."
                 value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchValue(e.target.value)}
                 onPressEnter={() => handleSearch(searchValue)}
                 className="voxnest-search-box"
                 size="middle"
@@ -242,6 +242,9 @@ export const EnhancedLayout: React.FC = () => {
               >
                 <span className="voxnest-btn-text">发帖</span>
               </Button>
+              
+              {/* 用户导航扩展槽位 */}
+              <ConditionalSlot id="nav.user" />
 
               {/* 用户信息下拉菜单 */}
               <Dropdown
@@ -336,6 +339,9 @@ export const EnhancedLayout: React.FC = () => {
           <ConditionalSlot id="footer.right" />
         </div>
       </Footer>
+      
+      {/* 全局覆盖层 - 用于模态框、通知、Cookie横幅等 */}
+      <Slot id="overlay.root" wrapper={false} />
     </AntdLayout>
   );
 };
