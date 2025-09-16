@@ -1,0 +1,270 @@
+{
+  "id": "back-to-top",
+  "name": "回到顶部",
+  "version": "1.0.0",
+  "author": "VoxNest Team",
+  "description": "智能回到顶部按钮，当页面向下滚动时在右下角显示返回顶部按钮，支持平滑滚动和自定义样式",
+  "type": "plugin",
+  
+  "entry": "BackToTopIntegration.tsx",
+  
+  "files": [
+    {
+      "path": "BackToTopButton.tsx",
+      "type": "tsx",
+      "order": 0
+    },
+    {
+      "path": "BackToTopIntegration.tsx",
+      "type": "tsx",
+      "order": 1
+    },
+    {
+      "path": "styles.css",
+      "type": "css",
+      "order": 2
+    }
+  ],
+  
+  "autoLoad": true,
+  "priority": 100,
+  
+  "defaultConfig": {
+    "showThreshold": 200,
+    "position": "bottom-right",
+    "enableAnimation": true,
+    "animationDuration": 300,
+    "smoothScrollDuration": 500,
+    "buttonSize": "medium",
+    "buttonStyle": "circle",
+    "showIcon": true,
+    "showText": false,
+    "buttonText": "顶部",
+    "hideOnTop": true,
+    "enableHover": true,
+    "backgroundColor": "#1890ff",
+    "textColor": "#ffffff",
+    "borderRadius": 50,
+    "opacity": 0.8,
+    "hoverOpacity": 1.0,
+    "zIndex": 1000
+  },
+
+  "configSchema": {
+    "title": "回到顶部设置",
+    "description": "配置回到顶部按钮的外观、行为和位置选项",
+    "groups": [
+      {
+        "id": "behavior",
+        "title": "行为设置",
+        "description": "配置按钮的显示条件和滚动行为",
+        "order": 1
+      },
+      {
+        "id": "appearance",
+        "title": "外观设置", 
+        "description": "配置按钮的样式、颜色和大小",
+        "order": 2
+      },
+      {
+        "id": "position",
+        "title": "位置设置",
+        "description": "配置按钮在页面中的显示位置",
+        "order": 3
+      },
+      {
+        "id": "animation",
+        "title": "动画效果",
+        "description": "配置按钮显示和滚动的动画效果",
+        "order": 4
+      }
+    ],
+    "properties": {
+      "showThreshold": {
+        "type": "number",
+        "title": "显示阈值 (像素)",
+        "description": "页面向下滚动多少像素后显示按钮",
+        "default": 200,
+        "min": 50,
+        "max": 1000,
+        "group": "behavior",
+        "order": 1
+      },
+      "hideOnTop": {
+        "type": "boolean",
+        "title": "顶部自动隐藏",
+        "description": "当页面滚动到顶部时是否自动隐藏按钮",
+        "default": true,
+        "group": "behavior",
+        "order": 2
+      },
+      "smoothScrollDuration": {
+        "type": "number",
+        "title": "滚动动画时长 (毫秒)",
+        "description": "点击按钮后滚动到顶部的动画持续时间",
+        "default": 500,
+        "min": 200,
+        "max": 2000,
+        "group": "behavior",
+        "order": 3
+      },
+      "position": {
+        "type": "select",
+        "title": "按钮位置",
+        "description": "选择按钮在页面中的显示位置",
+        "default": "bottom-right",
+        "group": "position",
+        "order": 1,
+        "options": [
+          { "label": "右下角", "value": "bottom-right" },
+          { "label": "左下角", "value": "bottom-left" },
+          { "label": "右上角", "value": "top-right" },
+          { "label": "左上角", "value": "top-left" }
+        ]
+      },
+      "buttonSize": {
+        "type": "select",
+        "title": "按钮大小",
+        "description": "选择按钮的尺寸大小",
+        "default": "medium",
+        "group": "appearance",
+        "order": 1,
+        "options": [
+          { "label": "小", "value": "small" },
+          { "label": "中", "value": "medium" },
+          { "label": "大", "value": "large" }
+        ]
+      },
+      "buttonStyle": {
+        "type": "select",
+        "title": "按钮样式",
+        "description": "选择按钮的外观样式",
+        "default": "circle",
+        "group": "appearance",
+        "order": 2,
+        "options": [
+          { "label": "圆形", "value": "circle" },
+          { "label": "圆角矩形", "value": "rounded" },
+          { "label": "方形", "value": "square" }
+        ]
+      },
+      "showIcon": {
+        "type": "boolean",
+        "title": "显示图标",
+        "description": "是否在按钮中显示向上箭头图标",
+        "default": true,
+        "group": "appearance",
+        "order": 3
+      },
+      "showText": {
+        "type": "boolean",
+        "title": "显示文字",
+        "description": "是否在按钮中显示文字",
+        "default": false,
+        "group": "appearance",
+        "order": 4
+      },
+      "buttonText": {
+        "type": "string",
+        "title": "按钮文字",
+        "description": "按钮中显示的文字内容",
+        "default": "顶部",
+        "group": "appearance",
+        "order": 5,
+        "depends": "showText",
+        "dependsValue": true
+      },
+      "backgroundColor": {
+        "type": "color",
+        "title": "背景颜色",
+        "description": "按钮的背景颜色",
+        "default": "#1890ff",
+        "group": "appearance",
+        "order": 6
+      },
+      "textColor": {
+        "type": "color",
+        "title": "文字颜色",
+        "description": "按钮中图标和文字的颜色",
+        "default": "#ffffff",
+        "group": "appearance",
+        "order": 7
+      },
+      "opacity": {
+        "type": "number",
+        "title": "透明度",
+        "description": "按钮的默认透明度",
+        "default": 0.8,
+        "min": 0.1,
+        "max": 1.0,
+        "step": 0.1,
+        "group": "appearance",
+        "order": 8
+      },
+      "enableAnimation": {
+        "type": "boolean",
+        "title": "启用动画效果",
+        "description": "是否启用按钮显示和隐藏的动画效果",
+        "default": true,
+        "group": "animation",
+        "order": 1
+      },
+      "animationDuration": {
+        "type": "number",
+        "title": "动画持续时间 (毫秒)",
+        "description": "按钮出现和消失动画的持续时间",
+        "default": 300,
+        "min": 100,
+        "max": 1000,
+        "group": "animation",
+        "order": 2,
+        "depends": "enableAnimation",
+        "dependsValue": true
+      },
+      "enableHover": {
+        "type": "boolean",
+        "title": "启用悬停效果",
+        "description": "是否启用鼠标悬停时的交互效果",
+        "default": true,
+        "group": "animation",
+        "order": 3
+      },
+      "hoverOpacity": {
+        "type": "number",
+        "title": "悬停透明度",
+        "description": "鼠标悬停时按钮的透明度",
+        "default": 1.0,
+        "min": 0.1,
+        "max": 1.0,
+        "step": 0.1,
+        "group": "animation",
+        "order": 4,
+        "depends": "enableHover",
+        "dependsValue": true
+      }
+    },
+    "required": ["showThreshold", "position", "buttonSize"]
+  },
+  
+  "permissions": [
+    "dom.scroll",
+    "dom.events"
+  ],
+  
+  "hooks": {
+    "beforeLoad": "console.log('Initializing Back To Top Button...')",
+    "afterLoad": "window.VoxNestBackToTop?.initialize?.()",
+    "beforeUnload": "window.VoxNestBackToTop?.cleanup?.()"
+  },
+  
+  "peerDependencies": [
+    "react@^18.0.0",
+    "antd@^5.0.0"
+  ],
+  
+  "restrictions": {
+    "features": ["scroll", "requestAnimationFrame"]
+  },
+  
+  "enabled": true
+}

@@ -150,6 +150,7 @@ export class VoxNestExtensionFramework implements ExtensionFramework {
   }
 
   // 开发者辅助方法
+
   listSlots(): string[] {
     return Object.keys((this._slots as EnhancedSlotManager).getAllSlots());
   }

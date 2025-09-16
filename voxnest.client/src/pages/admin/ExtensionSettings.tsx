@@ -11,7 +11,6 @@ import {
   Tooltip,
   Row,
   Col,
-  Statistic,
   Modal,
   Typography,
   Switch,
@@ -20,7 +19,8 @@ import {
   ColorPicker,
   Alert,
   Empty,
-  Tabs
+  Tabs,
+  Avatar
 } from 'antd';
 import {
   SettingOutlined,
@@ -29,7 +29,6 @@ import {
   UndoOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
-  AppstoreOutlined,
   BgColorsOutlined,
   CodeOutlined
 } from '@ant-design/icons';
@@ -239,14 +238,6 @@ const ExtensionSettings: React.FC<ExtensionSettingsProps> = () => {
     loadExtensions();
   }, [loadExtensions]);
 
-  // 统计信息
-  const stats = {
-    total: extensions.length,
-    enabled: extensions.filter(ext => ext.enabled).length,
-    plugins: extensions.filter(ext => ext.type === 'plugin').length,
-    themes: extensions.filter(ext => ext.type === 'theme').length,
-    configurable: extensions.filter(ext => ext.configSchema?.properties).length
-  };
 
   // 过滤扩展
   const filteredExtensions = extensions.filter(ext => {
@@ -528,108 +519,132 @@ const ExtensionSettings: React.FC<ExtensionSettingsProps> = () => {
 
   // 渲染表单字段结束
 
+  // 获取扩展类型图标
+  const getTypeIcon = (type: string) => {
+    return type === 'plugin' ? <CodeOutlined /> : <BgColorsOutlined />;
+  };
+
+  // 获取类型标签
+  const getTypeTag = (type: string) => {
+    const text = type === 'plugin' ? '前端插件' : '主题';
+    const color = type === 'plugin' ? 'green' : 'purple';
+    return <Tag color={color} icon={getTypeIcon(type)} style={{ fontSize: '12px', padding: '2px 8px' }}>{text}</Tag>;
+  };
+
   // 表格列定义
   const columns: ColumnsType<ExtensionConfig> = [
     {
-      title: '扩展名称',
-      dataIndex: 'name',
-      key: 'name',
-      render: (name: string, record: ExtensionConfig) => (
-        <Space>
-          {record.type === 'plugin' ? <CodeOutlined /> : <BgColorsOutlined />}
-          <div>
-            <div style={{ fontWeight: 500 }}>{name}</div>
-            <Text type="secondary" style={{ fontSize: '12px' }}>
-              ID: {record.id} • 版本: {record.version}
+      title: '扩展信息',
+      key: 'info',
+      width: 400,
+      render: (_, record: ExtensionConfig) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Avatar
+            size={40}
+            icon={getTypeIcon(record.type)}
+            style={{ 
+              backgroundColor: record.type === 'plugin' ? '#52c41a' : '#722ed1',
+              flexShrink: 0
+            }}
+          />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <Text strong style={{ fontSize: 16 }}>{record.name}</Text>
+              {getTypeTag(record.type)}
+            </div>
+            <Text type="secondary" style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>
+              可配置的扩展设置，支持个性化定制和实时配置
             </Text>
+            <div>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                ID: {record.id} • v{record.version}
+              </Text>
+            </div>
           </div>
-        </Space>
+        </div>
       ),
     },
-      {
-        title: '类型',
-        dataIndex: 'type',
-        key: 'type',
-        width: 120,
-        render: (type: string, _record: ExtensionConfig) => {
-          // 判断是否为前端扩展（基于扩展配置位置）
-          const isFrontend = true; // 当前都是前端扩展
-          
-          return (
-            <Space direction="vertical" size={2}>
-              <Tag color={type === 'plugin' ? 'blue' : 'purple'}>
-                {type === 'plugin' ? '插件' : '主题'}
-              </Tag>
-              <Tag color={isFrontend ? 'cyan' : 'orange'} style={{ fontSize: '10px' }}>
-                {isFrontend ? '前端' : '后端'}
-              </Tag>
-            </Space>
-          );
-        },
-      },
     {
       title: '状态',
       dataIndex: 'enabled',
       key: 'enabled',
-      width: 140,
+      width: 120,
+      align: 'center',
       render: (enabled: boolean) => (
         <Tag 
           color={enabled ? 'success' : 'default'} 
           icon={enabled ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
           style={{ 
-            minWidth: '70px', 
+            minWidth: '80px', 
             textAlign: 'center',
-            padding: '4px 8px',
-            fontSize: '12px'
+            padding: '6px 16px',
+            fontSize: '13px',
+            fontWeight: 500
           }}
         >
           {enabled ? '已启用' : '已禁用'}
         </Tag>
       ),
     },
-        {
-          title: '配置项',
-          key: 'configurable',
-          width: 120,
-          render: (_, record: ExtensionConfig) => {
-            const count = record.configSchema?.properties ? Object.keys(record.configSchema.properties).length : 0;
-            return (
-              <div>
-                <Text type={count > 0 ? undefined : 'secondary'}>
-                  {count > 0 ? `${count} 项` : '无'}
-                </Text>
-                {/* 调试信息 */}
-                {process.env.NODE_ENV === 'development' && (
-                  <div style={{ fontSize: '10px', color: '#999', marginTop: '2px' }}>
-                    Schema: {record.configSchema ? 'Yes' : 'No'}
-                    {record.configSchema && record.configSchema.properties && (
-                      <div>Properties: {Object.keys(record.configSchema.properties).join(', ')}</div>
-                    )}
+    {
+      title: '配置项',
+      key: 'configurable',
+      width: 120,
+      align: 'center',
+      render: (_, record: ExtensionConfig) => {
+        const count = record.configSchema?.properties ? Object.keys(record.configSchema.properties).length : 0;
+        const hasConfig = count > 0;
+        
+        return (
+          <div style={{ textAlign: 'center' }}>
+            {hasConfig ? (
+              <Tag color="blue" style={{ fontSize: '13px', padding: '4px 10px' }}>
+                {count} 项配置
+              </Tag>
+            ) : (
+              <Tag color="default" style={{ fontSize: '13px', padding: '4px 10px' }}>
+                无配置
+              </Tag>
+            )}
           </div>
-        )}
-              </div>
-            );
-          },
-        },
+        );
+      },
+    },
     {
       title: '操作',
       key: 'action',
       width: 120,
-      render: (_, record: ExtensionConfig) => (
-        <Space>
-          <Tooltip title="配置扩展">
-            <Button
-              type="primary"
-              size="small"
-              icon={<SettingOutlined />}
-              onClick={() => handleConfigureExtension(record)}
-              disabled={!record.configSchema?.properties}
-            >
-              配置
-            </Button>
-          </Tooltip>
-        </Space>
-      ),
+      align: 'center',
+      render: (_, record: ExtensionConfig) => {
+        const hasConfig = record.configSchema?.properties && Object.keys(record.configSchema.properties).length > 0;
+        
+        return (
+          <Space size="small">
+            {hasConfig ? (
+              <Tooltip title="配置扩展设置">
+                <Button
+                  type="primary"
+                  icon={<SettingOutlined />}
+                  onClick={() => handleConfigureExtension(record)}
+                >
+                  配置
+                </Button>
+              </Tooltip>
+            ) : (
+              <Tooltip title="该扩展暂无可配置项">
+                <Button
+                  type="default"
+                  icon={<SettingOutlined />}
+                  disabled
+                  style={{ opacity: 0.5 }}
+                >
+                  无配置
+                </Button>
+              </Tooltip>
+            )}
+          </Space>
+        );
+      },
     },
   ];
 
@@ -637,37 +652,36 @@ const ExtensionSettings: React.FC<ExtensionSettingsProps> = () => {
 
   return (
     <div className="extension-settings">
-      <Card>
-        <div style={{ marginBottom: 16 }}>
-          <Title level={2}>扩展设置</Title>
-          <Paragraph>
-            管理和配置已安装扩展的设置，支持个性化定制和实时配置。
-          </Paragraph>
-        </div>
+      <style>
+        {`
+          .extension-settings-row {
+            transition: all 0.2s ease;
+          }
+          .extension-settings-row:hover {
+            background-color: #fafafa;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+          }
+          .ant-table-tbody > tr.extension-settings-row > td {
+            border-bottom: 1px solid #f0f0f0;
+            padding: 20px 16px !important;
+          }
+        `}
+      </style>
+      
+      {/* 页面标题 */}
+      <div style={{ marginBottom: 24 }}>
+        <Title level={2} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <SettingOutlined />
+          扩展设置
+        </Title>
+        <Paragraph type="secondary" style={{ margin: '8px 0 0 0' }}>
+          管理和配置已安装扩展的设置，支持个性化定制和实时配置
+        </Paragraph>
+      </div>
 
-        {/* 统计信息 */}
-        <Row gutter={16} style={{ marginBottom: 24 }}>
-          <Col span={4}>
-            <Statistic title="总扩展" value={stats.total} prefix={<AppstoreOutlined />} />
-          </Col>
-          <Col span={4}>
-            <Statistic title="已启用" value={stats.enabled} valueStyle={{ color: '#52c41a' }} prefix={<CheckCircleOutlined />} />
-          </Col>
-          <Col span={4}>
-            <Statistic title="插件" value={stats.plugins} prefix={<CodeOutlined />} />
-          </Col>
-          <Col span={4}>
-            <Statistic title="主题" value={stats.themes} prefix={<BgColorsOutlined />} />
-          </Col>
-          <Col span={4}>
-            <Statistic title="可配置" value={stats.configurable} prefix={<SettingOutlined />} />
-          </Col>
-          <Col span={4}>
-            <Button icon={<ReloadOutlined />} onClick={loadExtensions} loading={loading}>
-              刷新
-            </Button>
-          </Col>
-        </Row>
+      {/* 主内容区 */}
+      <Card>
+
 
         {/* 搜索和过滤 */}
         <Row gutter={16} style={{ marginBottom: 16 }}>
@@ -679,7 +693,7 @@ const ExtensionSettings: React.FC<ExtensionSettingsProps> = () => {
               allowClear
             />
           </Col>
-          <Col span={6}>
+          <Col span={5}>
             <Select
               placeholder="扩展类型"
               value={filterType}
@@ -691,7 +705,7 @@ const ExtensionSettings: React.FC<ExtensionSettingsProps> = () => {
               <Option value="theme">主题</Option>
             </Select>
           </Col>
-          <Col span={6}>
+          <Col span={5}>
             <Select
               placeholder="启用状态"
               value={filterEnabled}
@@ -703,6 +717,16 @@ const ExtensionSettings: React.FC<ExtensionSettingsProps> = () => {
               <Option value={false}>已禁用</Option>
             </Select>
           </Col>
+          <Col span={6}>
+            <Button 
+              icon={<ReloadOutlined />} 
+              onClick={loadExtensions} 
+              loading={loading}
+              type="default"
+            >
+              刷新
+            </Button>
+          </Col>
         </Row>
 
         {/* 扩展列表 */}
@@ -711,11 +735,14 @@ const ExtensionSettings: React.FC<ExtensionSettingsProps> = () => {
           dataSource={filteredExtensions}
           rowKey="id"
           loading={loading}
+          scroll={{ x: 760 }}
+          size="large"
+          rowClassName={() => 'extension-settings-row'}
           pagination={{
-            pageSize: 10,
+            pageSize: 8,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total) => `共 ${total} 个扩展`,
+            showTotal: (total) => `共 ${total} 个可配置扩展`,
           }}
           locale={{
             emptyText: (

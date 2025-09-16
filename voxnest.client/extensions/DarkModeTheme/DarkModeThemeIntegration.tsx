@@ -417,7 +417,9 @@ export const DarkModeThemeIntegration = {
       slots.register(targetSlot, {
         component: () => React.createElement(ThemeToggleComponent, { configManager, position }),
         source: 'dark-mode-theme',
-        priority: 200
+        priority: 200,
+        name: '主题切换器',
+        description: '智能明暗模式切换组件'
       });
 
       logger.info(`Dark Mode Theme integration initialized with config management (position: ${config.togglePosition})`);

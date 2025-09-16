@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Logging;
 using VoxNest.Server.Infrastructure;
 using VoxNest.Server.Infrastructure.Services;
 using VoxNest.Server.Infrastructure.Persistence.Contexts;
@@ -267,19 +268,73 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddVoxNestLogging(this IServiceCollection services, IConfiguration configuration)
     {
+        // 读取服务器配置中的Debug模式设置
+        var debugMode = GetDebugModeFromServerConfig();
+        
         services.AddLogging(builder =>
         {
             builder.AddConfiguration(configuration.GetSection("Logging"));
             builder.AddConsole();
             
-            // 在开发环境添加调试输出
-            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            // 根据Debug模式配置日志级别
+            if (debugMode)
             {
+                builder.SetMinimumLevel(LogLevel.Debug);
                 builder.AddDebug();
+                
+                // Debug模式下启用详细的EF Core日志
+                builder.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information);
+                builder.AddFilter("Microsoft.EntityFrameworkCore.Query", LogLevel.Debug);
+                builder.AddFilter("Microsoft.EntityFrameworkCore.Update", LogLevel.Debug);
+                builder.AddFilter("Microsoft.EntityFrameworkCore.Infrastructure", LogLevel.Debug);
+                
+                // API请求/响应日志
+                builder.AddFilter("VoxNest.Server", LogLevel.Debug);
+                builder.AddFilter("Microsoft.AspNetCore.Hosting", LogLevel.Information);
+                builder.AddFilter("Microsoft.AspNetCore.Mvc", LogLevel.Debug);
+                
+                Console.WriteLine("🐛 Debug模式已启用 - 详细日志记录已开启");
             }
+            else
+            {
+                // 生产模式 - 只记录重要信息
+                builder.SetMinimumLevel(LogLevel.Information);
+                builder.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Warning);
+                builder.AddFilter("Microsoft.AspNetCore", LogLevel.Warning);
+                
+                // 确保基本服务信息始终显示（不依赖Debug模式）
+                builder.AddFilter("Microsoft.Hosting.Lifetime", LogLevel.Information);
+                builder.AddFilter("Microsoft.AspNetCore.Hosting.Diagnostics", LogLevel.Information);
+            }
+            
+            // 无论是否Debug模式，都确保应用程序生命周期事件正常显示
+            builder.AddFilter("Microsoft.Hosting.Lifetime", LogLevel.Information);
+            builder.AddFilter("VoxNest.Server.Program", LogLevel.Information);
         });
 
         return services;
+    }
+    
+    /// <summary>
+    /// 从服务器配置文件读取Debug模式设置
+    /// </summary>
+    private static bool GetDebugModeFromServerConfig()
+    {
+        const string configFile = "server-config.yml";
+        try
+        {
+            if (File.Exists(configFile))
+            {
+                var serverConfig = VoxNest.Server.Shared.Extensions.ConfigurationExtensions.LoadServerConfigurationFromYaml(configFile);
+                return serverConfig.Logging.EnableDebugMode;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"⚠️ 读取Debug配置失败，使用默认设置: {ex.Message}");
+        }
+        
+        return false; // 默认关闭Debug模式
     }
 
     /// <summary>

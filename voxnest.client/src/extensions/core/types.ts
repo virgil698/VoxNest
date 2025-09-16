@@ -180,6 +180,18 @@ export interface IntegrationHooks {
   'app:started'?: (context: IntegrationContext) => void | Promise<void>;
   /** 应用销毁 */
   'app:destroy'?: (context: IntegrationContext) => void | Promise<void>;
+  
+  // 新增页面相关钩子
+  /** 页面加载前 */
+  'page:beforeLoad'?: (context: IntegrationContext & { pagePath: string }) => void | Promise<void>;
+  /** 页面加载后 */
+  'page:afterLoad'?: (context: IntegrationContext & { pagePath: string }) => void | Promise<void>;
+  /** 路由变化 */
+  'route:change'?: (context: IntegrationContext & { from: string; to: string }) => void | Promise<void>;
+  /** 用户认证状态变化 */
+  'auth:change'?: (context: IntegrationContext & { isAuthenticated: boolean; user?: unknown }) => void | Promise<void>;
+  /** 主题变化 */
+  'theme:change'?: (context: IntegrationContext & { theme: string; previousTheme: string }) => void | Promise<void>;
 }
 
 export interface IntegrationContext {
@@ -218,6 +230,23 @@ export interface ExtensionFramework {
   destroy(): Promise<void>;
   /** 获取统计信息 */
   getStats(): Record<string, unknown>;
+  
+  // 调试和管理方法
+  /** 检查框架是否就绪 */
+  isReady?(): boolean;
+  /** 获取所有槽位列表 */
+  listSlots?(): string[];
+  /** 调试槽位信息 */
+  debugSlot?(slotId: string): {
+    exists: boolean;
+    componentCount: number;
+    components: Array<{
+      source: string;
+      name?: string;
+      priority?: number;
+      hasCondition: boolean;
+    }>;
+  };
 }
 
 export interface IntegrationManager {

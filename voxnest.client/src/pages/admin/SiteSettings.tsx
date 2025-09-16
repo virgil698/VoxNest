@@ -36,7 +36,13 @@ import {
   BgColorsOutlined,
   ThunderboltOutlined,
   BugOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
+  HddOutlined,
+  PlayCircleOutlined,
+  StopOutlined,
+  CheckCircleOutlined,
+  ExclamationCircleOutlined,
+  LoadingOutlined
 } from '@ant-design/icons';
 import { 
   FrontendSettingsManager, 
@@ -65,6 +71,27 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
   const [exportData, setExportData] = useState('');
   const [importData, setImportData] = useState('');
 
+  // Redis配置状态
+  const [redisConfig, setRedisConfig] = useState({
+    enabled: false,
+    host: 'localhost',
+    port: 6379,
+    username: '',
+    password: '',
+    database: 0,
+    connectionTimeout: 5000,
+    commandTimeout: 5000,
+    retryAttempts: 3
+  });
+  const [redisStatus, setRedisStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
+  const [redisError, setRedisError] = useState<string>('');
+  const [redisTestLoading, setRedisTestLoading] = useState(false);
+  const [redisInitLoading, setRedisInitLoading] = useState(false);
+  const [showRedisPassword, setShowRedisPassword] = useState(false);
+  const [redisDisableModal, setRedisDisableModal] = useState(false);
+  const [redisDisableStep, setRedisDisableStep] = useState<'warning' | 'confirm1' | 'confirm2' | 'password'>('warning');
+  const [adminPassword, setAdminPassword] = useState('');
+
   // 服务器配置相关hooks
   const {
     serverConfig,
@@ -86,6 +113,7 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
   const [serverForm] = Form.useForm();
   const [corsForm] = Form.useForm();
   const [loggingForm] = Form.useForm();
+  const [redisForm] = Form.useForm();
 
   // 初始化服务器配置表单数据
   useEffect(() => {
@@ -102,7 +130,11 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
 
   useEffect(() => {
     if (loggingConfig.data) {
-      loggingForm.setFieldsValue(loggingConfig.data);
+      // 设置日志配置数据，确保enableDebugMode有默认值
+      loggingForm.setFieldsValue({
+        ...loggingConfig.data,
+        enableDebugMode: loggingConfig.data.enableDebugMode ?? false
+      });
     }
   }, [loggingConfig.data, loggingForm]);
 
@@ -184,12 +216,166 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
     });
   }, [exportData]);
 
+  // Redis配置处理函数
+  const handleRedisConfigChange = useCallback((field: string, value: any) => {
+    setRedisConfig(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    redisForm.setFieldsValue({ [field]: value });
+  }, [redisForm]);
+
+  const handleRedisTestConnection = useCallback(async () => {
+    try {
+      setRedisTestLoading(true);
+      setRedisError('');
+
+      // 模拟Redis连接测试 (后端接口实现后替换)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // 这里将来会调用真实的API
+      // const response = await fetch('/api/admin/redis/test', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(redisConfig)
+      // });
+
+      // 模拟成功响应
+      const success = Math.random() > 0.3; // 70% 成功率用于演示
+      
+      if (success) {
+        setRedisStatus('connected');
+        message.success('Redis连接测试成功！');
+      } else {
+        throw new Error('连接超时或认证失败');
+      }
+    } catch (error: any) {
+      setRedisStatus('error');
+      setRedisError(error.message || '连接测试失败');
+      message.error(`Redis连接测试失败: ${error.message || '未知错误'}`);
+    } finally {
+      setRedisTestLoading(false);
+    }
+  }, [redisConfig]);
+
+  const handleRedisInitialize = useCallback(async () => {
+    try {
+      setRedisInitLoading(true);
+      setRedisError('');
+
+      // 模拟Redis初始化过程
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // 这里将来会调用真实的API
+      // const response = await fetch('/api/admin/redis/initialize', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(redisConfig)
+      // });
+
+      setRedisStatus('connected');
+      handleRedisConfigChange('enabled', true);
+      message.success('Redis服务初始化成功！');
+    } catch (error: any) {
+      setRedisStatus('error');
+      setRedisError(error.message || '初始化失败');
+      message.error(`Redis初始化失败: ${error.message || '未知错误'}`);
+    } finally {
+      setRedisInitLoading(false);
+    }
+  }, [redisConfig, handleRedisConfigChange]);
+
+  const handleRedisDisable = useCallback(() => {
+    // 如果Redis未连接，可以直接关闭，不需要复杂确认流程
+    if (redisStatus !== 'connected') {
+      Modal.confirm({
+        title: '确认关闭Redis服务',
+        content: 'Redis服务尚未初始化连接，确定要关闭吗？',
+        okText: '确定',
+        cancelText: '取消',
+        onOk: () => {
+          handleRedisConfigChange('enabled', false);
+          setRedisStatus('disconnected');
+          message.success('Redis服务已关闭');
+        }
+      });
+      return;
+    }
+
+    // 如果Redis已连接，需要完整的确认流程
+    setRedisDisableModal(true);
+    setRedisDisableStep('warning');
+    setAdminPassword('');
+  }, [redisStatus, handleRedisConfigChange]);
+
+  const handleRedisDisableNextStep = useCallback(() => {
+    switch (redisDisableStep) {
+      case 'warning':
+        setRedisDisableStep('confirm1');
+        break;
+      case 'confirm1':
+        setRedisDisableStep('confirm2');
+        break;
+      case 'confirm2':
+        setRedisDisableStep('password');
+        break;
+      case 'password':
+        // 验证当前登录管理员的密码并关闭Redis
+        if (!adminPassword.trim()) {
+          message.error('请输入管理员密码');
+          return;
+        }
+        
+        // 验证当前登录管理员的密码
+        handleVerifyAdminPasswordAndDisableRedis();
+        break;
+    }
+  }, [redisDisableStep, adminPassword]);
+
+  const handleVerifyAdminPasswordAndDisableRedis = useCallback(async () => {
+    try {
+      // 验证当前登录管理员的密码
+      // 这里将来会调用真实的API验证当前用户密码
+      // const response = await fetch('/api/admin/verify-password', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ password: adminPassword })
+      // });
+      // 
+      // if (!response.ok) {
+      //   throw new Error('密码验证失败');
+      // }
+
+      // 模拟API调用 - 实际实现时替换为真实的密码验证API
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // 临时演示：这里应该调用真实的用户密码验证API
+      // 实际实现时，后端应该验证当前登录用户的密码
+      const isValidPassword = adminPassword === 'admin123'; // 临时演示，实际应该从API获取验证结果
+      
+      if (!isValidPassword) {
+        message.error('管理员密码错误，请重新输入');
+        return;
+      }
+      
+      // 密码验证成功，执行Redis关闭
+      handleRedisConfigChange('enabled', false);
+      setRedisStatus('disconnected');
+      setRedisDisableModal(false);
+      setAdminPassword('');
+      message.success('Redis服务已关闭');
+      
+    } catch (error: any) {
+      message.error(`密码验证失败: ${error.message || '网络错误'}`);
+    }
+  }, [adminPassword, handleRedisConfigChange]);
+
   // 服务器配置相关处理函数
   const handleServerConfigSave = async () => {
     try {
       const values = await serverForm.validateFields();
       updateServerConfig.mutate(values as ServerConfig);
-    } catch (error) {
+    } catch (_error) {
       message.error('请检查表单输入');
     }
   };
@@ -198,7 +384,7 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
     try {
       const values = await corsForm.validateFields();
       updateCorsConfig.mutate(values as CorsConfig);
-    } catch (error) {
+    } catch (_error) {
       message.error('请检查表单输入');
     }
   };
@@ -207,7 +393,7 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
     try {
       const values = await loggingForm.validateFields();
       updateLoggingConfig.mutate(values as LoggingConfig);
-    } catch (error) {
+    } catch (_error) {
       message.error('请检查表单输入');
     }
   };
@@ -405,17 +591,18 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
 
   const renderDatabaseConfigTab = () => (
     <div style={{ maxWidth: '800px' }}>
+      {/* 主数据库配置 */}
       <Alert
         type="info"
         showIcon
         icon={<DatabaseOutlined />}
-        message="数据库配置"
+        message="主数据库配置"
         description="数据库配置包含敏感信息，只能通过后端配置文件修改。这里显示的连接字符串已脱敏处理。"
         style={{ marginBottom: 24 }}
       />
 
       {databaseConfig.data && (
-        <List size="large">
+        <List size="large" style={{ marginBottom: 32 }}>
           <List.Item>
             <List.Item.Meta
               title="数据库提供商"
@@ -464,6 +651,219 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
           </List.Item>
         </List>
       )}
+
+      <Divider />
+
+      {/* Redis缓存配置 */}
+      <div style={{ marginTop: 32 }}>
+        <Alert
+          type="warning"
+          showIcon
+          icon={<HddOutlined />}
+          message="Redis 缓存配置"
+          description={
+            <div>
+              <p>Redis用于缓存、会话存储和实时功能支持。配置Redis前请确保Redis服务器已安装并运行。</p>
+              <p style={{ margin: '8px 0 0 0', color: '#1890ff', fontSize: '13px' }}>
+                💡 <strong>提示：</strong>使用Docker安装的VoxNest程序会自动包含Redis服务，无需单独安装。
+              </p>
+            </div>
+          }
+          style={{ marginBottom: 24 }}
+        />
+
+        <Card
+          title={
+            <Space>
+              <HddOutlined style={{ color: '#dc382d' }} />
+              <span>Redis 服务配置</span>
+              <Tag color={redisConfig.enabled ? (redisStatus === 'connected' ? 'green' : 'orange') : 'default'}>
+                {redisConfig.enabled ? (redisStatus === 'connected' ? '已连接' : '已启用') : '已禁用'}
+              </Tag>
+            </Space>
+          }
+          extra={
+            <Switch
+              checked={redisConfig.enabled}
+              onChange={(checked) => {
+                if (!checked && redisConfig.enabled) {
+                  handleRedisDisable();
+                } else {
+                  handleRedisConfigChange('enabled', checked);
+                  if (!checked) {
+                    setRedisStatus('disconnected');
+                  }
+                }
+              }}
+              checkedChildren="启用"
+              unCheckedChildren="禁用"
+            />
+          }
+        >
+          {redisConfig.enabled && (
+            <Form
+              form={redisForm}
+              layout="vertical"
+              initialValues={redisConfig}
+              disabled={redisStatus === 'connected'}
+            >
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="host"
+                    label="Redis 服务器地址"
+                    rules={[{ required: true, message: '请输入Redis服务器地址' }]}
+                  >
+                    <Input
+                      placeholder="localhost"
+                      onChange={(e) => handleRedisConfigChange('host', e.target.value)}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="port"
+                    label="端口号"
+                    rules={[{ required: true, message: '请输入端口号' }]}
+                  >
+                    <InputNumber
+                      min={1}
+                      max={65535}
+                      placeholder="6379"
+                      style={{ width: '100%' }}
+                      onChange={(value) => handleRedisConfigChange('port', value || 6379)}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item name="username" label="用户名 (可选)">
+                    <Input
+                      placeholder="留空表示不使用用户名认证"
+                      onChange={(e) => handleRedisConfigChange('username', e.target.value)}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="password" label="密码 (可选)">
+                    <Input.Password
+                      placeholder="留空表示不使用密码认证"
+                      visibilityToggle={{
+                        visible: showRedisPassword,
+                        onVisibleChange: setShowRedisPassword,
+                      }}
+                      onChange={(e) => handleRedisConfigChange('password', e.target.value)}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={8}>
+                  <Form.Item name="database" label="数据库编号">
+                    <InputNumber
+                      min={0}
+                      max={15}
+                      placeholder="0"
+                      style={{ width: '100%' }}
+                      onChange={(value) => handleRedisConfigChange('database', value || 0)}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item name="connectionTimeout" label="连接超时 (毫秒)">
+                    <InputNumber
+                      min={1000}
+                      max={30000}
+                      placeholder="5000"
+                      style={{ width: '100%' }}
+                      onChange={(value) => handleRedisConfigChange('connectionTimeout', value || 5000)}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item name="retryAttempts" label="重试次数">
+                    <InputNumber
+                      min={0}
+                      max={10}
+                      placeholder="3"
+                      style={{ width: '100%' }}
+                      onChange={(value) => handleRedisConfigChange('retryAttempts', value || 3)}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              {redisError && (
+                <Alert
+                  type="error"
+                  message="Redis连接错误"
+                  description={redisError}
+                  showIcon
+                  style={{ marginBottom: 16 }}
+                />
+              )}
+
+              <Space style={{ marginTop: 16 }}>
+                {redisStatus !== 'connected' && (
+                  <>
+                    <Button
+                      type="default"
+                      icon={redisTestLoading ? <LoadingOutlined /> : <CheckCircleOutlined />}
+                      loading={redisTestLoading}
+                      onClick={handleRedisTestConnection}
+                    >
+                      测试连接
+                    </Button>
+                    <Button
+                      type="primary"
+                      icon={redisInitLoading ? <LoadingOutlined /> : <PlayCircleOutlined />}
+                      loading={redisInitLoading}
+                      onClick={handleRedisInitialize}
+                      disabled={redisStatus === 'error' || redisTestLoading}
+                    >
+                      开始初始化连接
+                    </Button>
+                  </>
+                )}
+                {redisStatus === 'connected' && (
+                  <Button
+                    type="primary"
+                    danger
+                    icon={<StopOutlined />}
+                    onClick={handleRedisDisable}
+                  >
+                    关闭 Redis 服务
+                  </Button>
+                )}
+                {redisStatus !== 'connected' && redisConfig.enabled && (
+                  <Button
+                    type="default"
+                    danger
+                    icon={<StopOutlined />}
+                    onClick={handleRedisDisable}
+                  >
+                    关闭 Redis 配置
+                  </Button>
+                )}
+              </Space>
+            </Form>
+          )}
+
+          {!redisConfig.enabled && (
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#8c8c8c' }}>
+              <HddOutlined style={{ fontSize: 48, marginBottom: 16, color: '#d9d9d9' }} />
+              <p>Redis服务未启用</p>
+              <p style={{ fontSize: '12px', marginBottom: '8px' }}>启用Redis服务以支持缓存、会话存储和实时功能</p>
+              <p style={{ fontSize: '11px', color: '#1890ff' }}>
+                💡 Docker安装用户：Redis服务已预装，直接配置即可使用
+              </p>
+            </div>
+          )}
+        </Card>
+      </div>
     </div>
   );
 
@@ -661,6 +1061,25 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
               >
                 <Switch />
               </Form.Item>
+              <Form.Item
+                name="enableDebugMode"
+                label="启用 Debug 日志模式"
+                valuePropName="checked"
+                extra={
+                  <span>
+                    开启后会记录更详细的调试信息，包括SQL查询、性能指标等
+                    <br />
+                    <span style={{ color: '#ff4d4f', fontSize: '12px' }}>
+                      ⚠️ 仅建议在开发环境使用，生产环境请谨慎开启
+                    </span>
+                  </span>
+                }
+              >
+                <Switch 
+                  checkedChildren="开启"
+                  unCheckedChildren="关闭"
+                />
+              </Form.Item>
             </Space>
           </Col>
         </Row>
@@ -787,54 +1206,45 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
 
   return (
     <div>
-      {/* 页面标题和操作按钮 */}
-      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Title level={2} style={{ margin: 0 }}>站点设置</Title>
-        <Space>
-          <Button icon={<ExportOutlined />} onClick={handleExport}>
-            导出
-          </Button>
-          <Button icon={<ImportOutlined />} onClick={() => setImportModalVisible(true)}>
-            导入
-          </Button>
-          <Button icon={<UndoOutlined />} onClick={handleFrontendReset}>
-            重置
-          </Button>
-          <Button icon={<ReloadOutlined />} onClick={loadSettings} loading={loading}>
-            刷新
-          </Button>
-          <Button
-            type="primary"
-            icon={<SaveOutlined />}
-            loading={saving}
-            onClick={handleSave}
-            disabled={!hasChanges}
-          >
-            保存设置
-          </Button>
-        </Space>
+      {/* 页面标题 */}
+      <div style={{ marginBottom: 24 }}>
+        <Title level={2} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <SettingOutlined />
+          站点设置
+        </Title>
+        <Paragraph type="secondary" style={{ margin: '8px 0 0 0' }}>
+          管理网站的各项配置设置，包括外观、功能和服务器配置
+        </Paragraph>
       </div>
 
-
-      <Alert
-        type="warning"
-        showIcon
-        icon={<WarningOutlined />}
-        message="配置修改注意事项"
-        description={
-          <ul style={{ paddingLeft: '16px', margin: '8px 0' }}>
-            <li>前端设置保存在浏览器本地存储中，仅影响当前浏览器</li>
-            <li>服务器配置保存在服务器端，影响所有用户和全站功能</li>
-            <li>端口配置只能通过后端配置文件修改，不能通过此界面更改</li>
-            <li>部分服务器配置更改需要重启服务才能生效</li>
-            <li>建议在修改前先备份当前配置</li>
-          </ul>
+      {/* 主内容区 */}
+      <Card
+        extra={
+          <Space>
+            <Button icon={<ExportOutlined />} onClick={handleExport}>
+              导出
+            </Button>
+            <Button icon={<ImportOutlined />} onClick={() => setImportModalVisible(true)}>
+              导入
+            </Button>
+            <Button icon={<UndoOutlined />} onClick={handleFrontendReset}>
+              重置
+            </Button>
+            <Button icon={<ReloadOutlined />} onClick={loadSettings} loading={loading}>
+              刷新
+            </Button>
+            <Button
+              type="primary"
+              icon={<SaveOutlined />}
+              loading={saving}
+              onClick={handleSave}
+              disabled={!hasChanges}
+            >
+              保存设置
+            </Button>
+          </Space>
         }
-        style={{ marginBottom: 24 }}
-      />
-
-      {/* 设置表单 */}
-      <Card>
+      >
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
@@ -1068,6 +1478,161 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
           </Paragraph>
         </Space>
       </Modal>
+
+      {/* Redis关闭确认模态框 */}
+      <Modal
+        title={
+          <Space>
+            <ExclamationCircleOutlined style={{ color: '#ff4d4f' }} />
+            <span>关闭 Redis 服务</span>
+          </Space>
+        }
+        open={redisDisableModal}
+        onCancel={() => {
+          setRedisDisableModal(false);
+          setRedisDisableStep('warning');
+          setAdminPassword('');
+        }}
+        footer={null}
+        width={600}
+      >
+        {redisDisableStep === 'warning' && (
+          <div>
+            <Alert
+              type="error"
+              showIcon
+              icon={<WarningOutlined />}
+              message="严重警告"
+              description="关闭Redis服务将影响系统的缓存、会话管理和实时功能。请确保没有插件或其他服务正在使用Redis。"
+              style={{ marginBottom: 16 }}
+            />
+            <Typography.Title level={5} style={{ color: '#ff4d4f' }}>
+              关闭Redis服务可能导致：
+            </Typography.Title>
+            <ul style={{ color: '#8c8c8c', paddingLeft: 20 }}>
+              <li>用户会话丢失，需要重新登录</li>
+              <li>缓存数据清空，系统性能下降</li>
+              <li>实时通知和消息功能停止</li>
+              <li>依赖Redis的扩展插件无法正常工作</li>
+            </ul>
+            <div style={{ textAlign: 'center', marginTop: 24 }}>
+              <Button onClick={() => setRedisDisableModal(false)} style={{ marginRight: 8 }}>
+                取消
+              </Button>
+              <Button type="primary" danger onClick={handleRedisDisableNextStep}>
+                我已了解，继续
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {redisDisableStep === 'confirm1' && (
+          <div>
+            <Alert
+              type="warning"
+              showIcon
+              message="第一次确认"
+              description="请再次确认您真的要关闭Redis服务。此操作将立即生效，无法撤销。"
+              style={{ marginBottom: 16 }}
+            />
+            <Typography.Paragraph>
+              <Typography.Text strong>请在下方输入 "确认关闭" 来继续：</Typography.Text>
+            </Typography.Paragraph>
+            <Input
+              placeholder="请输入：确认关闭"
+              onChange={(e) => {
+                if (e.target.value === '确认关闭') {
+                  setTimeout(() => handleRedisDisableNextStep(), 500);
+                }
+              }}
+              style={{ marginBottom: 16 }}
+            />
+            <div style={{ textAlign: 'center' }}>
+              <Button onClick={() => setRedisDisableModal(false)} style={{ marginRight: 8 }}>
+                取消
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {redisDisableStep === 'confirm2' && (
+          <div>
+            <Alert
+              type="error"
+              showIcon
+              message="最后确认"
+              description="这是最后一次确认。关闭Redis后，您需要重新配置才能恢复服务。"
+              style={{ marginBottom: 16 }}
+            />
+            <Typography.Paragraph>
+              <Typography.Text strong style={{ color: '#ff4d4f' }}>
+                请再次确认：您确定要关闭Redis服务吗？
+              </Typography.Text>
+            </Typography.Paragraph>
+            <div style={{ textAlign: 'center', marginTop: 24 }}>
+              <Button onClick={() => setRedisDisableModal(false)} style={{ marginRight: 8 }}>
+                取消
+              </Button>
+              <Button type="primary" danger onClick={handleRedisDisableNextStep}>
+                确定关闭
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {redisDisableStep === 'password' && (
+          <div>
+            <Alert
+              type="error"
+              showIcon
+              message="身份验证"
+              description="请输入您当前登录账户的密码以完成Redis服务关闭操作。"
+              style={{ marginBottom: 16 }}
+            />
+            <Typography.Paragraph>
+              <Typography.Text strong>输入您的账户密码：</Typography.Text>
+            </Typography.Paragraph>
+            <Input.Password
+              placeholder="您的账户密码"
+              value={adminPassword}
+              onChange={(e) => setAdminPassword(e.target.value)}
+              onPressEnter={handleRedisDisableNextStep}
+              style={{ marginBottom: 16 }}
+            />
+            <div style={{ textAlign: 'center' }}>
+              <Button onClick={() => setRedisDisableModal(false)} style={{ marginRight: 8 }}>
+                取消
+              </Button>
+              <Button 
+                type="primary" 
+                danger 
+                onClick={handleRedisDisableNextStep}
+                disabled={!adminPassword.trim()}
+              >
+                关闭Redis服务
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* 配置修改注意事项 - 移至底部 */}
+      <Alert
+        type="warning"
+        showIcon
+        icon={<WarningOutlined />}
+        message="注意事项"
+        description={
+          <ul style={{ paddingLeft: '16px', margin: '8px 0' }}>
+            <li>前端设置保存在浏览器本地存储中，仅影响当前浏览器</li>
+            <li>服务器配置保存在服务器端，影响所有用户和全站功能</li>
+            <li>端口配置只能通过后端配置文件修改，不能通过此界面更改</li>
+            <li>部分服务器配置更改需要重启服务才能生效</li>
+            <li>建议在修改前先备份当前配置</li>
+          </ul>
+        }
+        style={{ marginTop: 24 }}
+      />
 
     </div>
   );

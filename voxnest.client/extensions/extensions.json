@@ -2,8 +2,8 @@
   "meta": {
     "version": "1.0.0",
     "description": "VoxNest \u7EDF\u4E00\u6269\u5C55\u6E05\u5355",
-    "lastUpdated": "2025-09-16T06:29:13.6766659Z",
-    "totalExtensions": 2
+    "lastUpdated": "2025-09-16T21:27:57.7153501Z",
+    "totalExtensions": 3
   },
   "extensions": [
     {
@@ -43,7 +43,7 @@
       "type": "theme",
       "description": "\u667A\u80FD\u660E\u6697\u6A21\u5F0F\u4E3B\u9898\u5207\u6362\u5668\uFF0C\u652F\u6301\u7CFB\u7EDF\u504F\u597D\u68C0\u6D4B\u3001\u81EA\u52A8\u5207\u6362\u3001\u6E10\u53D8\u52A8\u753B\u548C\u4E2A\u6027\u5316\u5B9A\u5236",
       "author": "VoxNest Team",
-      "main": "ThemeToggle.tsx",
+      "main": "DarkModeThemeIntegration.tsx",
       "enabled": true,
       "dependencies": [
         "react",
@@ -67,6 +67,34 @@
         "nav.user",
         "overlay.root",
         "admin.sidebar"
+      ]
+    },
+    {
+      "id": "back-to-top",
+      "name": "\u56DE\u5230\u9876\u90E8",
+      "version": "1.0.0",
+      "type": "plugin",
+      "description": "\u667A\u80FD\u56DE\u5230\u9876\u90E8\u6309\u94AE\uFF0C\u5F53\u9875\u9762\u5411\u4E0B\u6EDA\u52A8\u65F6\u5728\u53F3\u4E0B\u89D2\u663E\u793A\u8FD4\u56DE\u9876\u90E8\u6309\u94AE\uFF0C\u652F\u6301\u5E73\u6ED1\u6EDA\u52A8\u548C\u81EA\u5B9A\u4E49\u6837\u5F0F",
+      "author": "VoxNest Team",
+      "main": "BackToTopIntegration.tsx",
+      "enabled": true,
+      "dependencies": [
+        "react",
+        "antd"
+      ],
+      "permissions": [
+        "dom.scroll",
+        "dom.events"
+      ],
+      "tags": [
+        "navigation",
+        "scroll",
+        "ui",
+        "accessibility",
+        "ux"
+      ],
+      "slots": [
+        "overlay.root"
       ]
     }
   ]

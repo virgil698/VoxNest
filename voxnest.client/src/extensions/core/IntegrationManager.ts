@@ -49,7 +49,7 @@ export class EnhancedIntegrationManager implements IntegrationManager {
 
   async executeHook<T extends keyof IntegrationHooks>(
     hook: T,
-    context?: IntegrationContext
+    context?: IntegrationContext | (IntegrationContext & Record<string, unknown>)
   ): Promise<void> {
     const hookContext = context || this.context;
     const promises: Promise<void>[] = [];
@@ -59,7 +59,7 @@ export class EnhancedIntegrationManager implements IntegrationManager {
     for (const integration of this.integrations.values()) {
       if (integration.hooks?.[hook]) {
         try {
-          const result = integration.hooks[hook]!(hookContext);
+          const result = integration.hooks[hook]!(hookContext as any);
           if (result && typeof result.then === 'function') {
             promises.push(result as Promise<void>);
           }
@@ -87,7 +87,7 @@ export class EnhancedIntegrationManager implements IntegrationManager {
     for (const hook of hooks) {
       if (integration.hooks?.[hook]) {
         try {
-          const result = integration.hooks[hook]!(this.context);
+          const result = integration.hooks[hook]!(this.context as any);
           if (result && typeof result.then === 'function') {
             await result;
           }
@@ -118,7 +118,12 @@ export class EnhancedIntegrationManager implements IntegrationManager {
       'components:ready',
       'app:start',
       'app:started',
-      'app:destroy'
+      'app:destroy',
+      'page:beforeLoad',
+      'page:afterLoad',
+      'route:change',
+      'auth:change',
+      'theme:change'
     ];
 
     hookNames.forEach(hook => {
@@ -146,7 +151,7 @@ export class EnhancedIntegrationManager implements IntegrationManager {
       // 执行销毁钩子
       if (integration.hooks?.['app:destroy']) {
         try {
-          const result = integration.hooks['app:destroy'](this.context);
+          const result = integration.hooks['app:destroy'](this.context as any);
           if (result && typeof result.then === 'function') {
             result.catch(error => 
               this.logger.error(`Error in destroy hook for integration "${name}":`, error)

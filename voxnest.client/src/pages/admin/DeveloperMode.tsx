@@ -5,10 +5,12 @@ import {
   ThunderboltOutlined, 
   SettingOutlined,
   InfoCircleOutlined,
-  CodeOutlined
+  CodeOutlined,
+  ExperimentOutlined
 } from '@ant-design/icons';
 import { useDeveloperMode } from '../../hooks/useDeveloperMode';
 import HotReloadPanel from '../../components/dev/HotReloadPanel';
+import { getFrameworkStats } from '../../extensions';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -28,40 +30,51 @@ const DeveloperMode: React.FC = () => {
   if (!isDeveloperModeAvailable) {
     return (
       <div>
-        <Title level={2}>开发者模式</Title>
-        <Alert
-          type="warning"
-          message="开发者模式不可用"
-          description={
-            <div>
-              <p>要启用开发者模式，需要满足以下条件：</p>
-              <ul>
-                <li>在站点设置中启用开发者模式</li>
-                <li>具有管理员权限，或者在开发环境下运行</li>
-              </ul>
-              <p>
-                当前状态: {isAdmin ? '管理员' : '非管理员'} | {isDevelopment ? '开发环境' : '生产环境'}
-              </p>
-            </div>
-          }
-          showIcon
-          style={{ marginTop: '24px' }}
-        />
+        {/* 页面标题 */}
+        <div style={{ marginBottom: 24 }}>
+          <Title level={2} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <ExperimentOutlined />
+            开发者模式
+          </Title>
+          <Paragraph type="secondary" style={{ margin: '8px 0 0 0' }}>
+            扩展开发和调试工具集合，帮助开发者更好地构建和维护 VoxNest 扩展
+          </Paragraph>
+        </div>
+
+        <Card>
+          <Alert
+            type="warning"
+            message="开发者模式不可用"
+            description={
+              <div>
+                <p>要启用开发者模式，需要满足以下条件：</p>
+                <ul>
+                  <li>在站点设置中启用开发者模式</li>
+                  <li>具有管理员权限，或者在开发环境下运行</li>
+                </ul>
+                <p>
+                  当前状态: {isAdmin ? '管理员' : '非管理员'} | {isDevelopment ? '开发环境' : '生产环境'}
+                </p>
+              </div>
+            }
+            showIcon
+          />
+        </Card>
       </div>
     );
   }
 
   // 获取框架状态
-  const getFrameworkStats = () => {
+  const getFrameworkStatsData = () => {
     try {
-      const framework = (window as any).__VoxNestExtensions?.getFramework?.();
-      return framework ? framework.getStats?.() : null;
-    } catch {
+      return getFrameworkStats();
+    } catch (error) {
+      console.error('获取框架统计失败:', error);
       return null;
     }
   };
 
-  const frameworkStats = getFrameworkStats();
+  const frameworkStats = getFrameworkStatsData();
 
   const tabItems = [
     // 扩展热重载
@@ -413,19 +426,26 @@ const DeveloperMode: React.FC = () => {
 
   return (
     <div>
-      <div style={{ marginBottom: '24px' }}>
-        <Title level={2}>开发者模式</Title>
-        <Paragraph type="secondary">
-          扩展开发和调试工具集合，帮助开发者更好地构建和维护 VoxNest 扩展。
+      {/* 页面标题 */}
+      <div style={{ marginBottom: 24 }}>
+        <Title level={2} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <ExperimentOutlined />
+          开发者模式
+        </Title>
+        <Paragraph type="secondary" style={{ margin: '8px 0 0 0' }}>
+          扩展开发和调试工具集合，帮助开发者更好地构建和维护 VoxNest 扩展
         </Paragraph>
       </div>
 
-      <Tabs
-        activeKey={activeTab}
-        onChange={setActiveTab}
-        items={tabItems}
-        size="large"
-      />
+      {/* 主内容区 */}
+      <Card>
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          items={tabItems}
+          size="large"
+        />
+      </Card>
     </div>
   );
 };

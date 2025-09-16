@@ -21,13 +21,14 @@ import {
   EyeOutlined,
   ReloadOutlined,
   TagsOutlined,
+  DashboardOutlined,
 } from '@ant-design/icons';
 import { AdminApi } from '../../api/admin';
 import type { SiteOverview, SystemInfo, UserActivity, PostActivity } from '../../api/admin';
 import { useLogger } from '../../hooks/useLogger';
 import dayjs from 'dayjs';
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 
 const Dashboard: React.FC = () => {
   const [overview, setOverview] = useState<SiteOverview | null>(null);
@@ -181,15 +182,18 @@ const Dashboard: React.FC = () => {
   return (
     <div>
       {/* 页面标题 */}
-      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Title level={2} style={{ margin: 0 }}>概览面板</Title>
-        <Button icon={<ReloadOutlined />} onClick={() => { startTransition(() => { setLoading(true); }); loadOverview(); }}>
-          刷新数据
-        </Button>
+      <div style={{ marginBottom: 24 }}>
+        <Title level={2} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <DashboardOutlined />
+          概览面板
+        </Title>
+        <Paragraph type="secondary" style={{ margin: '8px 0 0 0' }}>
+          查看网站整体运营数据、系统状态和用户活动概况
+        </Paragraph>
       </div>
 
       {/* 统计卡片 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
@@ -258,163 +262,177 @@ const Dashboard: React.FC = () => {
         </Col>
       </Row>
 
-      {/* 主要内容区域 */}
-      <Row gutter={[16, 16]}>
-        {/* 左列 */}
-        <Col xs={24} lg={16}>
-          {/* 最近7天数据 */}
-          <Card title="最近7天数据" style={{ marginBottom: '16px' }}>
-            <Table
-              dataSource={getChartData()}
-              columns={chartColumns}
-              pagination={false}
-              size="small"
-            />
-          </Card>
-
-          {/* 分类统计 */}
-          <Card title="分类分布" style={{ marginBottom: '16px' }}>
-            <Row gutter={16}>
-              {Object.entries(overview.postStats.categoryDistribution).map(([category, count]) => (
-                <Col span={8} key={category} style={{ marginBottom: '12px' }}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff' }}>
-                      {count}
-                    </div>
-                    <div style={{ fontSize: '14px', color: '#666' }}>
-                      {category}
-                    </div>
-                  </div>
-                </Col>
-              ))}
-            </Row>
-          </Card>
-
-          {/* 热门标签 */}
-          <Card title="热门标签">
-            <Space wrap>
-              {Object.entries(overview.postStats.popularTags).map(([tag, count]) => (
-                <Tag key={tag} color="blue">
-                  <TagsOutlined /> {tag} ({count})
-                </Tag>
-              ))}
-            </Space>
-          </Card>
-        </Col>
-
-        {/* 右列 */}
-        <Col xs={24} lg={8}>
-          {/* 系统信息 */}
-          <Card 
-            title="系统信息" 
-            style={{ marginBottom: '16px' }}
-            loading={systemInfoLoading}
-            extra={
-              <Button 
-                type="text" 
-                icon={<ReloadOutlined />} 
-                onClick={loadSystemInfo}
-                size="small"
-                title="刷新系统信息"
-              />
-            }
+      {/* 主内容区 */}
+      <Card
+        extra={
+          <Button 
+            icon={<ReloadOutlined />} 
+            onClick={() => { 
+              startTransition(() => { setLoading(true); }); 
+              loadOverview(); 
+            }}
           >
-            {systemInfo ? (
-              <Space direction="vertical" style={{ width: '100%' }}>
-                <div>
-                  <Text strong>运行时间：</Text>
-                  <Text>{formatUptime(systemInfo.uptime)}</Text>
-                </div>
-                <div>
-                  <Text strong>内存使用：</Text>
-                  <Text>{formatBytes(systemInfo.memoryUsage)} / {formatBytes(systemInfo.totalMemory)}</Text>
-                </div>
-                <div>
-                  <Text strong>数据库大小：</Text>
-                  <Text>{formatBytes(systemInfo.databaseSize)}</Text>
-                </div>
-                <div>
-                  <Text strong>存储使用：</Text>
-                  <Progress
-                    percent={Math.round(systemInfo.storageUsagePercent)}
+            刷新数据
+          </Button>
+        }
+      >
+          <Row gutter={[16, 16]}>
+            {/* 左列 */}
+            <Col xs={24} lg={16}>
+              {/* 最近7天数据 */}
+              <Card title="最近7天数据" style={{ marginBottom: 16 }}>
+                <Table
+                  dataSource={getChartData()}
+                  columns={chartColumns}
+                  pagination={false}
+                  size="small"
+                />
+              </Card>
+
+              {/* 分类统计 */}
+              <Card title="分类分布" style={{ marginBottom: 16 }}>
+                <Row gutter={16}>
+                  {Object.entries(overview.postStats.categoryDistribution).map(([category, count]) => (
+                    <Col span={8} key={category} style={{ marginBottom: 12 }}>
+                      <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff' }}>
+                          {count}
+                        </div>
+                        <div style={{ fontSize: '14px', color: '#666' }}>
+                          {category}
+                        </div>
+                      </div>
+                    </Col>
+                  ))}
+                </Row>
+              </Card>
+
+              {/* 热门标签 */}
+              <Card title="热门标签">
+                <Space wrap>
+                  {Object.entries(overview.postStats.popularTags).map(([tag, count]) => (
+                    <Tag key={tag} color="blue">
+                      <TagsOutlined /> {tag} ({count})
+                    </Tag>
+                  ))}
+                </Space>
+              </Card>
+            </Col>
+
+            {/* 右列 */}
+            <Col xs={24} lg={8}>
+              {/* 系统信息 */}
+              <Card 
+                title="系统信息" 
+                style={{ marginBottom: 16 }}
+                loading={systemInfoLoading}
+                extra={
+                  <Button 
+                    type="text" 
+                    icon={<ReloadOutlined />} 
+                    onClick={loadSystemInfo}
                     size="small"
-                    format={(percent?: number) => `${percent}%`}
+                    title="刷新系统信息"
                   />
-                  <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                    {formatBytes(systemInfo.usedStorage)} / {formatBytes(systemInfo.totalStorage)}
+                }
+              >
+                {systemInfo ? (
+                  <Space direction="vertical" style={{ width: '100%' }}>
+                    <div>
+                      <Text strong>运行时间：</Text>
+                      <Text>{formatUptime(systemInfo.uptime)}</Text>
+                    </div>
+                    <div>
+                      <Text strong>内存使用：</Text>
+                      <Text>{formatBytes(systemInfo.memoryUsage)} / {formatBytes(systemInfo.totalMemory)}</Text>
+                    </div>
+                    <div>
+                      <Text strong>数据库大小：</Text>
+                      <Text>{formatBytes(systemInfo.databaseSize)}</Text>
+                    </div>
+                    <div>
+                      <Text strong>存储使用：</Text>
+                      <Progress
+                        percent={Math.round(systemInfo.storageUsagePercent)}
+                        size="small"
+                        format={(percent?: number) => `${percent}%`}
+                      />
+                      <div style={{ fontSize: '12px', color: '#666', marginTop: 4 }}>
+                        {formatBytes(systemInfo.usedStorage)} / {formatBytes(systemInfo.totalStorage)}
+                      </div>
+                    </div>
+                    <div>
+                      <Text strong>操作系统：</Text>
+                      <Text style={{ fontSize: '12px' }}>{systemInfo.operatingSystem}</Text>
+                    </div>
+                    <div>
+                      <Text strong>.NET版本：</Text>
+                      <Text>{systemInfo.dotNetVersion}</Text>
+                    </div>
+                  </Space>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: 20 }}>
+                    <Text type="secondary">无法获取系统信息</Text>
                   </div>
-                </div>
-                <div>
-                  <Text strong>操作系统：</Text>
-                  <Text style={{ fontSize: '12px' }}>{systemInfo.operatingSystem}</Text>
-                </div>
-                <div>
-                  <Text strong>.NET版本：</Text>
-                  <Text>{systemInfo.dotNetVersion}</Text>
-                </div>
-              </Space>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '20px' }}>
-                <Text type="secondary">无法获取系统信息</Text>
-              </div>
-            )}
-          </Card>
+                )}
+              </Card>
 
-          {/* 最近用户注册 */}
-          <Card title="最近注册用户" style={{ marginBottom: '16px' }}>
-            <List
-              size="small"
-              dataSource={overview.recentActivity.recentRegistrations}
-              renderItem={(user: UserActivity) => (
-                <List.Item>
-                  <div style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Text strong>{user.username}</Text>
-                      <Tag color={user.status === 'Active' ? 'green' : 'orange'}>
-                        {user.status}
-                      </Tag>
-                    </div>
-                    <Text type="secondary" style={{ fontSize: '12px' }}>
-                      {dayjs(user.createdAt).format('MM-DD HH:mm')}
-                    </Text>
-                  </div>
-                </List.Item>
-              )}
-            />
-          </Card>
+              {/* 最近用户注册 */}
+              <Card title="最近注册用户" style={{ marginBottom: 16 }}>
+                <List
+                  size="small"
+                  dataSource={overview.recentActivity.recentRegistrations}
+                  renderItem={(user: UserActivity) => (
+                    <List.Item>
+                      <div style={{ width: '100%' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Text strong>{user.username}</Text>
+                          <Tag color={user.status === 'Active' ? 'green' : 'orange'}>
+                            {user.status}
+                          </Tag>
+                        </div>
+                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                          {dayjs(user.createdAt).format('MM-DD HH:mm')}
+                        </Text>
+                      </div>
+                    </List.Item>
+                  )}
+                />
+              </Card>
 
-          {/* 最近帖子 */}
-          <Card title="最近帖子">
-            <List
-              size="small"
-              dataSource={overview.recentActivity.recentPosts}
-              renderItem={(post: PostActivity) => (
-                <List.Item>
-                  <div style={{ width: '100%' }}>
-                    <div style={{ marginBottom: '4px' }}>
-                      <Text strong ellipsis style={{ display: 'block' }}>
-                        {post.title}
-                      </Text>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Text type="secondary" style={{ fontSize: '12px' }}>
-                        {post.authorName} · {post.categoryName}
-                      </Text>
-                      <Text type="secondary" style={{ fontSize: '12px' }}>
-                        <EyeOutlined /> {post.viewCount}
-                      </Text>
-                    </div>
-                    <Text type="secondary" style={{ fontSize: '12px' }}>
-                      {dayjs(post.createdAt).format('MM-DD HH:mm')}
-                    </Text>
-                  </div>
-                </List.Item>
-              )}
-            />
-          </Card>
-        </Col>
-      </Row>
-    </div>
+              {/* 最近帖子 */}
+              <Card title="最近帖子">
+                <List
+                  size="small"
+                  dataSource={overview.recentActivity.recentPosts}
+                  renderItem={(post: PostActivity) => (
+                    <List.Item>
+                      <div style={{ width: '100%' }}>
+                        <div style={{ marginBottom: 4 }}>
+                          <Text strong ellipsis style={{ display: 'block' }}>
+                            {post.title}
+                          </Text>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Text type="secondary" style={{ fontSize: '12px' }}>
+                            {post.authorName} · {post.categoryName}
+                          </Text>
+                          <Text type="secondary" style={{ fontSize: '12px' }}>
+                            <EyeOutlined /> {post.viewCount}
+                          </Text>
+                        </div>
+                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                          {dayjs(post.createdAt).format('MM-DD HH:mm')}
+                        </Text>
+                      </div>
+                    </List.Item>
+                  )}
+                />
+              </Card>
+            </Col>
+          </Row>
+        </Card>
+      </div>
   );
 };
 

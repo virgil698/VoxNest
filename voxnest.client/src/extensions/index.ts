@@ -13,6 +13,7 @@ export type {
   IntegrationContext,
   ExtensionFramework,
   ComponentRegistration,
+  StyleInjection,
   SlotManager,
   IntegrationManager,
   Logger,
@@ -58,6 +59,24 @@ export {
   useConditionalRegistration,
   useDelayedRegistration,
 } from './react/hooks';
+
+// 钩子工具函数
+export {
+  triggerPageBeforeLoad,
+  triggerPageAfterLoad,
+  triggerRouteChange,
+  triggerAuthChange,
+  triggerThemeChange,
+  triggerHook,
+  triggerHooks,
+  getHookStats,
+  hasHookListeners,
+  refreshHookContext,
+  usePageHooks,
+  useRouteHooks,
+  useAuthHooks,
+  useThemeHooks,
+} from './core/HookUtils';
 
 // ==================== 内置集成 ====================
 

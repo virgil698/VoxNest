@@ -170,6 +170,7 @@ public class ServerConfigService : IServerConfigService
             Level = GetStringValue(loggingSection, "level") ?? "Information",
             EnableConsole = GetBoolValue(loggingSection, "enable_console") ?? true,
             EnableFile = GetBoolValue(loggingSection, "enable_file") ?? true,
+            EnableDebugMode = GetBoolValue(loggingSection, "enable_debug_mode") ?? false,
             FilePath = GetStringValue(loggingSection, "file_path") ?? "logs/voxnest.log",
             MaxFileSize = GetIntValue(loggingSection, "max_file_size") ?? 100,
             RetainedFileCount = GetIntValue(loggingSection, "retained_file_count") ?? 30
@@ -249,11 +250,39 @@ public class ServerConfigService : IServerConfigService
             level = config.Level,
             enable_console = config.EnableConsole,
             enable_file = config.EnableFile,
+            enable_debug_mode = config.EnableDebugMode,
             file_path = config.FilePath,
             max_file_size = config.MaxFileSize,
             retained_file_count = config.RetainedFileCount
         };
-        return await UpdateConfigSectionAsync("logging", loggingConfig);
+        
+        var result = await UpdateConfigSectionAsync("logging", loggingConfig);
+        
+        // 如果配置更新成功，通知Debug配置服务
+        if (result)
+        {
+            await NotifyDebugConfigurationChangeAsync(config.EnableDebugMode);
+        }
+        
+        return result;
+    }
+    
+    /// <summary>
+    /// 通知Debug配置变更
+    /// </summary>
+    private async Task NotifyDebugConfigurationChangeAsync(bool debugMode)
+    {
+        try
+        {
+            // 注意：这里需要从服务容器获取Debug配置服务
+            // 由于ServerConfigService是Scoped的，我们需要在控制器层面处理这个通知
+            _logger.LogInformation($"Debug模式配置已更新: {(debugMode ? "启用" : "关闭")}");
+            await Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "通知Debug配置变更时发生错误");
+        }
     }
 
     /// <summary>
@@ -599,6 +628,7 @@ public class ServerConfigService : IServerConfigService
                 Level = GetStringValue(loggingSection, "level") ?? "Information",
                 EnableConsole = GetBoolValue(loggingSection, "enable_console") ?? true,
                 EnableFile = GetBoolValue(loggingSection, "enable_file") ?? true,
+                EnableDebugMode = GetBoolValue(loggingSection, "enable_debug_mode") ?? false,
                 FilePath = GetStringValue(loggingSection, "file_path") ?? "logs/voxnest.log",
                 MaxFileSize = GetIntValue(loggingSection, "max_file_size") ?? 100,
                 RetainedFileCount = GetIntValue(loggingSection, "retained_file_count") ?? 30

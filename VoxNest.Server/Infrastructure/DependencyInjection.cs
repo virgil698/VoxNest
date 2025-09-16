@@ -69,6 +69,8 @@ public static class DependencyInjection
         
         // 注册基础设施服务
         services.AddScoped<IDatabasePerformanceService, DatabasePerformanceService>();
+        services.AddScoped<IDebugPerformanceService, DebugPerformanceService>();
+        services.AddSingleton<IDebugConfigurationService, DebugConfigurationService>();
         services.AddScoped<IServerConfigService, ServerConfigService>();
 
         return services;

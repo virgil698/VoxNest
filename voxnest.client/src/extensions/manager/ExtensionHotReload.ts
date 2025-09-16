@@ -38,7 +38,7 @@ export class ExtensionHotReload {
   private config: Required<HotReloadConfig>;
   
   private watchedExtensions = new Map<string, WatchedExtension>();
-  private configLastModified = 0;
+  // private configLastModified = 0; // 已弃用：配置文件监控已禁用
   private pollingTimer: number | null = null;
   private isRunning = false;
   private reloadTimers = new Map<string, number>();
@@ -144,8 +144,8 @@ export class ExtensionHotReload {
         }
       }
       
-      // 记录配置文件的修改时间
-      this.configLastModified = Date.now();
+      // 记录配置文件的修改时间（已弃用）
+      // this.configLastModified = Date.now();
     } catch (error) {
       this.logger.error('Failed to scan initial extensions:', error);
     }
@@ -169,33 +169,14 @@ export class ExtensionHotReload {
 
   /**
    * 检查配置文件变化
+   * 注意：配置文件监控已禁用，避免与用户手动操作产生冲突
+   * 扩展的启用/禁用现在通过统一的API进行管理
    */
   private async checkConfigChanges(): Promise<void> {
-    // 暂时禁用配置文件监控，避免用户操作导致的无限循环
-    // 用户点击启用/禁用按钮时，后端会修改extensions.json，
-    // 这会触发热重载，但这不是我们想要的行为
+    // 配置文件监控已禁用
+    // 用户通过管理界面的启用/禁用操作已经通过统一API处理
+    // 不再需要监控extensions.json文件的变化
     return;
-    
-    try {
-      const response = await fetch(`${this.config.configPath}?t=${Date.now()}`, {
-        method: 'HEAD'
-      });
-      
-      if (response.ok) {
-        const lastModified = response.headers.get('last-modified');
-        const modifiedTime = lastModified ? new Date(lastModified as string).getTime() : Date.now();
-        
-        if (modifiedTime > this.configLastModified) {
-          this.logger.info('Extensions config file changed, reloading...');
-          this.configLastModified = modifiedTime;
-          await this.handleConfigChange();
-        }
-      }
-    } catch (error) {
-      if (this.config.debug) {
-        this.logger.debug('Could not check config file changes:', error);
-      }
-    }
   }
 
   /**
@@ -238,7 +219,9 @@ export class ExtensionHotReload {
 
   /**
    * 处理配置文件变化
+   * 已弃用：配置文件监控已禁用，但保留此方法以备将来使用
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async handleConfigChange(): Promise<void> {
     try {
       const extensionsConfig = await this.loadExtensionsConfig();
@@ -267,7 +250,7 @@ export class ExtensionHotReload {
 
       // 检查被移除的扩展
       const currentIds = new Set(extensionsConfig.extensions.map(e => e.id));
-      for (const [extensionId, _watched] of this.watchedExtensions.entries()) {
+      for (const extensionId of this.watchedExtensions.keys()) {
         if (!currentIds.has(extensionId)) {
           this.logger.info(`Extension ${extensionId} removed from config`);
           await this.unloadExtension(extensionId);
@@ -478,7 +461,7 @@ export class ExtensionHotReload {
   reset(): void {
     this.stop();
     this.watchedExtensions.clear();
-    this.configLastModified = 0;
+    // this.configLastModified = 0; // 已弃用：配置文件监控已禁用
   }
 }
 

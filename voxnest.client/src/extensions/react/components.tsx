@@ -42,7 +42,19 @@ export function ExtensionProvider({
 
     async function initializeFramework() {
       try {
-        await framework.initialize(config);
+        // 检查框架是否已经初始化
+        if (framework.status === 'ready') {
+          if (mounted) {
+            setIsReady(true);
+          }
+          return;
+        }
+        
+        // 只在未初始化时才初始化
+        if (framework.status === 'initializing') {
+          await framework.initialize(config);
+        }
+        
         if (mounted) {
           setIsReady(true);
         }
@@ -190,11 +202,26 @@ export function ConditionalSlot({
 
 export function SlotDebugger({ slotId }: { slotId: string }) {
   const framework = useExtensionFramework();
-  const [debugInfo] = useState<Record<string, unknown> | null>(null); // 移除未使用的setter
+  const [debugInfo, setDebugInfo] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
     const updateDebugInfo = () => {
-      // setDebugInfo(framework.debugSlot(slotId)); // 暂时注释
+      if (framework.debugSlot) {
+        setDebugInfo(framework.debugSlot(slotId));
+      } else {
+        // 如果没有debugSlot方法，使用基础调试信息
+        const components = framework.slots.getComponents(slotId);
+        setDebugInfo({
+          slotId,
+          componentCount: components.length,
+          components: components.map(comp => ({
+            source: comp.source,
+            name: comp.name,
+            priority: comp.priority,
+            hasCondition: !!comp.condition
+          }))
+        });
+      }
     };
 
     updateDebugInfo();

@@ -1,0 +1,306 @@
+/**
+ * 回到顶部扩展样式
+ * 提供美观的按钮样式、动画效果和响应式设计
+ */
+
+/* 基础按钮样式 */
+.voxnest-back-to-top {
+  /* 基础定位和层级 */
+  position: fixed;
+  z-index: 1000;
+  
+  /* 基础外观 */
+  border: none;
+  outline: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  
+  /* 布局 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  
+  /* 文字样式 */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  
+  /* 阴影和视觉效果 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  
+  /* 默认过渡 */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* 防止选中 */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 悬停效果 */
+.voxnest-back-to-top:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* 按下效果 */
+.voxnest-back-to-top:active {
+  transform: translateY(0) scale(0.95);
+  transition: all 0.1s ease;
+}
+
+/* 焦点样式（无障碍访问） */
+.voxnest-back-to-top:focus {
+  outline: 2px solid #4096ff;
+  outline-offset: 2px;
+}
+
+/* 禁用状态 */
+.voxnest-back-to-top:disabled {
+  cursor: not-allowed;
+  opacity: 0.4 !important;
+  transform: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 尺寸变体 */
+.voxnest-back-to-top.size-small {
+  width: 40px;
+  height: 40px;
+  font-size: 16px;
+}
+
+.voxnest-back-to-top.size-medium {
+  width: 50px;
+  height: 50px;
+  font-size: 18px;
+}
+
+.voxnest-back-to-top.size-large {
+  width: 60px;
+  height: 60px;
+  font-size: 20px;
+}
+
+/* 位置变体 */
+.voxnest-back-to-top.position-bottom-right {
+  bottom: 20px;
+  right: 20px;
+}
+
+.voxnest-back-to-top.position-bottom-left {
+  bottom: 20px;
+  left: 20px;
+}
+
+.voxnest-back-to-top.position-top-right {
+  top: 20px;
+  right: 20px;
+}
+
+.voxnest-back-to-top.position-top-left {
+  top: 20px;
+  left: 20px;
+}
+
+/* 形状变体 */
+.voxnest-back-to-top.shape-circle {
+  border-radius: 50%;
+}
+
+.voxnest-back-to-top.shape-rounded {
+  border-radius: 12px;
+}
+
+.voxnest-back-to-top.shape-square {
+  border-radius: 4px;
+}
+
+/* 动画关键帧 */
+@keyframes backToTopFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes backToTopFadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+}
+
+@keyframes backToTopPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* 动画类 */
+.voxnest-back-to-top.animate-in {
+  animation: backToTopFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.voxnest-back-to-top.animate-out {
+  animation: backToTopFadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.voxnest-back-to-top.pulse {
+  animation: backToTopPulse 2s infinite;
+}
+
+/* 图标动画 */
+.voxnest-back-to-top .anticon {
+  transition: transform 0.2s ease;
+}
+
+.voxnest-back-to-top:hover .anticon {
+  transform: translateY(-2px);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .voxnest-back-to-top {
+    /* 移动端调整边距 */
+    margin: 16px;
+  }
+  
+  .voxnest-back-to-top.position-bottom-right {
+    bottom: 16px;
+    right: 16px;
+  }
+  
+  .voxnest-back-to-top.position-bottom-left {
+    bottom: 16px;
+    left: 16px;
+  }
+  
+  .voxnest-back-to-top.position-top-right {
+    top: 16px;
+    right: 16px;
+  }
+  
+  .voxnest-back-to-top.position-top-left {
+    top: 16px;
+    left: 16px;
+  }
+  
+  /* 移动端稍微调小尺寸 */
+  .voxnest-back-to-top.size-large {
+    width: 56px;
+    height: 56px;
+    font-size: 18px;
+  }
+  
+  .voxnest-back-to-top.size-medium {
+    width: 46px;
+    height: 46px;
+    font-size: 16px;
+  }
+  
+  .voxnest-back-to-top.size-small {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .voxnest-back-to-top {
+    /* 小屏幕进一步调整 */
+    margin: 12px;
+  }
+  
+  .voxnest-back-to-top.position-bottom-right,
+  .voxnest-back-to-top.position-bottom-left,
+  .voxnest-back-to-top.position-top-right,
+  .voxnest-back-to-top.position-top-left {
+    margin: 12px;
+  }
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .voxnest-back-to-top {
+    border: 2px solid currentColor;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* 减少动画模式支持 */
+@media (prefers-reduced-motion: reduce) {
+  .voxnest-back-to-top {
+    transition: opacity 0.2s ease;
+  }
+  
+  .voxnest-back-to-top:hover {
+    transform: none;
+  }
+  
+  .voxnest-back-to-top:active {
+    transform: none;
+  }
+  
+  .voxnest-back-to-top .anticon {
+    transition: none;
+  }
+  
+  .voxnest-back-to-top:hover .anticon {
+    transform: none;
+  }
+  
+  .voxnest-back-to-top.animate-in,
+  .voxnest-back-to-top.animate-out,
+  .voxnest-back-to-top.pulse {
+    animation: none;
+  }
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .voxnest-back-to-top {
+    /* 深色模式下的默认样式可以在这里定义 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* 扩展特定样式 */
+.voxnest-extension-back-to-top {
+  /* 扩展容器的特定样式 */
+}
+
+/* 调试模式样式（开发时使用） */
+.voxnest-back-to-top.debug {
+  border: 2px dashed #ff4d4f;
+}
+
+.voxnest-back-to-top.debug::after {
+  content: 'DEBUG';
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ff4d4f;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  white-space: nowrap;
+}

@@ -56,6 +56,9 @@ public static class ApplicationBuilderExtensions
     {
         app.Logger.LogInformation("应用运行在正常模式");
         
+        // Debug日志中间件（在其他中间件之前，但在异常处理之后）
+        app.UseDebugLogging();
+        
         // 静态文件服务
         app.UseDefaultFiles();
         app.MapStaticAssets();
@@ -150,5 +153,13 @@ public static class ApplicationBuilderExtensions
         const string configFile = "server-config.yml";
         
         return (File.Exists(installFlagFile), File.Exists(configFile));
+    }
+    
+    /// <summary>
+    /// 使用Debug日志中间件
+    /// </summary>
+    public static IApplicationBuilder UseDebugLogging(this IApplicationBuilder app)
+    {
+        return app.UseMiddleware<DebugLoggingMiddleware>();
     }
 }

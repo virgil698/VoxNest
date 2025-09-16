@@ -39,6 +39,7 @@ export interface LoggingConfig {
   level: string;
   enableConsole: boolean;
   enableFile: boolean;
+  enableDebugMode: boolean;
   filePath: string;
   maxFileSize: number;
   retainedFileCount: number;

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Form, Input, Button, Card, message, Space, Modal, Select } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeftOutlined, SaveOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
+import { Video } from 'lucide-react';
 import { usePostStore } from '../../stores/postStore';
 import type { CreatePostRequest } from '../../types/post';
 import { MdEditor } from 'md-editor-rt';
@@ -34,7 +35,7 @@ const CreatePost: React.FC = () => {
         aria-label="insert video"
         onClick={handleVideoInsert}
       >
-        <PlayCircleOutlined />
+        <Video size={14} />
       </button>
     );
   };
@@ -626,7 +627,7 @@ YouTube视频：
       <Modal
         title={
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <PlayCircleOutlined style={{ marginRight: '8px', color: 'var(--primary-color)' }} />
+            <Video size={18} style={{ marginRight: '8px', color: 'var(--primary-color)' }} />
             插入视频
           </div>
         }

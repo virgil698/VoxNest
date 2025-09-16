@@ -220,6 +220,8 @@ export class PublicExtensionLoader {
       return await this.loadCookieConsentPlugin();
     } else if (manifest.id === 'dark-mode-theme') {
       return await this.loadDarkModeTheme();
+    } else if (manifest.id === 'back-to-top') {
+      return await this.loadBackToTopPlugin();
     }
     
     throw new Error(`不支持的扩展: ${manifest.id}`);
@@ -566,6 +568,113 @@ export class PublicExtensionLoader {
   }
 
   /**
+   * 加载回到顶部插件模块
+   */
+  private async loadBackToTopPlugin(): Promise<ExtensionModule> {
+    return {
+      initializeBackToTop: (framework: ExtensionFramework) => {
+        console.log('🔝 初始化回到顶部插件...');
+        
+        // 创建简化的回到顶部按钮组件
+        function BackToTopButton() {
+          const [isVisible, setIsVisible] = React.useState(false);
+          const [isHovered, setIsHovered] = React.useState(false);
+
+          React.useEffect(() => {
+            const handleScroll = () => {
+              const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+              setIsVisible(scrollTop > 200);
+            };
+
+            const throttledHandleScroll = (() => {
+              let isThrottling = false;
+              return () => {
+                if (!isThrottling) {
+                  handleScroll();
+                  isThrottling = true;
+                  setTimeout(() => { isThrottling = false; }, 16); // ~60fps
+                }
+              };
+            })();
+
+            window.addEventListener('scroll', throttledHandleScroll, { passive: true });
+            handleScroll(); // 初始检查
+            
+            return () => {
+              window.removeEventListener('scroll', throttledHandleScroll);
+            };
+          }, []);
+
+          const handleClick = () => {
+            const startPosition = window.pageYOffset;
+            const startTime = performance.now();
+
+            const animateScroll = (currentTime: number) => {
+              const elapsed = currentTime - startTime;
+              const progress = Math.min(elapsed / 500, 1);
+              
+              // 缓动函数
+              const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+              
+              window.scrollTo(0, startPosition * (1 - easeOutQuart));
+
+              if (progress < 1) {
+                requestAnimationFrame(animateScroll);
+              }
+            };
+
+            requestAnimationFrame(animateScroll);
+            console.log('🔝 [BackToTop] User scrolled to top');
+          };
+
+          if (!isVisible) return null;
+
+          return React.createElement('button', {
+            onClick: handleClick,
+            onMouseEnter: () => setIsHovered(true),
+            onMouseLeave: () => setIsHovered(false),
+            'aria-label': '回到页面顶部',
+            title: '回到顶部',
+            style: {
+              position: 'fixed',
+              bottom: '20px',
+              right: '20px',
+              width: '50px',
+              height: '50px',
+              backgroundColor: '#1890ff',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '50%',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '18px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              opacity: isHovered ? 1.0 : 0.8,
+              transform: isVisible ? 'scale(1)' : 'scale(0)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              zIndex: 1000,
+              outline: 'none',
+              userSelect: 'none'
+            }
+          }, '↑');
+        }
+
+        // 注册到框架
+        framework.slots.register('overlay.root', {
+          component: BackToTopButton,
+          source: 'back-to-top',
+          name: '回到顶部按钮',
+          priority: 100
+        });
+
+        console.log('✅ 回到顶部插件初始化成功');
+      }
+    };
+  }
+
+  /**
    * 初始化已加载的扩展
    */
   async initializeExtension(extensionId: string, framework: ExtensionFramework): Promise<boolean> {
@@ -592,6 +701,9 @@ export class PublicExtensionLoader {
         } else if (module.initializeCookieConsent && typeof module.initializeCookieConsent === 'function') {
           console.log(`🔌 调用插件初始化方法: ${extensionId}.initializeCookieConsent`);
           module.initializeCookieConsent(framework);
+        } else if (module.initializeBackToTop && typeof module.initializeBackToTop === 'function') {
+          console.log(`🔌 调用插件初始化方法: ${extensionId}.initializeBackToTop`);
+          module.initializeBackToTop(framework);
         } else if (module.default && typeof module.default === 'object' && module.default !== null &&
                    'initialize' in module.default && typeof (module.default as Record<string, unknown>).initialize === 'function') {
           console.log(`🔌 调用插件默认初始化方法: ${extensionId}.default.initialize`);

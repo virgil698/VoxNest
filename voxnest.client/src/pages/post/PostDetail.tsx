@@ -15,34 +15,28 @@ import {
   Statistic
 } from 'antd';
 import { 
-  ArrowLeftOutlined,
   EyeOutlined,
   LikeOutlined,
-  MessageOutlined,
-  EditOutlined,
-  DeleteOutlined
+  MessageOutlined
 } from '@ant-design/icons';
 import { Users, UserCheck, FileText, BarChart3, Megaphone, Flame, Tags, Calendar, BookOpen, Hash, Clock, Type } from 'lucide-react';
 import { usePostStore } from '../../stores/postStore';
-import { useAuthStore } from '../../stores/authStore';
 import { adminApi, type SiteStats } from '../../api/admin';
 import dayjs from 'dayjs';
-import { MdPreview } from 'md-editor-rt';
-import 'md-editor-rt/lib/preview.css';
-import { processVideoMarkdown } from '../../utils/videoEmbedConfig';
+import MarkdownRenderer from '../../components/common/MarkdownRenderer';
 
 const { Title, Text } = Typography;
 
 const PostDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { currentPost, isLoadingDetail, loadPost, deletePost, clearCurrentPost } = usePostStore();
-  const { user, isAuthenticated } = useAuthStore();
+  const { currentPost, isLoadingDetail, loadPost, clearCurrentPost } = usePostStore();
 
   // 站点统计数据状态
   const [siteStats, setSiteStats] = useState<SiteStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(0);
+  
 
   // 获取站点统计数据
   const loadSiteStats = async () => {
@@ -185,18 +179,6 @@ const PostDetail: React.FC = () => {
     navigate(-1);
   };
 
-  const handleDelete = async () => {
-    if (!currentPost) return;
-    
-    try {
-      await deletePost(currentPost.id);
-      message.success('帖子删除成功');
-      navigate('/');
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '删除帖子失败';
-      message.error(errorMessage);
-    }
-  };
 
   if (isLoadingDetail) {
     return (
@@ -218,55 +200,12 @@ const PostDetail: React.FC = () => {
     );
   }
 
-  const isAuthor = isAuthenticated && user && user.id === currentPost.author.id;
 
   return (
     <div>
       <Row gutter={[24, 24]}>
         {/* 主内容区 */}
         <Col xs={24} lg={16}>
-          {/* 顶部操作栏 */}
-          <Card style={{ 
-            marginBottom: '24px',
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '16px'
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '8px 0'
-            }}>
-              <Button 
-                icon={<ArrowLeftOutlined />} 
-                onClick={handleBack}
-                style={{ borderRadius: '8px' }}
-              >
-                返回
-              </Button>
-              
-              {isAuthor && (
-                <Space>
-                  <Button 
-                    icon={<EditOutlined />}
-                    onClick={() => message.info('编辑功能暂未实现')}
-                    style={{ borderRadius: '8px' }}
-                  >
-                    编辑
-                  </Button>
-                  <Button 
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={handleDelete}
-                    style={{ borderRadius: '8px' }}
-                  >
-                    删除
-                  </Button>
-                </Space>
-              )}
-            </div>
-          </Card>
 
       <Card className="voxnest-post-card" style={{ marginBottom: '24px' }}>
         {/* 帖子标题 - 优化样式 */}
@@ -396,8 +335,8 @@ const PostDetail: React.FC = () => {
             lineHeight: '1.8',
             margin: 0
           }}>
-            <MdPreview 
-              modelValue={currentPost.content || ''}
+            <MarkdownRenderer
+              content={currentPost.content || ''}
               theme="light"
               previewTheme="vuepress"
               codeTheme="github"
@@ -406,21 +345,6 @@ const PostDetail: React.FC = () => {
                 fontSize: '16px',
                 lineHeight: '1.8',
                 color: 'var(--text-primary)'
-              }}
-              onHtmlChanged={(html) => {
-                console.log('📖 [PostDetail] onHtmlChanged 被调用，HTML长度:', html.length);
-                // 在HTML生成后立即处理视频嵌入
-                const processedHtml = processVideoMarkdown(html);
-                console.log('📖 [PostDetail] 处理后HTML长度:', processedHtml.length);
-                return processedHtml;
-              }}
-              sanitize={(html) => {
-                console.log('🧹 [PostDetail] sanitize 被调用，HTML长度:', html.length);
-                // 在sanitize过程中处理视频嵌入，确保视频iframe不被过滤
-                const processedHtml = processVideoMarkdown(html);
-                console.log('🧹 [PostDetail] sanitize 处理后HTML长度:', processedHtml.length);
-                // 返回处理后的HTML，保留安全的视频嵌入
-                return processedHtml;
               }}
             />
           </div>
@@ -636,6 +560,7 @@ const PostDetail: React.FC = () => {
           </Card>
         </Col>
       </Row>
+
     </div>
   );
 };

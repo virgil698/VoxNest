@@ -182,6 +182,36 @@ public class ExtensionController : ControllerBase
     }
 
     /// <summary>
+    /// 切换扩展启用状态（统一接口）
+    /// </summary>
+    [HttpPut("{extensionId}/toggle")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
+    public async Task<IActionResult> ToggleExtension(string extensionId, [FromBody] ToggleExtensionRequest request)
+    {
+        try
+        {
+            // 检查是否为前端扩展
+            if (IsFrontendExtension(extensionId))
+            {
+                var result = await ToggleFrontendExtension(extensionId, request.Enabled);
+                return result.IsSuccess ? Ok(result) : BadRequest(result);
+            }
+            else
+            {
+                // 后端扩展使用现有的服务
+                var result = await _fileSystemExtensionService.ToggleExtensionAsync(extensionId, request.Enabled);
+                return result.IsSuccess ? Ok(result) : BadRequest(result);
+            }
+        }
+        catch (Exception ex)
+        {
+            var action = request.Enabled ? "启用" : "禁用";
+            _logger.LogError(ex, "{Action}扩展失败: {ExtensionId}", action, extensionId);
+            return StatusCode(500, ApiResponse<string>.CreateError($"{action}扩展失败"));
+        }
+    }
+
+    /// <summary>
     /// 触发扩展热重载
     /// </summary>
     [HttpPost("hot-reload")]
@@ -510,6 +540,159 @@ public class ExtensionController : ControllerBase
 
     // ==================== 私有辅助方法 ====================
 
+    /// <summary>
+    /// 检查是否为前端扩展
+    /// </summary>
+    private static bool IsFrontendExtension(string extensionId)
+    {
+        // 前端扩展存储在 voxnest.client/extensions 目录
+        var knownFrontendExtensions = new[] { "cookie-consent", "dark-mode-theme" };
+        return knownFrontendExtensions.Contains(extensionId);
+    }
+
+    /// <summary>
+    /// 切换前端扩展状态
+    /// </summary>
+    private async Task<ApiResponse<string>> ToggleFrontendExtension(string extensionId, bool enabled)
+    {
+        try
+        {
+            var extensionsPath = Path.Combine("..", "voxnest.client", "extensions", "extensions.json");
+            
+            if (!System.IO.File.Exists(extensionsPath))
+            {
+                return ApiResponse<string>.CreateError("前端扩展配置文件不存在");
+            }
+
+            // 读取扩展配置
+            var content = await System.IO.File.ReadAllTextAsync(extensionsPath);
+            var extensionsConfig = JsonSerializer.Deserialize<JsonElement>(content);
+            
+            if (!extensionsConfig.TryGetProperty("extensions", out var extensionsArray))
+            {
+                return ApiResponse<string>.CreateError("扩展配置格式错误");
+            }
+
+            var extensions = extensionsArray.EnumerateArray().ToList();
+            var extensionIndex = -1;
+            
+            // 查找指定扩展
+            for (int i = 0; i < extensions.Count; i++)
+            {
+                if (extensions[i].TryGetProperty("id", out var id) && 
+                    id.GetString() == extensionId)
+                {
+                    extensionIndex = i;
+                    break;
+                }
+            }
+
+            if (extensionIndex == -1)
+            {
+                return ApiResponse<string>.CreateError($"未找到前端扩展: {extensionId}");
+            }
+
+            // 构建更新后的配置
+            var originalExtension = extensions[extensionIndex];
+            var extensionData = new Dictionary<string, object>();
+            
+            // 复制原有属性
+            foreach (var property in originalExtension.EnumerateObject())
+            {
+                if (property.Name == "enabled")
+                {
+                    extensionData[property.Name] = enabled;
+                }
+                else if (property.Value.ValueKind == JsonValueKind.String)
+                {
+                    extensionData[property.Name] = property.Value.GetString()!;
+                }
+                else if (property.Value.ValueKind == JsonValueKind.True || property.Value.ValueKind == JsonValueKind.False)
+                {
+                    extensionData[property.Name] = property.Value.GetBoolean();
+                }
+                else if (property.Value.ValueKind == JsonValueKind.Array)
+                {
+                    var array = property.Value.EnumerateArray().Select(x => x.GetString()).ToArray();
+                    extensionData[property.Name] = array;
+                }
+                else
+                {
+                    extensionData[property.Name] = property.Value.ToString();
+                }
+            }
+
+            // 更新扩展配置
+            var allExtensions = new List<Dictionary<string, object>>();
+            for (int i = 0; i < extensions.Count; i++)
+            {
+                if (i == extensionIndex)
+                {
+                    allExtensions.Add(extensionData);
+                }
+                else
+                {
+                    var ext = new Dictionary<string, object>();
+                    foreach (var property in extensions[i].EnumerateObject())
+                    {
+                        if (property.Value.ValueKind == JsonValueKind.String)
+                        {
+                            ext[property.Name] = property.Value.GetString()!;
+                        }
+                        else if (property.Value.ValueKind == JsonValueKind.True || property.Value.ValueKind == JsonValueKind.False)
+                        {
+                            ext[property.Name] = property.Value.GetBoolean();
+                        }
+                        else if (property.Value.ValueKind == JsonValueKind.Array)
+                        {
+                            var array = property.Value.EnumerateArray().Select(x => x.GetString()).ToArray();
+                            ext[property.Name] = array;
+                        }
+                        else
+                        {
+                            ext[property.Name] = property.Value.ToString();
+                        }
+                    }
+                    allExtensions.Add(ext);
+                }
+            }
+
+            // 构建完整的配置对象
+            var newConfig = new
+            {
+                meta = new
+                {
+                    version = "1.0.0",
+                    description = "VoxNest 统一扩展清单",
+                    lastUpdated = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ"),
+                    totalExtensions = allExtensions.Count
+                },
+                extensions = allExtensions
+            };
+
+            // 保存更新后的配置
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+            
+            var newContent = JsonSerializer.Serialize(newConfig, options);
+            await System.IO.File.WriteAllTextAsync(extensionsPath, newContent);
+
+            var action = enabled ? "启用" : "禁用";
+            _logger.LogInformation("前端扩展{Action}成功: {ExtensionId}", action, extensionId);
+            
+            return ApiResponse<string>.CreateSuccess($"前端扩展{action}成功");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "切换前端扩展状态失败: {ExtensionId}", extensionId);
+            return ApiResponse<string>.CreateError($"切换前端扩展状态失败: {ex.Message}");
+        }
+    }
+
     private ExtensionConfigDto CreateDefaultConfig(string extensionId)
     {
         return new ExtensionConfigDto
@@ -570,4 +753,9 @@ public class UpdateExtensionConfigRequest
     public bool? Enabled { get; set; }
     public Dictionary<string, object>? UserConfig { get; set; }
     public string? Schema { get; set; }
+}
+
+public class ToggleExtensionRequest
+{
+    public bool Enabled { get; set; }
 }

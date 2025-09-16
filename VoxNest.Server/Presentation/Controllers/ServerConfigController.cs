@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VoxNest.Server.Application.DTOs;
 using VoxNest.Server.Application.Interfaces;
+using VoxNest.Server.Application.Services;
 using VoxNest.Server.Shared.Results;
 using Result = VoxNest.Server.Shared.Results.Result;
 
@@ -222,8 +223,23 @@ public class ServerConfigController : ControllerBase
             
             if (result)
             {
-                _logger.LogInformation("Logging configuration updated by user: {UserId}", User.Identity?.Name);
-                var message = requiresRestart ? "日志配置更新成功，建议重启服务以生效" : "日志配置更新成功";
+                // 实时更新Debug配置（无需重启）
+                var debugConfigService = HttpContext.RequestServices.GetService<IDebugConfigurationService>();
+                if (debugConfigService != null)
+                {
+                    await debugConfigService.UpdateDebugModeAsync(config.EnableDebugMode);
+                }
+                
+                _logger.LogInformation("Logging configuration updated by user: {UserId}. Debug mode: {DebugMode}", 
+                    User.Identity?.Name, config.EnableDebugMode ? "Enabled" : "Disabled");
+                
+                var message = config.EnableDebugMode switch
+                {
+                    true => "日志配置更新成功，Debug模式已启用 - 将记录详细的调试信息",
+                    false when requiresRestart => "日志配置更新成功，Debug模式已关闭，建议重启服务以完全生效",
+                    false => "日志配置更新成功，Debug模式已关闭"
+                };
+                
                 return Ok(Result<bool>.Success(true, message));
             }
 

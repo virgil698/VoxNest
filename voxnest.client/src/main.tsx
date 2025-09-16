@@ -14,7 +14,10 @@ import {
   getFramework,
   ExtensionDiscovery,
   ExtensionLoader,
-  ExtensionHotReload
+  ExtensionHotReload,
+  type ComponentRegistration,
+  type StyleInjection,
+  type Integration
 } from './extensions'
 import { publicExtensionLoader } from './extensions/manager/PublicExtensionLoader'
 import { logger } from './utils/logger'
@@ -107,13 +110,16 @@ setTimeout(async () => {
         // 初始化扩展 
         const frameworkAdapter = {
           slots: {
-            register: (slotId: string, registration: unknown) => framework.slots.register(slotId, registration as { component: React.ComponentType; source: string; priority?: number; name?: string; condition?: () => boolean }),
-            injectStyle: (injection: unknown) => framework.slots.injectStyle(injection as { content: string; id: string; source: string; isTheme?: boolean })
+            register: (slotId: string, registration: unknown) => {
+              framework.slots.register(slotId, registration as ComponentRegistration);
+            },
+            injectStyle: (injection: unknown) => {
+              framework.slots.injectStyle(injection as StyleInjection);
+            }
           },
           logger: framework.logger,
           register: (integration: unknown) => {
-            const typedIntegration = integration as { name: string; hooks?: { [key: string]: unknown } };
-            framework.register(typedIntegration);
+            framework.register(integration as Integration);
           }
         };
         const initialized = await publicExtensionLoader.initializeExtension(manifest.id, frameworkAdapter);

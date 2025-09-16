@@ -182,7 +182,7 @@ export const processVideoMarkdown = (content: string): string => {
   // 先处理原始Markdown格式 [!video](url)
   const videoMarkdownRegex = /\[!video\]\(([^)]+)\)/gi;
   
-  let processedContent = content.replace(videoMarkdownRegex, (match, url) => {
+  const processedContent = content.replace(videoMarkdownRegex, (match, url) => {
     console.log('🎬 [VideoEmbed] 发现Markdown格式视频:', match);
     console.log('🎬 [VideoEmbed] 提取的URL:', url);
     const iframe = convertVideoUrlToIframe(url);
@@ -210,7 +210,7 @@ export const processVideoMarkdown = (content: string): string => {
 /**
  * 将视频URL转换为iframe
  */
-const convertVideoUrlToIframe = (url: string): string => {
+export const convertVideoUrlToIframe = (url: string): string => {
     if (!url) return '';
     
     const trimmedUrl = url.trim();

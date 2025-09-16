@@ -183,6 +183,11 @@ public class LoggingConfigDto
     public bool EnableFile { get; set; } = true;
 
     /// <summary>
+    /// 是否启用Debug日志模式
+    /// </summary>
+    public bool EnableDebugMode { get; set; } = false;
+
+    /// <summary>
     /// 日志文件路径
     /// </summary>
     [StringLength(500)]

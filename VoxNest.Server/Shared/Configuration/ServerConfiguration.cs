@@ -174,6 +174,7 @@ public class LoggingSettings
     public string Level { get; set; } = "Information";
     public bool EnableConsole { get; set; } = true;
     public bool EnableFile { get; set; } = true;
+    public bool EnableDebugMode { get; set; } = false;
     public string FilePath { get; set; } = "logs/voxnest.log";
     
     /// <summary>

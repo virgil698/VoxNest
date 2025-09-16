@@ -188,20 +188,30 @@ export function useFrameworkStatus() {
  */
 export function useFrameworkReady(callback?: () => void) {
   const framework = useExtensionFramework();
-  const [isReady, setIsReady] = useState(true); // 简化版本，假设总是ready
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // if (framework.isReady()) {
+    if (framework.isReady && framework.isReady()) {
       setIsReady(true);
       callback?.();
       return;
-    // }
+    }
+    
+    // 如果没有isReady方法，检查状态
+    if (framework.status === 'ready') {
+      setIsReady(true);
+      callback?.();
+      return;
+    }
 
     const checkReady = () => {
-      // if (framework.isReady()) {
+      if (framework.isReady && framework.isReady()) {
         setIsReady(true);
         callback?.();
-      // }
+      } else if (framework.status === 'ready') {
+        setIsReady(true);
+        callback?.();
+      }
     };
 
     const interval = setInterval(checkReady, 100);
@@ -247,11 +257,41 @@ export function useRegisterComponent(
  */
 export function useSlotDebug(slotId: string) {
   const framework = useExtensionFramework();
-  const [debugInfo] = useState(() => ({ slotId, components: [] })); // 移除未使用的setter
+  const [debugInfo, setDebugInfo] = useState<{
+    slotId: string;
+    exists?: boolean;
+    componentCount: number;
+    components: Array<{
+      source: string;
+      name?: string;
+      priority?: number;
+      hasCondition: boolean;
+    }>;
+  }>(() => ({ slotId, componentCount: 0, components: [] }));
 
   useEffect(() => {
     const updateDebugInfo = () => {
-      // setDebugInfo(framework.debugSlot(slotId)); // 暂时注释
+      if (framework.debugSlot) {
+        const debugResult = framework.debugSlot(slotId);
+        setDebugInfo({
+          slotId,
+          ...debugResult
+        });
+      } else {
+        // 如果没有debugSlot方法，使用基础调试信息
+        const components = framework.slots.getComponents(slotId);
+        setDebugInfo({
+          slotId,
+          exists: components.length > 0,
+          componentCount: components.length,
+          components: components.map(comp => ({
+            source: comp.source,
+            name: comp.name,
+            priority: comp.priority,
+            hasCondition: !!comp.condition
+          }))
+        });
+      }
     };
 
     updateDebugInfo();
@@ -269,11 +309,17 @@ export function useSlotDebug(slotId: string) {
  */
 export function useSlotList() {
   const framework = useExtensionFramework();
-  const [slots] = useState(() => [] as string[]); // 移除未使用的setter
+  const [slots, setSlots] = useState(() => [] as string[]);
 
   useEffect(() => {
     const updateSlots = () => {
-      // setSlots(framework.listSlots()); // 暂时注释
+      if (framework.listSlots) {
+        setSlots(framework.listSlots());
+      } else {
+        // 如果没有listSlots方法，从getAllSlots获取
+        const allSlots = framework.slots.getAllSlots();
+        setSlots(Object.keys(allSlots));
+      }
     };
 
     updateSlots();
