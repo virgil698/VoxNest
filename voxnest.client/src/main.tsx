@@ -8,7 +8,14 @@ import './index.css'
 import { router } from './router'
 import InstallGuard from './components/InstallGuard'
 import ConditionalDevTools from './components/ConditionalDevTools'
-import { ExtensionProvider, initializeFramework, getFramework } from './extensions'
+import { 
+  ExtensionProvider, 
+  initializeFramework, 
+  getFramework,
+  ExtensionDiscovery,
+  ExtensionLoader,
+  ExtensionHotReload
+} from './extensions'
 import { publicExtensionLoader } from './extensions/manager/PublicExtensionLoader'
 import { logger } from './utils/logger'
 import { queryClient } from './lib/queryClient'
@@ -160,6 +167,54 @@ setTimeout(async () => {
     console.log('失败数量:', extensionStats.failed);
     console.table(extensionStats.extensions);
     console.groupEnd();
+    
+    // === 启动扩展热重载 ===
+    if (process.env.NODE_ENV === 'development') {
+      try {
+        console.log('🔄 启动扩展热重载系统...');
+        
+        // 创建扩展发现和加载器
+        const extensionDiscovery = new ExtensionDiscovery(framework.logger);
+        const extensionLoader = new ExtensionLoader(framework);
+        
+        // 创建并启动热重载管理器
+        const hotReload = new ExtensionHotReload(
+          framework,
+          extensionDiscovery,
+          extensionLoader,
+          {
+            configPath: '/extensions/extensions.json',
+            localExtensionsPath: '/extensions',
+            pollingInterval: 1000, // 1秒检查一次
+            enabled: true,
+            debug: true
+          }
+        );
+        
+        await hotReload.start();
+        
+        // 将热重载实例添加到全局，方便调试
+        (window as unknown as { __VoxNestHotReload?: ExtensionHotReload }).__VoxNestHotReload = hotReload;
+        
+        console.log('✅ 扩展热重载系统启动完成');
+        console.log('💡 提示: 修改 extensions.json 或本地扩展文件将自动重载扩展');
+        
+        // 打印热重载统计信息
+        const hotReloadStats = hotReload.getStats();
+        console.group('🔄 热重载系统状态');
+        console.log('状态:', hotReloadStats.isRunning ? '运行中' : '已停止');
+        console.log('监控的扩展:', hotReloadStats.totalWatched);
+        console.log('本地扩展:', hotReloadStats.localExtensions);
+        if (hotReloadStats.watchedExtensions.length > 0) {
+          console.log('监控详情:');
+          console.table(hotReloadStats.watchedExtensions);
+        }
+        console.groupEnd();
+        
+      } catch (error) {
+        console.warn('⚠️ 热重载系统启动失败，扩展功能仍可正常使用:', error);
+      }
+    }
     
     // 记录性能指标
     setTimeout(() => {

@@ -14,9 +14,11 @@ import {
   MenuUnfoldOutlined,
   BellOutlined,
   HomeOutlined,
-  ControlOutlined
+  ControlOutlined,
+  BugOutlined
 } from '@ant-design/icons';
 import { useAuthStore } from '../../stores/authStore';
+import { useDeveloperMode } from '../../hooks/useDeveloperMode';
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -72,9 +74,10 @@ const AdminLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthStore();
+  const { isDeveloperModeAvailable } = useDeveloperMode();
 
   // 菜单项配置
-  const menuItems = [
+  const baseMenuItems = [
     {
       key: '/admin',
       icon: <DashboardOutlined />,
@@ -115,6 +118,19 @@ const AdminLayout: React.FC = () => {
       icon: <FileTextOutlined />,
       label: '日志管理',
     },
+  ];
+
+  // 开发者模式菜单项（只有在开发者模式可用时才显示）
+  const developerMenuItem = isDeveloperModeAvailable ? {
+    key: '/admin/developer',
+    icon: <BugOutlined />,
+    label: '开发者模式',
+  } : null;
+
+  // 组合最终菜单
+  const menuItems = [
+    ...baseMenuItems,
+    ...(developerMenuItem ? [developerMenuItem] : [])
   ];
 
   // 获取当前选中的菜单项和展开的菜单项

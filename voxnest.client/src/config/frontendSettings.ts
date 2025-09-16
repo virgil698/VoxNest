@@ -28,38 +28,32 @@ export interface FrontendSettingsSchema {
 export const frontendSettingsSchema: FrontendSettingsSchema = {
   groups: [
     {
-      id: 'appearance',
-      title: '外观设置',
-      description: '控制网站的视觉外观和主题',
+      id: 'interface',
+      title: '界面设置',
+      description: '控制网站外观、主题和页面布局',
       order: 1
     },
     {
-      id: 'layout',
-      title: '布局设置',
-      description: '控制页面布局和组件显示',
+      id: 'experience',
+      title: '体验优化',
+      description: '用户交互体验和前端性能优化设置',
       order: 2
     },
     {
-      id: 'user-experience',
-      title: '用户体验',
-      description: '优化用户交互和使用体验',
+      id: 'developer',
+      title: '开发者模式',
+      description: '开发者工具和调试功能（仅限开发环境和管理员）',
       order: 3
-    },
-    {
-      id: 'performance',
-      title: '性能优化',
-      description: '前端性能和加载优化设置',
-      order: 4
     }
   ],
   properties: {
-    // 外观设置
+    // 界面设置 - 外观主题
     'theme.mode': {
       type: 'select',
       title: '主题模式',
       description: '选择网站的主题模式',
       default: 'auto',
-      group: 'appearance',
+      group: 'interface',
       order: 1,
       options: [
         { label: '自动跟随系统', value: 'auto' },
@@ -72,7 +66,7 @@ export const frontendSettingsSchema: FrontendSettingsSchema = {
       title: '主题色',
       description: '网站的主要色彩',
       default: '#1890ff',
-      group: 'appearance',
+      group: 'interface',
       order: 2
     },
     'theme.borderRadius': {
@@ -80,7 +74,7 @@ export const frontendSettingsSchema: FrontendSettingsSchema = {
       title: '圆角大小',
       description: '组件圆角的像素值',
       default: 6,
-      group: 'appearance',
+      group: 'interface',
       order: 3,
       min: 0,
       max: 20
@@ -90,26 +84,26 @@ export const frontendSettingsSchema: FrontendSettingsSchema = {
       title: '紧凑模式',
       description: '启用紧凑的界面布局',
       default: false,
-      group: 'appearance',
+      group: 'interface',
       order: 4
     },
 
-    // 布局设置
+    // 界面设置 - 页面布局
     'layout.sidebarCollapsed': {
       type: 'boolean',
       title: '侧边栏默认折叠',
       description: '页面加载时是否折叠侧边栏',
       default: false,
-      group: 'layout',
-      order: 1
+      group: 'interface',
+      order: 5
     },
     'layout.headerStyle': {
       type: 'select',
       title: '头部样式',
       description: '选择头部导航的样式',
       default: 'fixed',
-      group: 'layout',
-      order: 2,
+      group: 'interface',
+      order: 6,
       options: [
         { label: '固定头部', value: 'fixed' },
         { label: '跟随滚动', value: 'static' },
@@ -121,27 +115,27 @@ export const frontendSettingsSchema: FrontendSettingsSchema = {
       title: '显示面包屑',
       description: '在页面中显示导航面包屑',
       default: true,
-      group: 'layout',
-      order: 3
+      group: 'interface',
+      order: 7
     },
     'layout.maxContentWidth': {
       type: 'number',
       title: '内容最大宽度',
       description: '页面内容的最大宽度（px）',
       default: 1200,
-      group: 'layout',
-      order: 4,
+      group: 'interface',
+      order: 8,
       min: 800,
       max: 1600
     },
 
-    // 用户体验
+    // 体验优化 - 用户交互
     'ux.enableAnimations': {
       type: 'boolean',
       title: '启用动画效果',
       description: '启用页面切换和组件动画',
       default: true,
-      group: 'user-experience',
+      group: 'experience',
       order: 1
     },
     'ux.enableSounds': {
@@ -149,7 +143,7 @@ export const frontendSettingsSchema: FrontendSettingsSchema = {
       title: '启用音效',
       description: '操作时播放提示音效',
       default: false,
-      group: 'user-experience',
+      group: 'experience',
       order: 2
     },
     'ux.autoSaveInterval': {
@@ -157,7 +151,7 @@ export const frontendSettingsSchema: FrontendSettingsSchema = {
       title: '自动保存间隔',
       description: '表单自动保存的时间间隔（秒）',
       default: 30,
-      group: 'user-experience',
+      group: 'experience',
       order: 3,
       min: 10,
       max: 300
@@ -167,26 +161,26 @@ export const frontendSettingsSchema: FrontendSettingsSchema = {
       title: '离开确认',
       description: '有未保存内容时离开页面需要确认',
       default: true,
-      group: 'user-experience',
+      group: 'experience',
       order: 4
     },
 
-    // 性能优化
+    // 体验优化 - 性能设置
     'performance.lazyLoadImages': {
       type: 'boolean',
       title: '图片懒加载',
       description: '启用图片懒加载以提升性能',
       default: true,
-      group: 'performance',
-      order: 1
+      group: 'experience',
+      order: 5
     },
     'performance.cacheStrategy': {
       type: 'select',
       title: '缓存策略',
       description: '选择前端缓存策略',
       default: 'normal',
-      group: 'performance',
-      order: 2,
+      group: 'experience',
+      order: 6,
       options: [
         { label: '正常缓存', value: 'normal' },
         { label: '积极缓存', value: 'aggressive' },
@@ -198,16 +192,58 @@ export const frontendSettingsSchema: FrontendSettingsSchema = {
       title: '链接预取',
       description: '预取链接资源以加快导航',
       default: true,
-      group: 'performance',
-      order: 3
+      group: 'experience',
+      order: 7
     },
     'performance.debugMode': {
       type: 'boolean',
       title: '调试模式',
       description: '启用前端调试信息（仅开发环境）',
       default: false,
-      group: 'performance',
+      group: 'experience',
+      order: 8
+    },
+
+    // 开发者模式
+    'developer.enabled': {
+      type: 'boolean',
+      title: '启用开发者模式',
+      description: '开启后可访问扩展热重载、性能监控等开发者工具',
+      default: false,
+      group: 'developer',
+      order: 1
+    },
+    'developer.showHotReload': {
+      type: 'boolean',
+      title: '显示热重载面板',
+      description: '在管理面板中显示扩展热重载调试工具',
+      default: true,
+      group: 'developer',
+      order: 2
+    },
+    'developer.enableFrameworkDebug': {
+      type: 'boolean',
+      title: '框架调试模式',
+      description: '启用扩展框架的详细调试信息',
+      default: false,
+      group: 'developer',
+      order: 3
+    },
+    'developer.showPerformanceMetrics': {
+      type: 'boolean',
+      title: '显示性能指标',
+      description: '在控制台和面板中显示详细的性能指标',
+      default: false,
+      group: 'developer',
       order: 4
+    },
+    'developer.enableExtensionLogs': {
+      type: 'boolean',
+      title: '扩展日志',
+      description: '启用扩展系统的详细日志输出',
+      default: true,
+      group: 'developer',
+      order: 5
     }
   }
 };

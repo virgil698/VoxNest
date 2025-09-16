@@ -45,6 +45,7 @@ export interface SiteConfigDto {
   siteName: string;
   siteDescription?: string;
   adminEmail: string;
+  timeZone: string;
 }
 
 // API响应接口

@@ -113,4 +113,11 @@ public class SiteConfigDto
     [Required(ErrorMessage = "管理员邮箱不能为空")]
     [EmailAddress(ErrorMessage = "邮箱格式不正确")]
     public string AdminEmail { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 站点时区
+    /// </summary>
+    [Required(ErrorMessage = "站点时区不能为空")]
+    [StringLength(100, ErrorMessage = "时区标识不能超过100个字符")]
+    public string TimeZone { get; set; } = "Asia/Shanghai";
 }

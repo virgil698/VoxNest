@@ -437,6 +437,32 @@ public class EnhancedInstallService : IInstallService
                 return Result.Failure("安装未完成，请确保数据库已初始化且已创建管理员账户");
             }
 
+            // 更新服务器配置文件中的时区设置
+            try
+            {
+                if (File.Exists(ConfigFile))
+                {
+                    _logger.LogInformation("正在更新服务器配置文件中的时区设置: {TimeZone}", siteConfig.TimeZone);
+                    var config = VoxNest.Server.Shared.Extensions.ConfigurationExtensions.LoadServerConfigurationFromYaml(ConfigFile);
+                    
+                    // 更新时区设置
+                    config.Server.TimeZone = siteConfig.TimeZone;
+                    
+                    // 保存更新后的配置
+                    VoxNest.Server.Shared.Extensions.ConfigurationExtensions.SaveConfigurationToYaml(config, ConfigFile);
+                    _logger.LogInformation("✅ 服务器时区已更新为: {TimeZone}", siteConfig.TimeZone);
+                }
+                else
+                {
+                    _logger.LogWarning("配置文件不存在，无法更新时区设置: {ConfigFile}", ConfigFile);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "更新服务器配置文件失败，但不影响安装完成");
+                // 不阻止安装完成，只记录警告
+            }
+
             // 创建安装标识文件
             var installInfo = new
             {
@@ -444,6 +470,7 @@ public class EnhancedInstallService : IInstallService
                 InstalledAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff"),
                 SiteName = siteConfig.SiteName,
                 AdminEmail = siteConfig.AdminEmail,
+                TimeZone = siteConfig.TimeZone,
                 Version = GetType().Assembly.GetName().Version?.ToString() ?? "Unknown",
                 ConfigFile = ConfigFile,
                 DatabaseInitialized = true,
@@ -464,7 +491,7 @@ public class EnhancedInstallService : IInstallService
                 return Result.Failure("安装锁文件创建失败，安装可能未完全成功");
             }
             
-            _logger.LogInformation("VoxNest 安装完成: {SiteName}", siteConfig.SiteName);
+            _logger.LogInformation("VoxNest 安装完成: {SiteName}, 时区: {TimeZone}", siteConfig.SiteName, siteConfig.TimeZone);
             return Result.Success("安装完成，系统即将重启");
         }
         catch (Exception ex)

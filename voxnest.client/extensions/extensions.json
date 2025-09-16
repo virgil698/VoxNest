@@ -1,85 +1,72 @@
 {
-  "_meta": {
-    "version": "2.0.0",
-    "description": "VoxNest 增强扩展清单 - 支持多文件扩展和强大界面控制",
-    "lastUpdated": "2025-09-15T12:00:00Z",
+  "meta": {
+    "version": "1.0.0",
+    "description": "VoxNest \u7EDF\u4E00\u6269\u5C55\u6E05\u5355",
+    "lastUpdated": "2025-09-16T06:29:13.6766659Z",
     "totalExtensions": 2
   },
   "extensions": [
     {
       "id": "cookie-consent",
-      "name": "Cookie 同意横幅",
+      "name": "Cookie \u540C\u610F\u6A2A\u5E45",
       "version": "1.0.0",
       "type": "plugin",
-      "description": "符合 GDPR 和 CCPA 规定的 Cookie 同意横幅插件，提供可自定义的同意管理功能",
+      "description": "\u7B26\u5408 GDPR \u548C CCPA \u89C4\u5B9A\u7684 Cookie \u540C\u610F\u6A2A\u5E45\u63D2\u4EF6\uFF0C\u63D0\u4F9B\u53EF\u81EA\u5B9A\u4E49\u7684\u540C\u610F\u7BA1\u7406\u529F\u80FD",
       "author": "VoxNest Team",
       "main": "CookieConsent.tsx",
       "enabled": true,
-      "dependencies": ["react", "antd"],
+      "dependencies": [
+        "react",
+        "antd"
+      ],
       "permissions": [
         "storage.local",
-        "cookies.read", 
+        "cookies.read",
         "cookies.write",
         "overlay.root"
       ],
-      "tags": ["cookie", "gdpr", "privacy", "consent", "compliance"],
+      "tags": [
+        "cookie",
+        "gdpr",
+        "privacy",
+        "consent",
+        "compliance"
+      ],
       "slots": [
         "overlay.root"
-      ],
-      "capabilities": {
-        "ui": true,
-        "storage": true,
-        "cookieManagement": true,
-        "privacyCompliance": true
-      },
-      "features": [
-        "细粒度 Cookie 分类管理",
-        "GDPR/CCPA 合规",
-        "自定义样式和位置",
-        "响应式设计",
-        "本地偏好存储"
       ]
     },
     {
       "id": "dark-mode-theme",
-      "name": "明暗模式切换器",
+      "name": "\u660E\u6697\u6A21\u5F0F\u5207\u6362\u5668",
       "version": "2.0.0",
       "type": "theme",
-      "description": "智能明暗模式主题切换器，支持系统偏好检测、自动切换、渐变动画和个性化定制",
-      "author": "VoxNest Team", 
+      "description": "\u667A\u80FD\u660E\u6697\u6A21\u5F0F\u4E3B\u9898\u5207\u6362\u5668\uFF0C\u652F\u6301\u7CFB\u7EDF\u504F\u597D\u68C0\u6D4B\u3001\u81EA\u52A8\u5207\u6362\u3001\u6E10\u53D8\u52A8\u753B\u548C\u4E2A\u6027\u5316\u5B9A\u5236",
+      "author": "VoxNest Team",
       "main": "ThemeToggle.tsx",
       "enabled": true,
-      "dependencies": ["react", "antd", "dayjs"],
+      "dependencies": [
+        "react",
+        "antd",
+        "dayjs"
+      ],
       "permissions": [
         "storage.local",
         "storage.sync",
         "system.theme",
         "notifications.create"
       ],
-      "tags": ["theme", "dark-mode", "accessibility", "ui", "customization"],
+      "tags": [
+        "theme",
+        "dark-mode",
+        "accessibility",
+        "ui",
+        "customization"
+      ],
       "slots": [
         "nav.user",
-        "overlay.root", 
+        "overlay.root",
         "admin.sidebar"
-      ],
-      "hooks": [
-        "theme:change",
-        "system:theme-change"
-      ],
-      "capabilities": {
-        "ui": true,
-        "theming": true,
-        "systemIntegration": true,
-        "accessibility": true,
-        "scheduler": true
-      },
-      "features": [
-        "智能主题切换",
-        "系统偏好检测",
-        "定时切换功能",
-        "自定义颜色方案",
-        "辅助功能支持",
-        "丰富动画效果"
       ]
     }
   ]

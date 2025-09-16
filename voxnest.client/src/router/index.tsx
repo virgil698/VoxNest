@@ -21,6 +21,7 @@ const AdminSiteSettings = lazy(() => import('../pages/admin/SiteSettings'));
 const AdminLogManagement = lazy(() => import('../pages/admin/LogManagement'));
 const AdminExtensionManagement = lazy(() => import('../pages/admin/ExtensionManagement'));
 const AdminExtensionSettings = lazy(() => import('../pages/admin/ExtensionSettings'));
+const AdminDeveloperMode = lazy(() => import('../pages/admin/DeveloperMode'));
 
 export const router = createBrowserRouter([
   // 安装页面（不需要Layout）
@@ -69,6 +70,10 @@ export const router = createBrowserRouter([
       {
         path: 'extension-settings',
         element: <AdminExtensionSettings />,
+      },
+      {
+        path: 'developer',
+        element: <AdminDeveloperMode />,
       },
     ],
   },

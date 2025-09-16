@@ -8,6 +8,7 @@ using VoxNest.Server.Application.Interfaces;
 using VoxNest.Server.Application.Services;
 using VoxNest.Server.Shared.Configuration;
 using VoxNest.Server.Shared.Extensions;
+using MySqlConnector;
 
 namespace VoxNest.Server.Infrastructure;
 
@@ -68,6 +69,7 @@ public static class DependencyInjection
         
         // 注册基础设施服务
         services.AddScoped<IDatabasePerformanceService, DatabasePerformanceService>();
+        services.AddScoped<IServerConfigService, ServerConfigService>();
 
         return services;
     }
@@ -82,6 +84,15 @@ public static class DependencyInjection
         services.AddDbContext<VoxNestDbContext>(options =>
         {
             ConfigureDbContextOptions(options, dbSettings);
+        }, ServiceLifetime.Scoped); // 确保正确的生命周期
+        
+        // 添加数据库连接池配置
+        services.Configure<DatabaseSettings>(settings =>
+        {
+            settings.Provider = dbSettings.Provider;
+            settings.ConnectionString = dbSettings.ConnectionString;
+            settings.EnableSensitiveDataLogging = dbSettings.EnableSensitiveDataLogging;
+            settings.EnableDetailedErrors = dbSettings.EnableDetailedErrors;
         });
     }
 
@@ -96,8 +107,28 @@ public static class DependencyInjection
         {
             case "MYSQL":
             case "MARIADB":
-                var serverVersion = ServerVersion.AutoDetect(dbSettings.ConnectionString);
-                options.UseMySql(dbSettings.ConnectionString, serverVersion);
+                try
+                {
+                    // 优化连接字符串，添加协议相关参数
+                    var connectionString = EnhanceConnectionString(dbSettings.ConnectionString);
+                    var serverVersion = ServerVersion.AutoDetect(connectionString);
+                    
+                    options.UseMySql(connectionString, serverVersion, mysqlOptions =>
+                    {
+                        // 配置 MySql 特定选项
+                        mysqlOptions.CommandTimeout(60); // 60秒超时
+                        mysqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 3,
+                            maxRetryDelay: TimeSpan.FromSeconds(5),
+                            errorNumbersToAdd: null
+                        );
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"数据库连接配置失败: {ex.Message}");
+                    throw;
+                }
                 break;
             default:
                 throw new NotSupportedException($"不支持的数据库提供商: {dbSettings.Provider}。支持的数据库：MySQL、MariaDB");
@@ -177,5 +208,34 @@ public static class DependencyInjection
                        .AllowCredentials();
             });
         });
+    }
+
+    /// <summary>
+    /// 增强连接字符串，添加协议稳定性相关参数
+    /// </summary>
+    /// <param name="originalConnectionString">原始连接字符串</param>
+    /// <returns>增强后的连接字符串</returns>
+    private static string EnhanceConnectionString(string originalConnectionString)
+    {
+        var builder = new MySqlConnectionStringBuilder(originalConnectionString);
+        
+        // 设置协议相关参数以避免 "Packet received out-of-order" 错误
+        builder.Pooling = true;                    // 启用连接池
+        builder.MinimumPoolSize = 0;               // 最小连接池大小
+        builder.MaximumPoolSize = 50;              // 最大连接池大小  
+        builder.ConnectionIdleTimeout = 300;       // 空闲连接超时（5分钟）
+        builder.ConnectionReset = true;            // 连接重置
+        builder.ConnectionLifeTime = 0;            // 连接生命周期（0表示无限制）
+        
+        // 网络相关配置
+        builder.DefaultCommandTimeout = 60;        // 命令超时
+        builder.ConnectionTimeout = 30;            // 连接超时
+        builder.Keepalive = 0;                     // TCP keepalive
+        
+        // 协议相关
+        builder.UseCompression = false;            // 禁用压缩（可能导致协议问题）
+        builder.ConvertZeroDateTime = false;       // 不转换零日期时间
+        
+        return builder.ToString();
     }
 }

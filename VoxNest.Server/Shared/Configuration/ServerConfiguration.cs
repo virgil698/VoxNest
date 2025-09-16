@@ -40,6 +40,28 @@ public class ServerSettings
     /// </summary>
     [Range(1, 65535)]
     public int HttpsPort { get; set; } = 7042;
+    
+    /// <summary>
+    /// 服务器时区
+    /// </summary>
+    [Required]
+    public string TimeZone { get; set; } = "Asia/Shanghai";
+    
+    /// <summary>
+    /// 启用HTTPS重定向
+    /// </summary>
+    public bool EnableHttpsRedirection { get; set; } = false;
+    
+    /// <summary>
+    /// 启用详细错误信息
+    /// </summary>
+    public bool EnableDetailedErrors { get; set; } = false;
+    
+    /// <summary>
+    /// 最大请求体大小(MB)
+    /// </summary>
+    [Range(1, 1024)]
+    public int MaxRequestBodySize { get; set; } = 30;
 }
 
 /// <summary>
@@ -55,6 +77,18 @@ public class DatabaseSettings
     
     public bool EnableSensitiveDataLogging { get; set; } = false;
     public bool EnableDetailedErrors { get; set; } = false;
+    
+    /// <summary>
+    /// 最大连接池大小
+    /// </summary>
+    [Range(1, 1000)]
+    public int MaxPoolSize { get; set; } = 50;
+    
+    /// <summary>
+    /// 连接超时时间(秒)
+    /// </summary>
+    [Range(1, 300)]
+    public int ConnectionTimeout { get; set; } = 30;
 }
 
 /// <summary>
@@ -89,6 +123,11 @@ public class CorsSettings
     public List<string> AllowedOrigins { get; set; } = new();
     public List<string> AllowedMethods { get; set; } = new();
     public List<string> AllowedHeaders { get; set; } = new();
+    
+    /// <summary>
+    /// 允许凭据
+    /// </summary>
+    public bool AllowCredentials { get; set; } = true;
 }
 
 /// <summary>
@@ -134,6 +173,18 @@ public class LoggingSettings
 {
     public string Level { get; set; } = "Information";
     public bool EnableConsole { get; set; } = true;
-    public bool EnableFile { get; set; } = false;
+    public bool EnableFile { get; set; } = true;
     public string FilePath { get; set; } = "logs/voxnest.log";
+    
+    /// <summary>
+    /// 单个日志文件最大大小(MB)
+    /// </summary>
+    [Range(1, 1024)]
+    public int MaxFileSize { get; set; } = 100;
+    
+    /// <summary>
+    /// 保留的日志文件数量
+    /// </summary>
+    [Range(1, 365)]
+    public int RetainedFileCount { get; set; } = 30;
 }

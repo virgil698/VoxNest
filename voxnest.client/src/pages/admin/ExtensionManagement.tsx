@@ -81,6 +81,8 @@ const ExtensionManagement: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  // 跟踪正在进行的操作
+  const [operatingExtensions, setOperatingExtensions] = useState<Set<string>>(new Set());
 
   // 加载扩展列表
   const loadExtensions = useCallback(async () => {
@@ -204,9 +206,21 @@ const ExtensionManagement: React.FC = () => {
   }, [extensions, searchText, statusFilter, typeFilter, activeTab, filterExtensions]);
 
   // 启用/禁用扩展
-  const handleToggleExtension = async (extension: Extension) => {
+  const handleToggleExtension = useCallback(async (extension: Extension) => {
     try {
       const isCurrentlyActive = extension.status === 'active';
+
+      // 添加到操作中列表
+      setOperatingExtensions(prev => new Set(prev).add(extension.uniqueId));
+
+      // 立即更新本地状态为 loading，提供即时视觉反馈
+      setExtensions(prevExtensions => 
+        prevExtensions.map(ext => 
+          ext.uniqueId === extension.uniqueId 
+            ? { ...ext, status: 'loading' }
+            : ext
+        )
+      );
 
       // 使用文件系统API启用/禁用扩展
       const result = isCurrentlyActive 
@@ -215,32 +229,93 @@ const ExtensionManagement: React.FC = () => {
       
       if (result.isSuccess) {
         message.success(`扩展 ${extension.name} ${isCurrentlyActive ? '已禁用' : '已启用'}`);
+        // 重新加载扩展列表获取最新状态
         await loadExtensions();
       } else {
         message.error(result.message || '操作失败');
+        // 操作失败时恢复原状态
+        setExtensions(prevExtensions => 
+          prevExtensions.map(ext => 
+            ext.uniqueId === extension.uniqueId 
+              ? { ...ext, status: isCurrentlyActive ? 'active' : 'inactive' }
+              : ext
+          )
+        );
       }
       
     } catch (error) {
       console.error('切换扩展状态失败:', error);
       message.error('操作失败');
+      // 异常时恢复原状态
+      const isCurrentlyActive = extension.status === 'active';
+      setExtensions(prevExtensions => 
+        prevExtensions.map(ext => 
+          ext.uniqueId === extension.uniqueId 
+            ? { ...ext, status: isCurrentlyActive ? 'active' : 'inactive' }
+            : ext
+        )
+      );
+    } finally {
+      // 从操作中列表移除
+      setOperatingExtensions(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(extension.uniqueId);
+        return newSet;
+      });
     }
-  };
+  }, [loadExtensions]);
 
   // 重新加载扩展
-  const handleReloadExtension = async (extension: Extension) => {
+  const handleReloadExtension = useCallback(async (extension: Extension) => {
     try {
+      // 添加到操作中列表
+      setOperatingExtensions(prev => new Set(prev).add(extension.uniqueId));
+      
+      // 立即更新本地状态为 loading，提供即时视觉反馈
+      setExtensions(prevExtensions => 
+        prevExtensions.map(ext => 
+          ext.uniqueId === extension.uniqueId 
+            ? { ...ext, status: 'loading' }
+            : ext
+        )
+      );
+
       const result = await fileSystemExtensionApi.reloadExtension(extension.uniqueId);
       if (result.isSuccess) {
         message.success(`扩展 ${extension.name} 已重载`);
+        // 重新加载扩展列表获取最新状态
         await loadExtensions();
       } else {
         message.error(result.message || '重载失败');
+        // 操作失败时恢复原状态
+        setExtensions(prevExtensions => 
+          prevExtensions.map(ext => 
+            ext.uniqueId === extension.uniqueId 
+              ? { ...ext, status: extension.status }
+              : ext
+          )
+        );
       }
     } catch (error) {
       console.error('重新加载扩展失败:', error);
       message.error('重新加载失败');
+      // 异常时恢复原状态
+      setExtensions(prevExtensions => 
+        prevExtensions.map(ext => 
+          ext.uniqueId === extension.uniqueId 
+            ? { ...ext, status: extension.status }
+            : ext
+        )
+      );
+    } finally {
+      // 从操作中列表移除
+      setOperatingExtensions(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(extension.uniqueId);
+        return newSet;
+      });
     }
-  };
+  }, [loadExtensions]);
 
   // 查看扩展详情
   const handleViewDetail = (extension: Extension) => {
@@ -263,20 +338,56 @@ const ExtensionManagement: React.FC = () => {
   };
 
   // 卸载扩展（完全删除）
-  const handleUninstallExtension = async (extension: Extension) => {
+  const handleUninstallExtension = useCallback(async (extension: Extension) => {
     try {
+      // 添加到操作中列表
+      setOperatingExtensions(prev => new Set(prev).add(extension.uniqueId));
+      
+      // 立即更新本地状态为 loading，提供即时视觉反馈
+      setExtensions(prevExtensions => 
+        prevExtensions.map(ext => 
+          ext.uniqueId === extension.uniqueId 
+            ? { ...ext, status: 'loading' }
+            : ext
+        )
+      );
+
       const result = await fileSystemExtensionApi.uninstallExtension(extension.uniqueId);
       if (result.isSuccess) {
         message.success(`扩展 ${extension.name} 已卸载`);
+        // 重新加载扩展列表获取最新状态
         await loadExtensions();
       } else {
         message.error(result.message || '卸载失败');
+        // 操作失败时恢复原状态
+        setExtensions(prevExtensions => 
+          prevExtensions.map(ext => 
+            ext.uniqueId === extension.uniqueId 
+              ? { ...ext, status: extension.status }
+              : ext
+          )
+        );
       }
     } catch (error) {
       console.error('卸载扩展失败:', error);
       message.error('卸载失败');
+      // 异常时恢复原状态
+      setExtensions(prevExtensions => 
+        prevExtensions.map(ext => 
+          ext.uniqueId === extension.uniqueId 
+            ? { ...ext, status: extension.status }
+            : ext
+        )
+      );
+    } finally {
+      // 从操作中列表移除
+      setOperatingExtensions(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(extension.uniqueId);
+        return newSet;
+      });
     }
-  };
+  }, [loadExtensions]);
 
   // 获取状态标签
   const getStatusTag = (status: string) => {
@@ -393,46 +504,55 @@ const ExtensionManagement: React.FC = () => {
       title: '操作',
       key: 'actions',
       width: 200,
-      render: (_: unknown, record: Extension) => (
-        <Space size="small">
-          <Switch
-            size="small"
-            checked={record.status === 'active'}
-            loading={record.status === 'loading'}
-            onChange={() => handleToggleExtension(record)}
-            checkedChildren="启用"
-            unCheckedChildren="禁用"
-          />
-          <Tooltip title="重新加载">
-            <Button
+      render: (_: unknown, record: Extension) => {
+        const isOperating = operatingExtensions.has(record.uniqueId);
+        return (
+          <Space size="small">
+            <Switch
               size="small"
-              icon={<ReloadOutlined />}
-              onClick={() => handleReloadExtension(record)}
+              checked={record.status === 'active'}
+              loading={record.status === 'loading'}
+              disabled={isOperating}
+              onChange={() => handleToggleExtension(record)}
+              checkedChildren="启用"
+              unCheckedChildren="禁用"
             />
-          </Tooltip>
-          <Tooltip title="查看详情">
-            <Button
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => handleViewDetail(record)}
-            />
-          </Tooltip>
-          <Tooltip title="卸载扩展">
-            <Button
-              size="small"
-              icon={<DeleteOutlined />}
-              danger
-              onClick={() => {
-                Modal.confirm({
-                  title: '确认卸载',
-                  content: `确定要卸载扩展 ${record.name} 吗？这将删除所有相关文件。`,
-                  onOk: () => handleUninstallExtension(record)
-                });
-              }}
-            />
-          </Tooltip>
-        </Space>
-      ),
+            <Tooltip title="重新加载">
+              <Button
+                size="small"
+                icon={<ReloadOutlined />}
+                loading={isOperating && record.status === 'loading'}
+                disabled={isOperating}
+                onClick={() => handleReloadExtension(record)}
+              />
+            </Tooltip>
+            <Tooltip title="查看详情">
+              <Button
+                size="small"
+                icon={<EyeOutlined />}
+                disabled={isOperating}
+                onClick={() => handleViewDetail(record)}
+              />
+            </Tooltip>
+            <Tooltip title="卸载扩展">
+              <Button
+                size="small"
+                icon={<DeleteOutlined />}
+                danger
+                loading={isOperating && record.status === 'loading'}
+                disabled={isOperating}
+                onClick={() => {
+                  Modal.confirm({
+                    title: '确认卸载',
+                    content: `确定要卸载扩展 ${record.name} 吗？这将删除所有相关文件。`,
+                    onOk: () => handleUninstallExtension(record)
+                  });
+                }}
+              />
+            </Tooltip>
+          </Space>
+        );
+      },
     },
   ];
 
@@ -583,7 +703,7 @@ const ExtensionManagement: React.FC = () => {
 
         {/* 扩展列表 */}
         <Table
-          rowKey="id"
+          rowKey="uniqueId"
           columns={columns}
           dataSource={filteredExtensions}
           loading={loading}

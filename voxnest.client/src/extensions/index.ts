@@ -87,6 +87,10 @@ export {
   type LoadedExtension,
 } from './manager/ExtensionLoader';
 
+export {
+  ExtensionHotReload,
+} from './manager/ExtensionHotReload';
+
 // ==================== 便捷函数 ====================
 
 import { getGlobalFramework } from './core/ExtensionFramework';

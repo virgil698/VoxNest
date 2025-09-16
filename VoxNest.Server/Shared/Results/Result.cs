@@ -82,7 +82,7 @@ public class Result<T> : Result
     /// </summary>
     public T? Data { get; private set; }
 
-    protected Result(bool isSuccess, T? data = default, string errorMessage = "") : base(isSuccess, errorMessage)
+    protected Result(bool isSuccess, T? data = default, string errorMessage = "", string successMessage = "") : base(isSuccess, errorMessage, successMessage)
     {
         Data = data;
     }
@@ -95,11 +95,19 @@ public class Result<T> : Result
     public static Result<T> Success(T data) => new(true, data);
 
     /// <summary>
+    /// 创建成功结果
+    /// </summary>
+    /// <param name="data"></param>
+    /// <param name="successMessage"></param>
+    /// <returns></returns>
+    public static Result<T> Success(T data, string successMessage) => new(true, data, "", successMessage);
+
+    /// <summary>
     /// 创建失败结果
     /// </summary>
     /// <param name="errorMessage"></param>
     /// <returns></returns>
-    public static new Result<T> Failure(string errorMessage) => new(false, default, errorMessage);
+    public static new Result<T> Failure(string errorMessage) => new(false, default, errorMessage, "");
 
     /// <summary>
     /// 创建失败结果
@@ -109,7 +117,7 @@ public class Result<T> : Result
     /// <returns></returns>
     public static new Result<T> Failure(string errorMessage, List<string> errorDetails)
     {
-        var result = new Result<T>(false, default, errorMessage);
+        var result = new Result<T>(false, default, errorMessage, "");
         result.ErrorDetails = errorDetails;
         return result;
     }

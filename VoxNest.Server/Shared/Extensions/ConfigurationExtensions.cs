@@ -49,21 +49,28 @@ public static class ConfigurationExtensions
                 Version = "1.0.0",
                 Environment = "Development",
                 Port = 5201,
-                HttpsPort = 7042
+                HttpsPort = 7042,
+                TimeZone = "Asia/Shanghai",
+                EnableHttpsRedirection = false,
+                EnableDetailedErrors = false,
+                MaxRequestBodySize = 30
             },
             Database = new DatabaseSettings
             {
                 Provider = "MySQL",
                 ConnectionString = "", // 空连接字符串，等待用户安装时配置
                 EnableSensitiveDataLogging = false,
-                EnableDetailedErrors = false
+                EnableDetailedErrors = false,
+                MaxPoolSize = 50,
+                ConnectionTimeout = 30
             },
             Jwt = new JwtSettings
             {
                 SecretKey = GenerateSecretKey(), // 每次都生成新的密钥
                 Issuer = "VoxNest",
                 Audience = "VoxNest-Users",
-                ExpireMinutes = 1440 // 24小时
+                ExpireMinutes = 1440, // 24小时
+                ClockSkew = 5
             },
             Cors = new CorsSettings
             {
@@ -80,14 +87,17 @@ public static class ConfigurationExtensions
                 AllowedHeaders = new List<string>
                 {
                     "Content-Type", "Authorization", "X-Requested-With", "X-Request-Id"
-                }
+                },
+                AllowCredentials = true
             },
             Logging = new LoggingSettings
             {
                 Level = "Information",
                 EnableConsole = true,
                 EnableFile = true,
-                FilePath = "logs/voxnest.log"
+                FilePath = "logs/voxnest.log",
+                MaxFileSize = 100,
+                RetainedFileCount = 30
             }
         };
     }
