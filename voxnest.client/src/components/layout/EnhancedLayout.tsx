@@ -61,7 +61,7 @@ export const EnhancedLayout: React.FC = () => {
   const getUserMenuItems = (): MenuProps['items'] => {
     const baseItems: MenuProps['items'] = [
       {
-        key: '/user/profile',
+        key: user ? `/user/${user.id}` : '/user/profile',
         icon: <UserOutlined />,
         label: '个人资料',
       },
@@ -69,6 +69,11 @@ export const EnhancedLayout: React.FC = () => {
         key: '/user/posts',
         icon: <FileTextOutlined />,
         label: '我的帖子',
+      },
+      {
+        key: '/user/profile',
+        icon: <SettingOutlined />,
+        label: '偏好设置',
       },
     ];
 
@@ -234,7 +239,7 @@ export const EnhancedLayout: React.FC = () => {
                     icon={<SearchOutlined />}
                     onClick={() => handleSearch(searchValue)}
                     className="voxnest-search-button"
-                    size="small"
+                    size="middle"
                   />
                 }
               />

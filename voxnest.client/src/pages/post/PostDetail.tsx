@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
   Card, 
   Avatar, 
@@ -288,24 +288,55 @@ const PostDetail: React.FC = () => {
           alignItems: 'center',
           gap: '16px'
         }}>
-          <Avatar 
-            src={currentPost.author.avatar} 
-            size={64}
-            style={{
-              border: '3px solid var(--primary-color)',
-              boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)'
+          <Link 
+            to={`/user/${currentPost.author.id}`}
+            style={{ 
+              textDecoration: 'none',
+              borderRadius: '50%',
+              transition: 'transform 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
             }}
           >
-            {currentPost.author.displayName?.[0] || currentPost.author.username[0]}
-          </Avatar>
+            <Avatar 
+              src={currentPost.author.avatar} 
+              size={64}
+              style={{
+                border: '3px solid var(--primary-color)',
+                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)',
+                cursor: 'pointer'
+              }}
+            >
+              {currentPost.author.displayName?.[0] || currentPost.author.username[0]}
+            </Avatar>
+          </Link>
           <div style={{ flex: 1 }}>
             <div style={{ marginBottom: '4px' }}>
-              <Text strong style={{ 
-                fontSize: '18px',
-                color: 'var(--text-primary)'
-              }}>
-                {currentPost.author.displayName || currentPost.author.username}
-              </Text>
+              <Link 
+                to={`/user/${currentPost.author.id}`}
+                style={{ 
+                  textDecoration: 'none',
+                  color: 'var(--text-primary)',
+                  transition: 'color 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'var(--primary-color)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                }}
+              >
+                <Text strong style={{ 
+                  fontSize: '18px',
+                  color: 'inherit'
+                }}>
+                  {currentPost.author.displayName || currentPost.author.username}
+                </Text>
+              </Link>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <Text style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>

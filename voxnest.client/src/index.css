@@ -3,6 +3,9 @@
 @import './styles/components/Post.css';
 @import './styles/components/Auth.css';
 
+/* 导入页面样式 */
+@import './styles/pages/UserProfile.css';
+
 /* 全局样式重置 */
 * {
   margin: 0;

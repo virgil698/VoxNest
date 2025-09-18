@@ -12,7 +12,8 @@ const RegisterPage = lazy(() => import('../pages/auth/Register'));
 const PostDetailPage = lazy(() => import('../pages/post/PostDetail'));
 const CreatePostPage = lazy(() => import('../pages/post/CreatePost'));
 const MyPostsPage = lazy(() => import('../pages/post/MyPosts'));
-const ProfilePage = lazy(() => import('../pages/user/Profile'));
+const SettingsPage = lazy(() => import('../pages/user/Settings'));
+const UserProfilePage = lazy(() => import('../pages/user/UserProfile'));
 const InstallPage = lazy(() => import('../pages/Install'));
 
 // 标签相关页面
@@ -135,9 +136,19 @@ export const router = createBrowserRouter([
           },
           {
             path: 'profile',
-            element: <ProfilePage />,
+            element: <SettingsPage />,
           },
         ],
+      },
+      // 公开用户个人主页路由（不需要认证）
+      {
+        path: 'profile/:username',
+        element: <UserProfilePage />,
+      },
+      // 通过用户ID访问个人主页
+      {
+        path: 'user/:id',
+        element: <UserProfilePage />,
       },
       // 标签相关路由
       {

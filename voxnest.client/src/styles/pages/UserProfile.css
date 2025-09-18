@@ -1,0 +1,478 @@
+/* 用户个人主页独立样式 */
+
+.user-profile-container {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 0 24px;
+}
+
+/* 头部背景区域 */
+.user-profile-header {
+  position: relative;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  overflow: hidden;
+  padding: 32px 0;
+  margin: 24px auto 0;
+  max-width: 1200px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.user-profile-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  opacity: 0.3;
+}
+
+/* 头部内容容器 */
+.user-profile-header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 48px;
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+/* 头像包装器 */
+.user-profile-avatar-wrapper {
+  flex-shrink: 0;
+}
+
+.user-profile-avatar {
+  width: 120px;
+  height: 120px;
+  border: 4px solid #ffffff;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* 用户信息区域 */
+.user-profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-profile-basic {
+  margin-bottom: 16px;
+}
+
+.user-profile-name {
+  color: #ffffff !important;
+  font-size: 28px !important;
+  font-weight: 600 !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  margin: 0 0 8px 0 !important;
+  line-height: 1.2;
+}
+
+.user-profile-username {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 16px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  display: block;
+  margin-bottom: 12px;
+}
+
+.user-profile-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.user-profile-badge {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff !important;
+  backdrop-filter: blur(10px);
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* 用户详细信息 */
+.user-profile-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.user-profile-detail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.user-profile-detail .anticon {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.user-profile-link {
+  color: rgba(255, 255, 255, 0.9) !important;
+  text-decoration: underline;
+}
+
+.user-profile-link:hover {
+  color: #ffffff !important;
+}
+
+/* 个人介绍 */
+.user-profile-bio {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.user-profile-bio-content {
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 1.6;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 主要内容区域 */
+.user-profile-main {
+  max-width: 1200px;
+  margin: 24px auto 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+}
+
+/* 左侧帖子列表 */
+.user-posts-section {
+  background: transparent;
+}
+
+.user-posts-header {
+  padding: 20px 0;
+  border-bottom: none;
+  background: transparent;
+}
+
+.user-posts-title {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: #1a202c !important;
+  margin: 0 !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-posts-list {
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.user-post-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 20px;
+  transition: all 0.2s ease;
+  border: 1px solid #f0f2f5;
+}
+
+.user-post-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.user-post-title {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: #1a202c !important;
+  text-decoration: none !important;
+  margin-bottom: 8px !important;
+  display: block;
+  line-height: 1.4;
+}
+
+.user-post-title:hover {
+  color: #1890ff !important;
+}
+
+.user-post-summary {
+  color: #666 !important;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.user-post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.user-post-tag {
+  background: #f0f2f5;
+  color: #666;
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.user-post-tag:hover {
+  background: #1890ff;
+  color: #ffffff;
+}
+
+.user-post-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+.user-post-author {
+  color: #999;
+  font-size: 14px;
+}
+
+.user-post-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-post-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #999;
+  font-size: 14px;
+}
+
+.user-post-stat .anticon {
+  color: #999;
+}
+
+/* 右侧工具栏 */
+.user-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.user-toolbar-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.user-toolbar-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f2f5;
+  background: #fafbfc;
+}
+
+.user-toolbar-title {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #1a202c !important;
+  margin: 0 !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-toolbar-content {
+  padding: 20px;
+}
+
+/* 统计数据 */
+.user-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.user-stat-item {
+  text-align: center;
+}
+
+.user-stat-number {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1890ff;
+  margin-bottom: 4px;
+}
+
+.user-stat-label {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* 个人介绍 */
+.user-bio-content {
+  color: #555;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.user-bio-empty {
+  color: #999;
+  font-style: italic;
+  font-size: 14px;
+}
+
+/* 用户信息列表 */
+.user-info-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.user-info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  color: #555;
+  font-size: 14px;
+}
+
+.user-info-item .anticon {
+  color: #666;
+  width: 16px;
+}
+
+.user-info-link {
+  color: #1890ff;
+  text-decoration: none;
+}
+
+.user-info-link:hover {
+  text-decoration: underline;
+}
+
+/* 空状态 */
+.user-posts-empty {
+  text-align: center;
+  padding: 60px 24px;
+  color: #999;
+}
+
+.user-posts-empty .anticon {
+  font-size: 48px;
+  color: #ddd;
+  margin-bottom: 16px;
+}
+
+.user-posts-empty-text {
+  font-size: 16px;
+  color: #999;
+}
+
+/* 用户公告空状态 */
+.user-announcement-empty {
+  color: #999;
+  font-style: italic;
+  font-size: 14px;
+  text-align: center;
+  padding: 20px 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .user-profile-container {
+    padding: 0 16px;
+  }
+
+  .user-profile-main {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .user-toolbar {
+    order: -1;
+  }
+
+  .user-profile-header {
+    padding: 20px 0;
+    margin: 16px auto 0;
+    border-radius: 12px;
+  }
+
+  .user-profile-header-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .user-profile-info {
+    width: 100%;
+  }
+
+  .user-profile-avatar {
+    width: 100px;
+    height: 100px;
+  }
+
+  .user-profile-name {
+    font-size: 24px !important;
+  }
+
+  .user-profile-details {
+    justify-content: center;
+  }
+
+  .user-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .user-stat-number {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-profile-container {
+    padding: 0 12px;
+  }
+
+  .user-profile-header-content {
+    padding: 0 24px;
+  }
+
+  .user-posts-header,
+  .user-post-item,
+  .user-toolbar-content {
+    padding: 16px;
+  }
+
+  .user-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .user-profile-details {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

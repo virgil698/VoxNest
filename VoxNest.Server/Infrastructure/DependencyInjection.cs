@@ -63,6 +63,7 @@ public static class DependencyInjection
         services.AddScoped<ILogService, LogService>();
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<ITagService, TagService>();
+        services.AddScoped<IUserProfileService, UserProfileService>();
         // Plugin, Theme, UnifiedExtension services removed - using FileSystemExtensionService only
         services.AddScoped<IFileSystemExtensionService, FileSystemExtensionService>();
         services.AddScoped<ISystemInfoService, SystemInfoService>();

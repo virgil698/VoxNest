@@ -9,7 +9,7 @@ import {
   CloseOutlined
 } from '@ant-design/icons';
 import { Users, UserCheck, FileText, BarChart3, Megaphone, Flame, Tags } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { usePostStore } from '../stores/postStore';
 import { useAuthStore } from '../stores/authStore';
 import type { PostListItem, Tag as PostTag } from '../types/post';
@@ -315,13 +315,39 @@ const Home: React.FC = () => {
           borderTop: '1px solid #f0f0f0'
         }}>
           <Space>
-            <Avatar 
-              src={post.author.avatar} 
-              size="small"
+            <Link 
+              to={`/user/${post.author.id}`}
+              style={{ 
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center'
+              }}
             >
-              {post.author.displayName?.[0] || post.author.username[0]}
-            </Avatar>
-            <Text strong>{post.author.displayName || post.author.username}</Text>
+              <Avatar 
+                src={post.author.avatar} 
+                size="small"
+                style={{ cursor: 'pointer' }}
+              >
+                {post.author.displayName?.[0] || post.author.username[0]}
+              </Avatar>
+            </Link>
+            <Link 
+              to={`/user/${post.author.id}`}
+              style={{ 
+                textDecoration: 'none',
+                color: 'inherit'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = '#1890ff';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'inherit';
+              }}
+            >
+              <Text strong style={{ color: 'inherit' }}>
+                {post.author.displayName || post.author.username}
+              </Text>
+            </Link>
             <Text type="secondary">•</Text>
             <Text type="secondary">
               {dayjs(post.publishedAt || post.createdAt).fromNow()}

@@ -172,7 +172,7 @@ export const Layout: React.FC = () => {
                 icon={<SearchOutlined />}
                 onClick={() => handleSearch(searchValue)}
                 className="voxnest-search-button"
-                size="small"
+                size="middle"
               />
             }
           />
