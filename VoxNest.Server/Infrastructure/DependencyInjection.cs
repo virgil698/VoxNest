@@ -62,6 +62,7 @@ public static class DependencyInjection
         services.AddScoped<IInstallLockService, InstallLockService>();
         services.AddScoped<ILogService, LogService>();
         services.AddScoped<IAdminService, AdminService>();
+        services.AddScoped<ITagService, TagService>();
         // Plugin, Theme, UnifiedExtension services removed - using FileSystemExtensionService only
         services.AddScoped<IFileSystemExtensionService, FileSystemExtensionService>();
         services.AddScoped<ISystemInfoService, SystemInfoService>();
@@ -72,6 +73,12 @@ public static class DependencyInjection
         services.AddScoped<IDebugPerformanceService, DebugPerformanceService>();
         services.AddSingleton<IDebugConfigurationService, DebugConfigurationService>();
         services.AddScoped<IServerConfigService, ServerConfigService>();
+
+        // 注册后台服务
+        services.AddHostedService<TagCleanupService>();
+        services.AddSingleton<BackgroundLogService>();
+        services.AddHostedService<BackgroundLogService>(provider => 
+            provider.GetRequiredService<BackgroundLogService>());
 
         return services;
     }

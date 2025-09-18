@@ -30,6 +30,15 @@ public class TagConfiguration : IEntityTypeConfiguration<Tag>
         builder.Property(t => t.UseCount)
             .HasDefaultValue(0);
 
+        builder.Property(t => t.IsPermanent)
+            .HasDefaultValue(false);
+
+        builder.Property(t => t.CreatedBy)
+            .IsRequired(false);
+
+        builder.Property(t => t.LastUsedAt)
+            .IsRequired(false);
+
         builder.Property(t => t.CreatedAt)
             .IsRequired();
 
@@ -37,11 +46,18 @@ public class TagConfiguration : IEntityTypeConfiguration<Tag>
         builder.HasIndex(t => t.Name).IsUnique();
         builder.HasIndex(t => t.Slug).IsUnique();
         builder.HasIndex(t => t.UseCount);
+        builder.HasIndex(t => t.IsPermanent);
+        builder.HasIndex(t => t.LastUsedAt);
 
         // 关系
         builder.HasMany(t => t.PostTags)
             .WithOne(pt => pt.Tag)
             .HasForeignKey(pt => pt.TagId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(t => t.Creator)
+            .WithMany()
+            .HasForeignKey(t => t.CreatedBy)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

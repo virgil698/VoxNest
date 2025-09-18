@@ -14,7 +14,8 @@ import {
   FileTextOutlined,
   PlusOutlined,
   SearchOutlined,
-  SettingOutlined
+  SettingOutlined,
+  AppstoreOutlined
 } from '@ant-design/icons';
 import { useAuthStore } from '../../stores/authStore';
 import { ConditionalSlot, Slot } from '../../extensions';
@@ -48,6 +49,11 @@ export const EnhancedLayout: React.FC = () => {
       key: '/',
       icon: <HomeOutlined />,
       label: '首页',
+    },
+    {
+      key: '/tags',
+      icon: <AppstoreOutlined />,
+      label: '分类',
     },
   ];
 
@@ -132,7 +138,19 @@ export const EnhancedLayout: React.FC = () => {
   };
 
   // 获取当前选中的菜单项
-  const selectedKeys = [location.pathname];
+  const getSelectedKeys = () => {
+    const pathname = location.pathname;
+    
+    // 如果是标签相关页面（/tags 或 /tags/xxx），激活分类菜单项
+    if (pathname === '/tags' || pathname.startsWith('/tags/')) {
+      return ['/tags'];
+    }
+    
+    // 其他页面使用精确匹配
+    return [pathname];
+  };
+  
+  const selectedKeys = getSelectedKeys();
 
   return (
     <AntdLayout style={{ minHeight: '100vh', background: 'transparent' }}>

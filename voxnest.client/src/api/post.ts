@@ -44,6 +44,15 @@ export const postApi = {
     return api.get(`/api/post/user/${userId}?${searchParams.toString()}`);
   },
 
+  // 获取标签相关帖子
+  getPostsByTag: (tagId: number, params: Omit<PostListParams, 'categoryId'> = {}) => {
+    const searchParams = new URLSearchParams();
+    if (params.pageNumber) searchParams.set('pageNumber', params.pageNumber.toString());
+    if (params.pageSize) searchParams.set('pageSize', params.pageSize.toString());
+    
+    return api.get(`/api/post/by-tag/${tagId}?${searchParams.toString()}`);
+  },
+
   // 删除帖子
   deletePost: (id: number) =>
     api.delete(`/api/post/${id}`),

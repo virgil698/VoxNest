@@ -95,6 +95,73 @@ public class PostController : BaseApiController
     }
 
     /// <summary>
+    /// 获取标签相关帖子列表
+    /// </summary>
+    /// <param name="tagId">标签ID</param>
+    /// <param name="pageNumber">页码，默认为1</param>
+    /// <param name="pageSize">每页大小，默认为10，最大50</param>
+    /// <returns>标签相关帖子列表</returns>
+    [HttpGet("by-tag/{tagId}")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetPostsByTag(
+        int tagId,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        // 验证分页参数
+        if (pageNumber <= 0)
+        {
+            return BadRequest(new
+            {
+                success = false,
+                message = "页码必须大于0"
+            });
+        }
+
+        if (pageSize <= 0 || pageSize > 50)
+        {
+            return BadRequest(new
+            {
+                success = false,
+                message = "每页大小必须在1-50之间"
+            });
+        }
+
+        try
+        {
+            var result = await _postService.GetPostsByTagAsync(tagId, pageNumber, pageSize);
+
+            if (result.IsSuccess)
+            {
+                return Ok(new
+                {
+                    success = true,
+                    message = "获取标签帖子列表成功",
+                    data = result.Data
+                });
+            }
+
+            return BadRequest(new
+            {
+                success = false,
+                message = result.ErrorMessage,
+                errors = result.ErrorDetails
+            });
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "获取标签帖子列表失败: TagId={TagId}", tagId);
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "服务器内部错误"
+            });
+        }
+    }
+
+    /// <summary>
     /// 获取帖子列表
     /// </summary>
     /// <param name="pageNumber">页码，默认为1</param>

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using VoxNest.Server.Application.DTOs.Log;
 using VoxNest.Server.Application.Interfaces;
+using VoxNest.Server.Application.Services;
+using VoxNest.Server.Domain.Enums;
 using VoxNest.Server.Shared.Models;
 using VoxNest.Server.Shared.Results;
 
@@ -17,11 +19,16 @@ public class LogController : ControllerBase
 {
     private readonly ILogService _logService;
     private readonly ILogger<LogController> _logger;
+    private readonly BackgroundLogService _backgroundLogService;
 
-    public LogController(ILogService logService, ILogger<LogController> logger)
+    public LogController(
+        ILogService logService, 
+        ILogger<LogController> logger,
+        BackgroundLogService backgroundLogService)
     {
         _logService = logService;
         _logger = logger;
+        _backgroundLogService = backgroundLogService;
     }
 
     /// <summary>
@@ -63,9 +70,37 @@ public class LogController : ControllerBase
             // 获取用户ID
             var userId = GetCurrentUserId();
 
-            var result = await _logService.CreateLogAsync(createLogDto, userId, cancellationToken);
-            
-            return Ok(ApiResponse<LogEntryDto>.CreateSuccess(result));
+            // 判断是否是需要立即处理的重要日志
+            if (IsImportantLog(createLogDto))
+            {
+                // 重要日志立即处理
+                var result = await _logService.CreateLogAsync(createLogDto, userId, cancellationToken);
+                return Ok(ApiResponse<LogEntryDto>.CreateSuccess(result));
+            }
+            else
+            {
+                // 非重要日志使用后台服务处理
+                _backgroundLogService.EnqueueLog(createLogDto, userId);
+                
+                // 返回成功响应，无需等待实际写入
+                var immediateResult = new LogEntryDto
+                {
+                    Id = 0, // 后台处理的日志暂时没有ID
+                    Level = createLogDto.Level,
+                    Category = createLogDto.Category,
+                    Message = createLogDto.Message,
+                    CreatedAt = DateTime.UtcNow,
+                    Source = createLogDto.Source
+                };
+                
+                return Ok(ApiResponse<LogEntryDto>.CreateSuccess(immediateResult));
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // 客户端取消请求是正常情况，不需要记录为错误
+            _logger.LogDebug("Log creation was canceled by client");
+            return StatusCode(499, ApiResponse.CreateError("请求已取消")); // 499 Client Closed Request
         }
         catch (Exception ex)
         {
@@ -91,6 +126,11 @@ public class LogController : ControllerBase
         {
             var result = await _logService.GetLogsAsync(query, cancellationToken);
             return Ok(ApiResponse<LogQueryResultDto>.CreateSuccess(result));
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogDebug("Get logs operation was canceled by client");
+            return StatusCode(499, ApiResponse.CreateError("请求已取消"));
         }
         catch (Exception ex)
         {
@@ -122,6 +162,11 @@ public class LogController : ControllerBase
 
             return Ok(ApiResponse<LogEntryDto>.CreateSuccess(result));
         }
+        catch (OperationCanceledException)
+        {
+            _logger.LogDebug("Get log detail operation was canceled by client");
+            return StatusCode(499, ApiResponse.CreateError("请求已取消"));
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting log {LogId}", id);
@@ -144,6 +189,11 @@ public class LogController : ControllerBase
         {
             var result = await _logService.GetLogStatsAsync(cancellationToken);
             return Ok(ApiResponse<LogStatsDto>.CreateSuccess(result));
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogDebug("Get log stats operation was canceled by client");
+            return StatusCode(499, ApiResponse.CreateError("请求已取消"));
         }
         catch (Exception ex)
         {
@@ -223,6 +273,30 @@ public class LogController : ControllerBase
             return userId;
         }
         return null;
+    }
+
+    /// <summary>
+    /// 判断是否是需要立即处理的重要日志
+    /// </summary>
+    private static bool IsImportantLog(CreateLogEntryDto logDto)
+    {
+        // 错误和严重错误需要立即处理
+        if (logDto.Level <= Domain.Enums.LogLevel.Error)
+            return true;
+            
+        // 安全相关日志需要立即处理
+        if (logDto.Category == LogCategory.Security)
+            return true;
+            
+        // 系统相关的警告日志需要立即处理
+        if (logDto.Category == LogCategory.System && logDto.Level <= Domain.Enums.LogLevel.Warning)
+            return true;
+            
+        // 包含异常信息的日志需要立即处理
+        if (!string.IsNullOrEmpty(logDto.Exception))
+            return true;
+            
+        return false;
     }
 
     /// <summary>

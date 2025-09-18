@@ -15,9 +15,16 @@ const MyPostsPage = lazy(() => import('../pages/post/MyPosts'));
 const ProfilePage = lazy(() => import('../pages/user/Profile'));
 const InstallPage = lazy(() => import('../pages/Install'));
 
+// 标签相关页面
+const TagPostsPage = lazy(() => import('../pages/TagPosts'));
+const AllTagsPage = lazy(() => import('../pages/AllTags'));
+
 // Admin 页面（懒加载）
 const AdminDashboard = lazy(() => import('../pages/admin/Dashboard'));
 const AdminSiteSettings = lazy(() => import('../pages/admin/SiteSettings'));
+const AdminUserManagement = lazy(() => import('../pages/admin/UserManagement'));
+const AdminPostManagement = lazy(() => import('../pages/admin/PostManagement'));
+const AdminTagManagement = lazy(() => import('../pages/admin/TagManagement'));
 const AdminLogManagement = lazy(() => import('../pages/admin/LogManagement'));
 const AdminExtensionManagement = lazy(() => import('../pages/admin/ExtensionManagement'));
 const AdminExtensionSettings = lazy(() => import('../pages/admin/ExtensionSettings'));
@@ -53,15 +60,15 @@ export const router = createBrowserRouter([
       // 其他管理页面将在后续添加
       {
         path: 'users',
-        element: <div>用户管理页面 - 开发中</div>,
+        element: <AdminUserManagement />,
       },
       {
         path: 'posts',
-        element: <div>帖子管理页面 - 开发中</div>,
+        element: <AdminPostManagement />,
       },
       {
         path: 'tags',
-        element: <div>标签管理页面 - 开发中</div>,
+        element: <AdminTagManagement />,
       },
       {
         path: 'extensions',
@@ -129,6 +136,20 @@ export const router = createBrowserRouter([
           {
             path: 'profile',
             element: <ProfilePage />,
+          },
+        ],
+      },
+      // 标签相关路由
+      {
+        path: 'tags',
+        children: [
+          {
+            index: true,
+            element: <AllTagsPage />,
+          },
+          {
+            path: ':slug',
+            element: <TagPostsPage />,
           },
         ],
       },

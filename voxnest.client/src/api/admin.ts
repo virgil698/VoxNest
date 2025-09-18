@@ -14,19 +14,20 @@ export type SiteSettingType = typeof SiteSettingType[keyof typeof SiteSettingTyp
 
 // 用户状态枚举（与后端保持一致）
 export const UserStatus = {
-  Active: 0,
-  Inactive: 1,
-  Suspended: 2,
-  Banned: 3
+  Pending: 0,
+  Active: 1,
+  Disabled: 2,
+  Deleted: 3
 } as const;
 export type UserStatus = typeof UserStatus[keyof typeof UserStatus];
 
-// 帖子状态枚举
+// 帖子状态枚举（与后端保持一致）
 export const PostStatus = {
   Draft: 0,
   Published: 1,
-  Archived: 2,
-  Deleted: 3
+  Locked: 2,
+  Pinned: 3,
+  Deleted: 4
 } as const;
 export type PostStatus = typeof PostStatus[keyof typeof PostStatus];
 
@@ -233,26 +234,73 @@ export interface UpdateUserRoles {
   roleIds: number[];
 }
 
-// 帖子管理接口
+export interface CreateUser {
+  username: string;
+  email: string;
+  password: string;
+  displayName?: string;
+  avatar?: string;
+  status: UserStatus;
+  roleIds: number[];
+  remark?: string;
+}
+
+export interface UpdateUser {
+  username: string;
+  email: string;
+  newPassword?: string;
+  displayName?: string;
+  avatar?: string;
+  status: UserStatus;
+  roleIds: number[];
+  remark?: string;
+}
+
+
+// 移除重复的标签接口定义
+
+// 通用分页结果接口 - 与后端PagedResult<T>结构保持一致
+export interface PagedResult<T> {
+  data: T[];  // 后端使用Data属性存储列表数据
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+}
+
+// 帖子管理相关接口
+export interface PostAuthor {
+  id: number;
+  username: string;
+  displayName: string;
+  avatar?: string;
+}
+
+export interface PostCategory {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+}
+
+export interface PostTag {
+  id: number;
+  name: string;
+  color?: string;
+  useCount: number;
+}
+
 export interface AdminPost {
   id: number;
   title: string;
   summary?: string;
-  author: {
-    id: number;
-    username: string;
-    displayName?: string;
-    avatar?: string;
-  };
-  category?: {
-    id: number;
-    name: string;
-    description?: string;
-  };
-  tags: {
-    id: number;
-    name: string;
-  }[];
+  author: PostAuthor;
+  category?: PostCategory;
+  tags: PostTag[];
   status: PostStatus;
   statusName: string;
   viewCount: number;
@@ -291,58 +339,50 @@ export interface BatchPostOperation {
   parameters?: string;
 }
 
-// 标签管理接口
+// 标签管理相关接口
 export interface AdminTag {
   id: number;
   name: string;
-  description?: string;
+  slug: string;
   color?: string;
-  icon?: string;
-  usageCount: number;
-  isHot: boolean;
-  sort: number;
-  isEnabled: boolean;
+  useCount: number;
+  isPermanent: boolean;
+  createdBy?: number;
+  creatorName?: string;
   createdAt: string;
-  updatedAt: string;
   lastUsedAt?: string;
 }
 
-export interface CreateUpdateTag {
+export interface CreateTag {
   name: string;
-  description?: string;
   color?: string;
-  icon?: string;
-  isHot: boolean;
-  sort: number;
-  isEnabled: boolean;
+  isPermanent?: boolean;
+}
+
+export interface UpdateTag {
+  name: string;
+  color?: string;
 }
 
 export interface AdminTagQuery {
   pageNumber?: number;
   pageSize?: number;
   search?: string;
-  isHot?: boolean;
-  isEnabled?: boolean;
-  minUsageCount?: number;
+  isPermanent?: boolean;
+  minUseCount?: number;
+  createdBy?: number;
   sortBy?: string;
-  sortDirection?: 'asc' | 'desc';
+  sortDirection?: string;
 }
 
 export interface TagStats {
   totalTags: number;
-  enabledTags: number;
-  hotTags: number;
+  permanentTags: number;
+  dynamicTags: number;
   unusedTags: number;
+  tagsToClean: number;
   topTags: AdminTag[];
   recentTags: AdminTag[];
-}
-
-// 通用分页结果接口
-export interface PagedResult<T> {
-  items: T[];
-  totalCount: number;
-  pageNumber: number;
-  pageSize: number;
 }
 
 // Admin API类
@@ -412,6 +452,16 @@ export class AdminApi {
     return response.data.data;
   }
 
+  static async createUser(dto: CreateUser): Promise<AdminUser> {
+    const response = await apiClient.post('/api/admin/users', dto);
+    return response.data.data;
+  }
+
+  static async updateUser(userId: number, dto: UpdateUser): Promise<AdminUser> {
+    const response = await apiClient.put(`/api/admin/users/${userId}`, dto);
+    return response.data.data;
+  }
+
   static async updateUserStatus(userId: number, dto: UpdateUserStatus): Promise<boolean> {
     const response = await apiClient.put(`/api/admin/users/${userId}/status`, dto);
     return response.data.data;
@@ -424,6 +474,52 @@ export class AdminApi {
 
   static async deleteUser(userId: number): Promise<boolean> {
     const response = await apiClient.delete(`/api/admin/users/${userId}`);
+    return response.data.data;
+  }
+
+  // 标签管理
+  static async getTags(query: AdminTagQuery = {}): Promise<PagedResult<AdminTag>> {
+    const response = await apiClient.get('/api/admin/tags', { params: query });
+    return response.data.data;
+  }
+
+  static async getTagStats(): Promise<TagStats> {
+    const response = await apiClient.get('/api/admin/tags/stats');
+    return response.data.data;
+  }
+
+  static async getTag(tagId: number): Promise<AdminTag> {
+    const response = await apiClient.get(`/api/admin/tags/${tagId}`);
+    return response.data.data;
+  }
+
+  static async createTag(dto: CreateTag): Promise<AdminTag> {
+    const response = await apiClient.post('/api/admin/tags', dto);
+    return response.data.data;
+  }
+
+  static async updateTag(tagId: number, dto: UpdateTag): Promise<AdminTag> {
+    const response = await apiClient.put(`/api/admin/tags/${tagId}`, dto);
+    return response.data.data;
+  }
+
+  static async deleteTag(tagId: number): Promise<boolean> {
+    const response = await apiClient.delete(`/api/admin/tags/${tagId}`);
+    return response.data.data;
+  }
+
+  static async mergeTags(sourceTagId: number, targetTagId: number): Promise<boolean> {
+    const response = await apiClient.post(`/api/admin/tags/${sourceTagId}/merge/${targetTagId}`);
+    return response.data.data;
+  }
+
+  static async cleanupUnusedTags(): Promise<number> {
+    const response = await apiClient.post('/api/admin/tags/cleanup');
+    return response.data.data;
+  }
+
+  static async batchDeleteTags(tagIds: number[]): Promise<number> {
+    const response = await apiClient.post('/api/admin/tags/batch-delete', tagIds);
     return response.data.data;
   }
 
@@ -453,39 +549,8 @@ export class AdminApi {
     return response.data.data;
   }
 
-  // 标签管理
-  static async getTags(query: AdminTagQuery = {}): Promise<PagedResult<AdminTag>> {
-    const response = await apiClient.get('/api/admin/tags', { params: query });
-    return response.data.data;
-  }
-
-  static async getTagStats(): Promise<TagStats> {
-    const response = await apiClient.get('/api/admin/tags/stats');
-    return response.data.data;
-  }
-
-  static async getTag(tagId: number): Promise<AdminTag> {
-    const response = await apiClient.get(`/api/admin/tags/${tagId}`);
-    return response.data.data;
-  }
-
-  static async createTag(dto: CreateUpdateTag): Promise<AdminTag> {
-    const response = await apiClient.post('/api/admin/tags', dto);
-    return response.data.data;
-  }
-
-  static async updateTag(tagId: number, dto: CreateUpdateTag): Promise<AdminTag> {
-    const response = await apiClient.put(`/api/admin/tags/${tagId}`, dto);
-    return response.data.data;
-  }
-
-  static async deleteTag(tagId: number): Promise<boolean> {
-    const response = await apiClient.delete(`/api/admin/tags/${tagId}`);
-    return response.data.data;
-  }
-
-  static async mergeTags(sourceTagId: number, targetTagId: number): Promise<boolean> {
-    const response = await apiClient.post(`/api/admin/tags/${sourceTagId}/merge/${targetTagId}`);
+  static async updatePostTags(postId: number, tagIds: number[]): Promise<boolean> {
+    const response = await apiClient.put(`/api/admin/posts/${postId}/tags`, tagIds);
     return response.data.data;
   }
 }

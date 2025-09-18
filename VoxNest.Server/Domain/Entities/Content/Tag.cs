@@ -38,9 +38,29 @@ public class Tag
     public int UseCount { get; set; } = 0;
 
     /// <summary>
+    /// 是否为常驻标签（true: 常驻标签，只能管理员创建和管理；false: 动态标签，用户可创建）
+    /// </summary>
+    public bool IsPermanent { get; set; } = false;
+
+    /// <summary>
+    /// 创建者ID（动态标签记录创建者）
+    /// </summary>
+    public int? CreatedBy { get; set; }
+
+    /// <summary>
+    /// 最后使用时间（用于动态标签清理）
+    /// </summary>
+    public DateTime? LastUsedAt { get; set; }
+
+    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// 创建者（动态标签的创建用户）
+    /// </summary>
+    public User.User? Creator { get; set; }
 
     /// <summary>
     /// 帖子标签关联

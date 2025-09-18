@@ -222,7 +222,8 @@ export class ExtensionHotReload {
    * 已弃用：配置文件监控已禁用，但保留此方法以备将来使用
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private async handleConfigChange(): Promise<void> {
+  // @ts-ignore
+  private async _handleConfigChange(): Promise<void> {
     try {
       const extensionsConfig = await this.loadExtensionsConfig();
       if (!extensionsConfig?.extensions) return;

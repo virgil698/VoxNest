@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { message } from 'antd';
 import { queryKeys, invalidateQueries } from '../lib/queryClient';
 import { api } from '../api/client';
+import type { CreatePostRequest } from '../types/post';
 
 // 帖子相关类型定义
 export interface Post {
@@ -49,15 +50,6 @@ export interface PostListResponse {
   totalPages: number;
   hasNextPage: boolean;
   hasPreviousPage: boolean;
-}
-
-export interface CreatePostRequest {
-  title: string;
-  content: string;
-  excerpt: string;
-  categoryId: number;
-  tags?: string[];
-  status: 'DRAFT' | 'PUBLISHED';
 }
 
 // 获取帖子列表 Hook

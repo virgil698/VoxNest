@@ -42,6 +42,15 @@ public interface IPostService
     Task<PagedResult<PostListDto>> GetUserPostsAsync(int userId, int pageNumber = 1, int pageSize = 10);
 
     /// <summary>
+    /// 根据标签获取帖子列表
+    /// </summary>
+    /// <param name="tagId">标签ID</param>
+    /// <param name="pageNumber">页码</param>
+    /// <param name="pageSize">每页大小</param>
+    /// <returns></returns>
+    Task<Result<PagedResult<PostListDto>>> GetPostsByTagAsync(int tagId, int pageNumber = 1, int pageSize = 10);
+
+    /// <summary>
     /// 更新帖子浏览次数
     /// </summary>
     /// <param name="postId"></param>

@@ -14,7 +14,7 @@ namespace VoxNest.Server.Application.Services;
 /// <summary>
 /// 简化版Admin管理服务实现
 /// </summary>
-public class AdminService : IAdminService
+public partial class AdminService : IAdminService
 {
     private readonly VoxNestDbContext _context;
     private readonly IMapper _mapper;
@@ -230,113 +230,8 @@ public class AdminService : IAdminService
         return true;
     }
 
-    // 以下方法暂时返回空数据，避免编译错误
-    public Task<PagedResult<AdminUserDto>> GetUsersAsync(AdminUserQueryDto query, CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(PagedResult<AdminUserDto>.Success(new List<AdminUserDto>(), 0, query.PageNumber, query.PageSize));
-    }
-
-    public Task<AdminUserDto?> GetUserAsync(int userId, CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult<AdminUserDto?>(null);
-    }
-
-    public Task<bool> UpdateUserStatusAsync(int userId, UpdateUserStatusDto dto, CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(false);
-    }
-
-    public Task<bool> UpdateUserRolesAsync(int userId, UpdateUserRolesDto dto, CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(false);
-    }
-
-    public Task<bool> DeleteUserAsync(int userId, CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(false);
-    }
-
-    public Task<PagedResult<AdminPostDto>> GetPostsAsync(AdminPostQueryDto query, CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(PagedResult<AdminPostDto>.Success(new List<AdminPostDto>(), 0, query.PageNumber, query.PageSize));
-    }
-
-    public Task<AdminPostDto?> GetPostAsync(int postId, CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult<AdminPostDto?>(null);
-    }
-
-    public Task<bool> UpdatePostStatusAsync(int postId, UpdatePostStatusDto dto, CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(false);
-    }
-
-    public Task<int> BatchOperatePostsAsync(BatchPostOperationDto dto, CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(0);
-    }
-
-    public Task<bool> DeletePostAsync(int postId, CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(false);
-    }
-
-    public Task<PagedResult<AdminTagDto>> GetTagsAsync(AdminTagQueryDto query, CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(PagedResult<AdminTagDto>.Success(new List<AdminTagDto>(), 0, query.PageNumber, query.PageSize));
-    }
-
-    public Task<TagStatsDto> GetTagStatsAsync(CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(new TagStatsDto
-        {
-            TotalTags = 0,
-            EnabledTags = 0,
-            HotTags = 0,
-            UnusedTags = 0,
-            TopTags = new List<AdminTagDto>(),
-            RecentTags = new List<AdminTagDto>()
-        });
-    }
-
-    public Task<AdminTagDto?> GetTagAsync(int tagId, CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult<AdminTagDto?>(null);
-    }
-
-    public Task<AdminTagDto> CreateTagAsync(CreateUpdateTagDto dto, CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(new AdminTagDto 
-        { 
-            Id = 1, 
-            Name = dto.Name ?? "",
-            Description = dto.Description ?? "",
-            Color = dto.Color ?? "",
-            Icon = "",
-            UsageCount = 0,
-            IsHot = false,
-            Sort = 0,
-            IsEnabled = true,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            LastUsedAt = DateTime.UtcNow
-        });
-    }
-
-    public Task<AdminTagDto?> UpdateTagAsync(int tagId, CreateUpdateTagDto dto, CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult<AdminTagDto?>(null);
-    }
-
-    public Task<bool> DeleteTagAsync(int tagId, CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(false);
-    }
-
-    public Task<bool> MergeTagsAsync(int sourceTagId, int targetTagId, CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(false);
-    }
+    // 帖子管理方法实现在 AdminServicePostManagement.cs 中
+    // 标签管理方法实现在 AdminServiceTagManagement.cs 中
 
     /// <summary>
     /// 获取系统信息

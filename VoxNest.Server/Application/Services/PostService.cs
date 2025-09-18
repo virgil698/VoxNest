@@ -36,28 +36,28 @@ public class PostService : IPostService
     {
         try
         {
-            // 验证分类是否存在
-            if (request.CategoryId.HasValue)
+            // 验证标签是否存在
+            if (!request.TagIds.Any())
             {
-                var categoryExists = await _dbContext.Categories
-                    .AnyAsync(c => c.Id == request.CategoryId.Value && c.IsEnabled);
-                
-                if (!categoryExists)
-                {
-                    return Result<PostDto>.Failure("指定的分类不存在");
-                }
+                return Result<PostDto>.Failure("至少需要选择一个标签");
             }
 
-            // 验证标签是否存在
-            var existingTagIds = await _dbContext.Tags
+            var existingTags = await _dbContext.Tags
                 .Where(t => request.TagIds.Contains(t.Id))
-                .Select(t => t.Id)
                 .ToListAsync();
 
+            var existingTagIds = existingTags.Select(t => t.Id).ToList();
             var invalidTagIds = request.TagIds.Except(existingTagIds).ToList();
             if (invalidTagIds.Any())
             {
                 return Result<PostDto>.Failure($"标签不存在: {string.Join(", ", invalidTagIds)}");
+            }
+
+            // 验证必须至少选择一个常驻标签（分类）
+            var permanentTags = existingTags.Where(t => t.IsPermanent).ToList();
+            if (!permanentTags.Any())
+            {
+                return Result<PostDto>.Failure("至少需要选择一个分类（常驻标签）");
             }
 
             // 验证Markdown内容安全性
@@ -80,7 +80,7 @@ public class PostService : IPostService
                 PlainTextSummary = plainTextSummary, // 自动生成的纯文本摘要
                 Status = PostStatus.Published,
                 AuthorId = authorId,
-                CategoryId = request.CategoryId,
+                CategoryId = null, // 暂时设为null，完全使用标签系统代替分类
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 PublishedAt = DateTime.UtcNow
@@ -109,6 +109,7 @@ public class PostService : IPostService
                 foreach (var tag in tags)
                 {
                     tag.UseCount++;
+                    tag.LastUsedAt = DateTime.UtcNow; // 更新最后使用时间，防止动态标签被清理
                 }
 
                 await _dbContext.SaveChangesAsync();
@@ -126,6 +127,83 @@ public class PostService : IPostService
         {
             _logger.LogError(ex, "创建帖子失败: AuthorId={AuthorId}", authorId);
             return Result<PostDto>.Failure("创建帖子失败，请稍后重试");
+        }
+    }
+
+    public async Task<Result<PagedResult<PostListDto>>> GetPostsByTagAsync(int tagId, int pageNumber = 1, int pageSize = 10)
+    {
+        try
+        {
+            // 验证标签是否存在
+            var tagExists = await _dbContext.Tags.AnyAsync(t => t.Id == tagId);
+            if (!tagExists)
+            {
+                return Result<PagedResult<PostListDto>>.Failure("标签不存在");
+            }
+
+            // 获取使用该标签的帖子总数
+            var totalCount = await _dbContext.PostTags
+                .Where(pt => pt.TagId == tagId)
+                .Select(pt => pt.PostId)
+                .Distinct()
+                .CountAsync();
+
+            // 获取帖子列表
+            var postIds = await _dbContext.PostTags
+                .Where(pt => pt.TagId == tagId)
+                .Select(pt => pt.PostId)
+                .Distinct()
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var posts = await _dbContext.Posts
+                .Where(p => postIds.Contains(p.Id) && p.Status == PostStatus.Published)
+                .Include(p => p.Author)
+                    .ThenInclude(a => a.Profile)
+                .Include(p => p.PostTags)
+                    .ThenInclude(pt => pt.Tag)
+                .OrderByDescending(p => p.PublishedAt)
+                .ToListAsync();
+
+            var postListDtos = posts.Select(post => new PostListDto
+            {
+                Id = post.Id,
+                Title = post.Title,
+                Summary = post.Summary ?? post.PlainTextSummary,
+                Status = post.Status,
+                Author = new PostAuthorDto
+                {
+                    Id = post.AuthorId,
+                    Username = post.Author?.Username ?? "未知用户",
+                    DisplayName = post.Author?.Profile?.DisplayName,
+                    Avatar = post.Author?.Profile?.Avatar
+                },
+                CreatedAt = post.CreatedAt,
+                PublishedAt = post.PublishedAt,
+                ViewCount = post.ViewCount,
+                LikeCount = post.LikeCount,
+                CommentCount = post.CommentCount,
+                IsPinned = post.IsPinned,
+                IsLocked = post.IsLocked,
+                Tags = post.PostTags.Select(pt => new TagDto
+                {
+                    Id = pt.Tag.Id,
+                    Name = pt.Tag.Name,
+                    Slug = pt.Tag.Slug,
+                    Color = pt.Tag.Color,
+                    UseCount = pt.Tag.UseCount
+                }).ToList()
+            }).ToList();
+
+            var pagedResult = PagedResult<PostListDto>.Success(postListDtos, totalCount, pageNumber, pageSize);
+
+            return Result<PagedResult<PostListDto>>.Success(pagedResult);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取标签帖子列表失败: TagId={TagId}", tagId);
+            return Result<PagedResult<PostListDto>>.Failure("获取标签帖子列表失败，请稍后重试");
         }
     }
 

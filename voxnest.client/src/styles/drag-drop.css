@@ -1,0 +1,122 @@
+/* 拖拽组件样式 */
+.draggable-component {
+  transition: all 0.2s ease;
+}
+
+.draggable-component:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.draggable-component.is-dragging {
+  opacity: 0.8;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+.draggable-component.is-dragging * {
+  pointer-events: none;
+}
+
+/* 拖拽手柄样式 */
+.drag-handle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: grab;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+  opacity: 0.8;
+}
+
+.drag-handle:hover {
+  opacity: 1;
+  transform: scale(1.05);
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+  transform: scale(0.98);
+}
+
+/* 编辑模式下的边框效果 */
+.edit-mode .draggable-component {
+  border: 2px dashed transparent;
+  border-radius: 8px;
+  transition: border-color 0.2s ease;
+}
+
+.edit-mode .draggable-component:hover {
+  border-color: #1890ff;
+}
+
+/* 拖拽占位符样式 */
+.draggable-placeholder {
+  background: rgba(24, 144, 255, 0.1);
+  border: 2px dashed #1890ff;
+  border-radius: 8px;
+  margin: 16px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1890ff;
+  font-size: 14px;
+  min-height: 100px;
+}
+
+/* 拖拽区域样式 */
+.drop-zone {
+  min-height: 200px;
+  transition: all 0.2s ease;
+}
+
+.drop-zone.is-over {
+  background: rgba(24, 144, 255, 0.05);
+  border: 2px dashed #1890ff;
+  border-radius: 8px;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .drag-handle {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+}
+
+/* 确认重置按钮动画 */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* 深色主题支持 */
+@media (prefers-color-scheme: dark) {
+  .drag-handle {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+  }
+  
+  .drag-handle:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+}

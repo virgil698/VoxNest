@@ -56,12 +56,34 @@ public class LogService : ILogService
         };
 
         _context.LogEntries.Add(logEntry);
-        await _context.SaveChangesAsync(cancellationToken);
+        
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // 如果操作被取消，尝试不使用CancellationToken保存
+            // 这样可以确保重要的日志不会丢失
+            try
+            {
+                await _context.SaveChangesAsync(CancellationToken.None);
+            }
+            catch
+            {
+                // 如果还是失败，就重新抛出原始的取消异常
+                throw;
+            }
+        }
 
         // 查询包含用户信息的日志条目
+        // 使用独立的token，避免因为原始请求取消而无法返回结果
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var queryToken = cancellationToken.IsCancellationRequested ? timeoutCts.Token : cancellationToken;
+        
         var savedLog = await _context.LogEntries
             .Include(l => l.User)
-            .FirstOrDefaultAsync(l => l.Id == logEntry.Id, cancellationToken);
+            .FirstOrDefaultAsync(l => l.Id == logEntry.Id, queryToken);
 
         return MapToDto(savedLog!);
     }

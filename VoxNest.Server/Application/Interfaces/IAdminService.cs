@@ -80,6 +80,16 @@ public interface IAdminService
     Task<AdminUserDto?> GetUserAsync(int userId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 创建用户
+    /// </summary>
+    Task<AdminUserDto> CreateUserAsync(CreateUserDto dto, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新用户信息
+    /// </summary>
+    Task<AdminUserDto?> UpdateUserAsync(int userId, UpdateUserDto dto, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 更新用户状态
     /// </summary>
     Task<bool> UpdateUserStatusAsync(int userId, UpdateUserStatusDto dto, CancellationToken cancellationToken = default);
@@ -123,6 +133,11 @@ public interface IAdminService
     /// </summary>
     Task<bool> DeletePostAsync(int postId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// 更新帖子标签
+    /// </summary>
+    Task<bool> UpdatePostTagsAsync(int postId, List<int> tagIds, CancellationToken cancellationToken = default);
+
     #endregion
 
     #region 标签管理
@@ -145,12 +160,12 @@ public interface IAdminService
     /// <summary>
     /// 创建标签
     /// </summary>
-    Task<AdminTagDto> CreateTagAsync(CreateUpdateTagDto dto, CancellationToken cancellationToken = default);
+    Task<AdminTagDto> CreateTagAsync(CreateTagDto dto, int creatorId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 更新标签
     /// </summary>
-    Task<AdminTagDto?> UpdateTagAsync(int tagId, CreateUpdateTagDto dto, CancellationToken cancellationToken = default);
+    Task<AdminTagDto?> UpdateTagAsync(int tagId, UpdateTagDto dto, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 删除标签
@@ -161,6 +176,16 @@ public interface IAdminService
     /// 合并标签
     /// </summary>
     Task<bool> MergeTagsAsync(int sourceTagId, int targetTagId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 清理无引用的动态标签
+    /// </summary>
+    Task<int> CleanupUnusedDynamicTagsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 批量删除动态标签
+    /// </summary>
+    Task<int> BatchDeleteDynamicTagsAsync(List<int> tagIds, CancellationToken cancellationToken = default);
 
     #endregion
 }

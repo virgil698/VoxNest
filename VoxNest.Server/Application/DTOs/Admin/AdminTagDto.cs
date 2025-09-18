@@ -16,9 +16,9 @@ public class AdminTagDto
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// 标签描述
+    /// 标签别名（用于URL）
     /// </summary>
-    public string? Description { get; set; }
+    public string Slug { get; set; } = string.Empty;
 
     /// <summary>
     /// 标签颜色
@@ -26,39 +26,29 @@ public class AdminTagDto
     public string? Color { get; set; }
 
     /// <summary>
-    /// 标签图标
-    /// </summary>
-    public string? Icon { get; set; }
-
-    /// <summary>
     /// 使用次数
     /// </summary>
-    public int UsageCount { get; set; }
+    public int UseCount { get; set; }
 
     /// <summary>
-    /// 是否热门
+    /// 是否为常驻标签
     /// </summary>
-    public bool IsHot { get; set; }
+    public bool IsPermanent { get; set; }
 
     /// <summary>
-    /// 排序序号
+    /// 创建者ID（动态标签）
     /// </summary>
-    public int Sort { get; set; }
+    public int? CreatedBy { get; set; }
 
     /// <summary>
-    /// 是否启用
+    /// 创建者用户名（动态标签）
     /// </summary>
-    public bool IsEnabled { get; set; }
+    public string? CreatorName { get; set; }
 
     /// <summary>
     /// 创建时间
     /// </summary>
     public DateTime CreatedAt { get; set; }
-
-    /// <summary>
-    /// 更新时间
-    /// </summary>
-    public DateTime UpdatedAt { get; set; }
 
     /// <summary>
     /// 最近使用时间
@@ -67,9 +57,9 @@ public class AdminTagDto
 }
 
 /// <summary>
-/// 创建/更新标签DTO
+/// 创建标签DTO
 /// </summary>
-public class CreateUpdateTagDto
+public class CreateTagDto
 {
     /// <summary>
     /// 标签名称
@@ -77,34 +67,30 @@ public class CreateUpdateTagDto
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// 标签描述
-    /// </summary>
-    public string? Description { get; set; }
-
-    /// <summary>
     /// 标签颜色
     /// </summary>
     public string? Color { get; set; }
 
     /// <summary>
-    /// 标签图标
+    /// 是否为常驻标签（只有管理员可以创建常驻标签）
     /// </summary>
-    public string? Icon { get; set; }
+    public bool IsPermanent { get; set; } = false;
+}
+
+/// <summary>
+/// 更新标签DTO
+/// </summary>
+public class UpdateTagDto
+{
+    /// <summary>
+    /// 标签名称
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// 是否热门
+    /// 标签颜色
     /// </summary>
-    public bool IsHot { get; set; } = false;
-
-    /// <summary>
-    /// 排序序号
-    /// </summary>
-    public int Sort { get; set; } = 0;
-
-    /// <summary>
-    /// 是否启用
-    /// </summary>
-    public bool IsEnabled { get; set; } = true;
+    public string? Color { get; set; }
 }
 
 /// <summary>
@@ -128,24 +114,24 @@ public class AdminTagQueryDto
     public string? Search { get; set; }
 
     /// <summary>
-    /// 是否热门筛选
+    /// 标签类型筛选（true: 常驻标签，false: 动态标签，null: 全部）
     /// </summary>
-    public bool? IsHot { get; set; }
-
-    /// <summary>
-    /// 是否启用筛选
-    /// </summary>
-    public bool? IsEnabled { get; set; }
+    public bool? IsPermanent { get; set; }
 
     /// <summary>
     /// 使用次数最小值
     /// </summary>
-    public int? MinUsageCount { get; set; }
+    public int? MinUseCount { get; set; }
+
+    /// <summary>
+    /// 创建者ID筛选（动态标签）
+    /// </summary>
+    public int? CreatedBy { get; set; }
 
     /// <summary>
     /// 排序字段
     /// </summary>
-    public string SortBy { get; set; } = "UsageCount";
+    public string SortBy { get; set; } = "UseCount";
 
     /// <summary>
     /// 排序方向
@@ -164,19 +150,24 @@ public class TagStatsDto
     public int TotalTags { get; set; }
 
     /// <summary>
-    /// 启用标签数
+    /// 常驻标签数
     /// </summary>
-    public int EnabledTags { get; set; }
+    public int PermanentTags { get; set; }
 
     /// <summary>
-    /// 热门标签数
+    /// 动态标签数
     /// </summary>
-    public int HotTags { get; set; }
+    public int DynamicTags { get; set; }
 
     /// <summary>
-    /// 未使用标签数
+    /// 未使用标签数（UseCount = 0）
     /// </summary>
     public int UnusedTags { get; set; }
+
+    /// <summary>
+    /// 需要清理的动态标签数（未使用且超过清理时间）
+    /// </summary>
+    public int TagsToClean { get; set; }
 
     /// <summary>
     /// 最热门的标签

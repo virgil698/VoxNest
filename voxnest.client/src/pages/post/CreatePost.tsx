@@ -8,6 +8,9 @@ import type { CreatePostRequest } from '../../types/post';
 import { MdEditor } from 'md-editor-rt';
 import 'md-editor-rt/lib/style.css';
 import { processVideoMarkdown } from '../../utils/videoEmbedConfig';
+import PermanentTagSelector from '../../components/post/PermanentTagSelector';
+import DynamicTagSelector, { type DynamicTagSelection } from '../../components/post/DynamicTagSelector';
+import { tagApi } from '../../api/tag';
 import '../../styles/components/Post.css';
 
 const { TextArea } = Input;
@@ -253,10 +256,60 @@ const CreatePost: React.FC = () => {
     };
   }, [markdownContent]);
 
-  const handleSubmit = async (values: CreatePostRequest) => {
+  const handleSubmit = async (values: any) => {
     try {
       setIsSubmitting(true);
-      const post = await createPost(values);
+      
+      // 处理标签选择
+      let tagIds: number[] = [];
+      
+      // 必须选择一个常驻标签（分类）
+      if (!values.categoryId) {
+        message.error('请选择一个分类（常驻标签）');
+        return;
+      }
+      
+      tagIds.push(values.categoryId);
+      
+      // 处理动态标签选择
+      if (values.dynamicTags) {
+        const dynamicTagSelection = values.dynamicTags as DynamicTagSelection;
+        
+        // 添加现有的动态标签
+        tagIds.push(...dynamicTagSelection.existingTagIds);
+        
+        // 处理新建的动态标签
+        if (dynamicTagSelection.newDynamicTags.length > 0) {
+          try {
+            // 在 processPostTags 中必须包含常驻标签，因为后端验证要求至少有一个常驻标签
+            const tagProcessResult = await tagApi.processPostTags({
+              existingTagIds: [values.categoryId, ...dynamicTagSelection.existingTagIds], // 包含常驻标签
+              newDynamicTags: dynamicTagSelection.newDynamicTags,
+            });
+            // processPostTags 现在返回所有标签ID (现有的 + 新创建的)
+            const processedTagIds = tagProcessResult.data.data || [];
+            // 只添加新创建的标签ID（排除已经添加的常驻标签和现有动态标签）
+            const alreadyIncludedIds = [values.categoryId, ...dynamicTagSelection.existingTagIds];
+            const newTagIds = processedTagIds.filter(id => !alreadyIncludedIds.includes(id));
+            tagIds.push(...newTagIds);
+          } catch (error) {
+            console.error('创建新标签失败:', error);
+            message.error('创建新标签失败，请稍后重试');
+            return;
+          }
+        }
+      }
+      
+      console.log('准备创建帖子，标签IDs:', tagIds);
+      
+      const createPostRequest: CreatePostRequest = {
+        title: values.title,
+        content: markdownContent || values.content || '',
+        summary: values.summary,
+        tagIds, // 只发送tagIds，不发送categoryId
+      };
+      
+      const post = await createPost(createPostRequest);
       message.success('帖子发布成功！');
       navigate(`/posts/${post.id}`);
     } catch (error: unknown) {
@@ -369,7 +422,8 @@ const CreatePost: React.FC = () => {
             layout="vertical"
             onFinish={handleSubmit}
             initialValues={{
-              tagIds: [],
+              categoryId: undefined,
+              dynamicTags: { existingTagIds: [], newDynamicTags: [] },
             }}
             style={{ padding: '8px' }}
           >
@@ -554,46 +608,27 @@ YouTube视频：
               </div>
             </Form.Item>
 
-            {/* 暂时隐藏分类和标签选择，待数据库中有相应数据后启用 */}
-            {/*
+            {/* 分类和标签选择 */}
             <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
               <Form.Item
                 name="categoryId"
                 label={<span style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>分类</span>}
+                rules={[
+                  { required: true, message: '请选择分类（常驻标签）' }
+                ]}
                 style={{ flex: 1 }}
               >
-                <Select
-                  placeholder="选择帖子分类（暂未启用）"
-                  disabled
-                  allowClear
-                  size="large"
-                  style={{
-                    borderRadius: '12px'
-                  }}
-                >
-                </Select>
+                <PermanentTagSelector placeholder="请选择分类（常驻标签）" />
               </Form.Item>
 
               <Form.Item
-                name="tagIds"
+                name="dynamicTags"
                 label={<span style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>标签</span>}
-                style={{ flex: 1 }}
+                style={{ flex: 2 }}
               >
-                <Select
-                  mode="multiple"
-                  placeholder="添加相关标签（暂未启用）"
-                  disabled
-                  allowClear
-                  size="large"
-                  style={{
-                    borderRadius: '12px'
-                  }}
-                  maxTagCount={5}
-                >
-                </Select>
+                <DynamicTagSelector placeholder="请选择标签（可选）" />
               </Form.Item>
             </div>
-            */}
 
             {/* 发布提示 */}
             <div style={{
@@ -609,7 +644,8 @@ YouTube视频：
               </div>
               <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
                 <li>写一个清晰、有吸引力的标题</li>
-                <li>使用合适的分类和标签，方便其他用户发现</li>
+                <li>必须选择一个分类（常驻标签），方便其他用户发现</li>
+                <li>可以选择多个动态标签，或创建新的标签</li>
                 <li>内容支持 Markdown 语法，让排版更美观</li>
                 <li>保持友善和尊重，共建和谐的交流环境</li>
               </ul>

@@ -17,11 +17,13 @@ namespace VoxNest.Server.Presentation.Controllers;
 public class AdminController : ControllerBase
 {
     private readonly IAdminService _adminService;
+    private readonly ITagService _tagService;
     private readonly ILogger<AdminController> _logger;
 
-    public AdminController(IAdminService adminService, ILogger<AdminController> logger)
+    public AdminController(IAdminService adminService, ITagService tagService, ILogger<AdminController> logger)
     {
         _adminService = adminService;
+        _tagService = tagService;
         _logger = logger;
     }
 
@@ -299,6 +301,66 @@ public class AdminController : ControllerBase
     }
 
     /// <summary>
+    /// 创建用户
+    /// </summary>
+    [HttpPost("users")]
+    [ProducesResponseType(typeof(ApiResponse<AdminUserDto>), 200)]
+    [ProducesResponseType(typeof(ApiResponse), 400)]
+    public async Task<ActionResult<ApiResponse<AdminUserDto>>> CreateUser(
+        [FromBody] CreateUserDto dto,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await _adminService.CreateUserAsync(dto, cancellationToken);
+            return Ok(ApiResponse<AdminUserDto>.CreateSuccess(result));
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "创建用户失败: {Message}", ex.Message);
+            return BadRequest(ApiResponse.CreateError(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating user");
+            return BadRequest(ApiResponse.CreateError("创建用户失败"));
+        }
+    }
+
+    /// <summary>
+    /// 更新用户信息
+    /// </summary>
+    [HttpPut("users/{userId}")]
+    [ProducesResponseType(typeof(ApiResponse<AdminUserDto>), 200)]
+    [ProducesResponseType(typeof(ApiResponse), 400)]
+    [ProducesResponseType(typeof(ApiResponse), 404)]
+    public async Task<ActionResult<ApiResponse<AdminUserDto>>> UpdateUser(
+        int userId,
+        [FromBody] UpdateUserDto dto,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await _adminService.UpdateUserAsync(userId, dto, cancellationToken);
+            
+            if (result == null)
+                return NotFound(ApiResponse.CreateError("用户不存在"));
+
+            return Ok(ApiResponse<AdminUserDto>.CreateSuccess(result));
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "更新用户失败: {Message}", ex.Message);
+            return BadRequest(ApiResponse.CreateError(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating user {UserId}", userId);
+            return BadRequest(ApiResponse.CreateError("更新用户失败"));
+        }
+    }
+
+    /// <summary>
     /// 更新用户状态
     /// </summary>
     [HttpPut("users/{userId}/status")]
@@ -478,6 +540,41 @@ public class AdminController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// 更新帖子标签
+    /// </summary>
+    [HttpPut("posts/{postId}/tags")]
+    [ProducesResponseType(typeof(ApiResponse<bool>), 200)]
+    [ProducesResponseType(typeof(ApiResponse), 400)]
+    [ProducesResponseType(typeof(ApiResponse), 404)]
+    public async Task<ActionResult<ApiResponse<bool>>> UpdatePostTags(
+        int postId,
+        [FromBody] List<int> tagIds,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await _adminService.UpdatePostTagsAsync(postId, tagIds, cancellationToken);
+            
+            if (!result)
+            {
+                return NotFound(ApiResponse.CreateError("帖子不存在"));
+            }
+
+            return Ok(ApiResponse<bool>.CreateSuccess(true));
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "更新帖子标签失败: {Message}", ex.Message);
+            return BadRequest(ApiResponse.CreateError(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating post tags for post {PostId}", postId);
+            return BadRequest(ApiResponse.CreateError("更新帖子标签失败"));
+        }
+    }
+
     #endregion
 
     #region 标签管理
@@ -549,19 +646,32 @@ public class AdminController : ControllerBase
         }
     }
 
+
     /// <summary>
     /// 创建标签
     /// </summary>
     [HttpPost("tags")]
     [ProducesResponseType(typeof(ApiResponse<AdminTagDto>), 200)]
+    [ProducesResponseType(typeof(ApiResponse), 400)]
     public async Task<ActionResult<ApiResponse<AdminTagDto>>> CreateTag(
-        [FromBody] CreateUpdateTagDto dto,
+        [FromBody] CreateTagDto dto,
         CancellationToken cancellationToken)
     {
         try
         {
-            var result = await _adminService.CreateTagAsync(dto, cancellationToken);
+            var currentUserId = GetCurrentUserId();
+            var result = await _adminService.CreateTagAsync(dto, currentUserId, cancellationToken);
             return Ok(ApiResponse<AdminTagDto>.CreateSuccess(result));
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "创建标签失败: {Message}", ex.Message);
+            return BadRequest(ApiResponse.CreateError(ex.Message));
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "创建标签失败: {Message}", ex.Message);
+            return BadRequest(ApiResponse.CreateError(ex.Message));
         }
         catch (Exception ex)
         {
@@ -578,7 +688,7 @@ public class AdminController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse), 404)]
     public async Task<ActionResult<ApiResponse<AdminTagDto>>> UpdateTag(
         int tagId,
-        [FromBody] CreateUpdateTagDto dto,
+        [FromBody] UpdateTagDto dto,
         CancellationToken cancellationToken)
     {
         try
@@ -589,6 +699,16 @@ public class AdminController : ControllerBase
                 return NotFound(ApiResponse.CreateError("标签不存在"));
 
             return Ok(ApiResponse<AdminTagDto>.CreateSuccess(result));
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "更新标签失败: {Message}", ex.Message);
+            return BadRequest(ApiResponse.CreateError(ex.Message));
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "更新标签失败: {Message}", ex.Message);
+            return BadRequest(ApiResponse.CreateError(ex.Message));
         }
         catch (Exception ex)
         {
@@ -610,6 +730,11 @@ public class AdminController : ControllerBase
         {
             var result = await _adminService.DeleteTagAsync(tagId, cancellationToken);
             return Ok(ApiResponse<bool>.CreateSuccess(result));
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "删除标签失败: {Message}", ex.Message);
+            return BadRequest(ApiResponse.CreateError(ex.Message));
         }
         catch (Exception ex)
         {
@@ -637,6 +762,67 @@ public class AdminController : ControllerBase
         {
             _logger.LogError(ex, "Error merging tags {SourceTagId} -> {TargetTagId}", sourceTagId, targetTagId);
             return BadRequest(ApiResponse.CreateError("合并标签失败"));
+        }
+    }
+
+    /// <summary>
+    /// 清理无引用的动态标签
+    /// </summary>
+    [HttpPost("tags/cleanup")]
+    [ProducesResponseType(typeof(ApiResponse<int>), 200)]
+    public async Task<ActionResult<ApiResponse<int>>> CleanupUnusedTags(
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await _adminService.CleanupUnusedDynamicTagsAsync(cancellationToken);
+            return Ok(ApiResponse<int>.CreateSuccess(result));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error cleaning up unused tags");
+            return BadRequest(ApiResponse.CreateError("清理无用标签失败"));
+        }
+    }
+
+    /// <summary>
+    /// 批量删除动态标签
+    /// </summary>
+    [HttpPost("tags/batch-delete")]
+    [ProducesResponseType(typeof(ApiResponse<int>), 200)]
+    public async Task<ActionResult<ApiResponse<int>>> BatchDeleteTags(
+        [FromBody] List<int> tagIds,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await _adminService.BatchDeleteDynamicTagsAsync(tagIds, cancellationToken);
+            return Ok(ApiResponse<int>.CreateSuccess(result));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error batch deleting tags");
+            return BadRequest(ApiResponse.CreateError("批量删除标签失败"));
+        }
+    }
+
+    /// <summary>
+    /// 为现有标签生成Slug值
+    /// </summary>
+    [HttpPost("tags/update-slugs")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(ApiResponse), 200)]
+    public async Task<IActionResult> UpdateTagSlugs(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _tagService.UpdateTagSlugsAsync(cancellationToken);
+            return Ok(ApiResponse.CreateSuccess("标签Slug更新成功"));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update tag slugs");
+            return StatusCode(500, ApiResponse.CreateError("更新标签Slug失败"));
         }
     }
 

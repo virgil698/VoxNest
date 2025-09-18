@@ -1,0 +1,430 @@
+/* TagPosts 页面独立样式文件 */
+
+/* CSS 变量定义 */
+:root {
+  --primary-color: #1890ff;
+  --purple-primary: #722ed1;
+  --text-primary: #262626;
+  --text-secondary: #8c8c8c;
+}
+
+/* 标签信息头部样式 */
+.tag-info-header {
+  margin-bottom: 32px;
+}
+
+.tag-info-title-section {
+  border-radius: 12px 12px 0 0;
+  padding: 32px 40px;
+  margin-bottom: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.tag-info-title-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  pointer-events: none;
+}
+
+.tag-info-title-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.tag-info-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+  min-width: 0;
+}
+
+.tag-info-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: white;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.tag-info-details h2 {
+  margin: 0 0 8px 0;
+  color: white;
+  font-size: 28px;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  line-height: 1.2;
+}
+
+.tag-info-meta {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 4px 0;
+}
+
+.tag-info-stats {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.tag-info-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tag-info-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tag-info-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-weight: 500;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.tag-info-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.tag-info-btn.primary {
+  background: rgba(255, 255, 255, 0.9);
+  color: #667eea;
+  border-color: transparent;
+}
+
+.tag-info-btn.primary:hover {
+  background: white;
+  color: #5a67d8;
+}
+
+/* 内容区域样式 */
+.tag-info-content-section {
+  border-radius: 0 0 12px 12px;
+  border-top: none;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  background: white;
+}
+
+/* 帖子列表样式 */
+.posts-section {
+  margin-top: 24px;
+}
+
+.posts-section .ant-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f0f0f0;
+}
+
+.posts-section .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+  border-radius: 12px 12px 0 0;
+}
+
+.posts-section .ant-card-head-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+}
+
+/* 论坛风格帖子卡片样式 */
+.forum-post-card {
+  margin-bottom: 20px;
+  border-radius: 12px;
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.forum-post-card:hover {
+  border-color: #d9d9d9;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.forum-post-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 帖子标题样式 */
+.forum-post-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #262626;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.forum-post-title:hover {
+  color: #1890ff;
+}
+
+/* 帖子摘要样式 */
+.forum-post-summary {
+  margin: 0;
+  color: #8c8c8c;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* 标签区域样式 */
+.forum-post-tags {
+  margin: 4px 0;
+}
+
+.forum-post-tag {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  font-weight: 500;
+}
+
+.forum-post-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* 帖子元信息样式 */
+.forum-post-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid #f5f5f5;
+  font-size: 13px;
+}
+
+.forum-post-author {
+  display: flex;
+  align-items: center;
+  color: #8c8c8c;
+}
+
+.forum-post-meta-icon {
+  margin-right: 6px;
+  font-size: 14px;
+  color: #bfbfbf;
+}
+
+.forum-post-author-name {
+  font-weight: 500;
+  color: #595959;
+}
+
+.forum-post-time {
+  margin-left: 8px;
+  color: #bfbfbf;
+}
+
+.forum-post-stats {
+  display: flex;
+  align-items: center;
+}
+
+.forum-post-stat {
+  display: flex;
+  align-items: center;
+  color: #8c8c8c;
+  font-size: 13px;
+}
+
+.forum-post-stat-icon {
+  margin-right: 4px;
+  font-size: 14px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .forum-post-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .forum-post-stats {
+    align-self: flex-end;
+  }
+  
+  .forum-post-title {
+    font-size: 18px;
+  }
+}
+
+/* 分页样式 */
+.posts-pagination {
+  text-align: center;
+  margin-top: 32px;
+  padding: 24px 0;
+}
+
+.posts-pagination .ant-pagination {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 空状态样式 */
+.posts-empty {
+  text-align: center;
+  padding: 60px 24px;
+  color: #8c8c8c;
+}
+
+.posts-empty .ant-empty-description {
+  color: #8c8c8c;
+  font-size: 16px;
+  margin-bottom: 24px;
+}
+
+/* 帖子列表容器优化 */
+.posts-section {
+  padding: 0;
+  margin-top: 24px;
+}
+
+/* 侧边栏样式 */
+.voxnest-stats-card .ant-statistic-title {
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+.voxnest-stats-card .ant-statistic-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 两栏布局适配 */
+.tag-posts-container .ant-row {
+  margin: 0 -12px;
+}
+
+.tag-posts-container .ant-col {
+  padding: 0 12px;
+}
+
+/* 响应式设计 */
+@media (max-width: 992px) {
+  .tag-posts-container .ant-row {
+    margin: 0;
+  }
+  
+  .tag-posts-container .ant-col {
+    padding: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .tag-posts-container {
+    padding: 16px;
+  }
+  
+  .tag-info-title-section {
+    padding: 24px 20px;
+  }
+  
+  .tag-info-title-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .tag-info-left {
+    gap: 16px;
+  }
+  
+  .tag-info-avatar {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+    border-radius: 16px;
+  }
+  
+  .tag-info-details h2 {
+    font-size: 24px;
+  }
+  
+  .tag-info-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .post-card .ant-card-body {
+    padding: 16px;
+  }
+  
+  .post-tags {
+    text-align: left;
+    margin-top: 12px;
+  }
+}
+
+@media (max-width: 576px) {
+  .tag-info-left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .tag-info-stats {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .tag-info-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .tag-info-btn {
+    text-align: center;
+  }
+}
