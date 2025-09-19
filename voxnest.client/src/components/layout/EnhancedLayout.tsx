@@ -15,7 +15,9 @@ import {
   PlusOutlined,
   SearchOutlined,
   SettingOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
+  FilterOutlined,
+  ClockCircleOutlined
 } from '@ant-design/icons';
 import { useAuthStore } from '../../stores/authStore';
 import { ConditionalSlot, Slot } from '../../extensions';
@@ -28,6 +30,8 @@ export const EnhancedLayout: React.FC = () => {
   const location = useLocation();
   const { user, isAuthenticated, logout, getCurrentUser, token } = useAuthStore();
   const [searchValue, setSearchValue] = useState('');
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
 
   // 页面加载时检查认证状态
   useEffect(() => {
@@ -35,6 +39,40 @@ export const EnhancedLayout: React.FC = () => {
       getCurrentUser();
     }
   }, [token, user, isAuthenticated, getCurrentUser]);
+
+  // 加载搜索历史
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('voxnest-search-history');
+    if (savedHistory) {
+      try {
+        const history = JSON.parse(savedHistory);
+        setSearchHistory(Array.isArray(history) ? history.slice(0, 5) : []); // 最多保存5条
+      } catch {
+        setSearchHistory([]);
+      }
+    }
+  }, []);
+
+  // 保存搜索记录
+  const saveSearchHistory = (query: string) => {
+    if (!query.trim()) return;
+    
+    const newHistory = [query, ...searchHistory.filter(item => item !== query)].slice(0, 5);
+    setSearchHistory(newHistory);
+    localStorage.setItem('voxnest-search-history', JSON.stringify(newHistory));
+  };
+
+  // 获取当前页面位置信息
+  const getCurrentPageInfo = () => {
+    const path = location.pathname;
+    if (path === '/') return '首页';
+    if (path.startsWith('/tags')) return '分类';
+    if (path.startsWith('/posts')) return '帖子';
+    if (path.startsWith('/user')) return '用户';
+    if (path.startsWith('/admin')) return '管理';
+    if (path.startsWith('/search')) return '搜索';
+    return '全站';
+  };
 
   // TODO: 在新的框架中实现路由集成
   // useEffect(() => {
@@ -53,7 +91,7 @@ export const EnhancedLayout: React.FC = () => {
     {
       key: '/tags',
       icon: <AppstoreOutlined />,
-      label: '分类',
+      label: '类别',
     },
   ];
 
@@ -71,7 +109,7 @@ export const EnhancedLayout: React.FC = () => {
         label: '我的帖子',
       },
       {
-        key: '/user/profile',
+        key: '/user/preferences',
         icon: <SettingOutlined />,
         label: '偏好设置',
       },
@@ -136,11 +174,19 @@ export const EnhancedLayout: React.FC = () => {
   // 处理搜索
   const handleSearch = (value: string) => {
     if (value.trim()) {
-      // TODO: 实现搜索功能，这里可以导航到搜索结果页面
-      console.log('搜索内容:', value);
-      // navigate(`/search?q=${encodeURIComponent(value)}`);
+      saveSearchHistory(value.trim());
+      navigate(`/search?q=${encodeURIComponent(value.trim())}`);
+      setSearchValue(''); // 清空搜索框
+      setSearchDropdownOpen(false); // 关闭下拉菜单
     }
   };
+
+  // 跳转到搜索页面（筛选按钮）
+  const handleGoToSearchPage = () => {
+    navigate('/search');
+    setSearchDropdownOpen(false);
+  };
+
 
   // 获取当前选中的菜单项
   const getSelectedKeys = () => {
@@ -171,10 +217,16 @@ export const EnhancedLayout: React.FC = () => {
         position: 'sticky',
         top: 0,
         zIndex: 1000,
-        gap: '24px'
+        gap: '0'
       }}>
         {/* Logo和主导航 */}
-        <div className="voxnest-header-left" style={{ display: 'flex', alignItems: 'center', flex: '0 0 auto' }}>
+        <div className="voxnest-header-left" style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          flex: '1 1 0',
+          minWidth: '0',
+          justifyContent: 'flex-start'
+        }}>
           {/* Header Left Slot - 可以用于扩展Logo区域 */}
           <ConditionalSlot
             id="header.left"
@@ -182,16 +234,11 @@ export const EnhancedLayout: React.FC = () => {
           />
           
           <div 
-            className="voxnest-logo"
+            className="voxnest-logo voxnest-logo-gradient"
             style={{ 
               fontSize: '24px', 
-              fontWeight: '700', 
               marginRight: '48px',
-              cursor: 'pointer',
-              background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
+              cursor: 'pointer'
             }}
             onClick={() => navigate('/')}
           >
@@ -214,41 +261,99 @@ export const EnhancedLayout: React.FC = () => {
 
         {/* 搜索框 */}
         <div className="voxnest-header-search" style={{ 
-          flex: '1 1 auto', 
-          maxWidth: '400px', 
-          minWidth: '120px', 
+          flex: '1 1 0',
+          maxWidth: '800px', 
+          minWidth: '320px', 
           display: 'flex',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          position: 'absolute',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 10
         }}>
           {/* Header Center Slot - 可以替换搜索框 */}
           <ConditionalSlot
             id="header.center"
             fallback={
-              <Input
-                placeholder="搜索话题、内容或用户..."
-                value={searchValue}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchValue(e.target.value)}
-                onPressEnter={() => handleSearch(searchValue)}
-                className="voxnest-search-box"
-                size="middle"
-                allowClear
-                style={{ width: '100%' }}
-                suffix={
-                  <Button
-                    type="text" 
-                    icon={<SearchOutlined />}
-                    onClick={() => handleSearch(searchValue)}
-                    className="voxnest-search-button"
-                    size="middle"
-                  />
-                }
-              />
+              <div className="voxnest-search-container">
+                <SearchOutlined 
+                  className="voxnest-search-icon"
+                  onClick={() => handleSearch(searchValue)}
+                />
+                <Input
+                  placeholder="搜索话题、内容或用户..."
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  onPressEnter={() => handleSearch(searchValue)}
+                  onFocus={() => setSearchDropdownOpen(true)}
+                  onBlur={() => {
+                    // 延迟关闭，允许点击下拉选项
+                    setTimeout(() => setSearchDropdownOpen(false), 200);
+                  }}
+                  className="voxnest-search-box"
+                  style={{ width: '100%' }}
+                />
+                <FilterOutlined 
+                  className="voxnest-search-filter"
+                  onClick={handleGoToSearchPage}
+                  title="高级搜索"
+                />
+                
+                {searchDropdownOpen && (
+                  <div className="voxnest-search-dropdown">
+                    {/* 位置信息 */}
+                    <div className="voxnest-search-dropdown-item voxnest-search-dropdown-disabled voxnest-location-info">
+                      <SearchOutlined style={{ marginRight: '8px', fontSize: '12px' }} />
+                      位置
+                      <span className="voxnest-location-badge">
+                        {getCurrentPageInfo()}
+                      </span>
+                    </div>
+                    
+                    {/* 搜索历史 */}
+                    {searchHistory.length > 0 ? (
+                      <>
+                        <div className="voxnest-search-dropdown-item voxnest-search-dropdown-disabled">
+                          <div className="voxnest-search-history-title">
+                            最近的搜索
+                          </div>
+                        </div>
+                        {searchHistory.map((item, index) => (
+                          <div 
+                            key={index}
+                            className="voxnest-search-dropdown-item"
+                            onClick={() => handleSearch(item)}
+                          >
+                            <div className="voxnest-search-history-item">
+                              <ClockCircleOutlined className="voxnest-search-history-icon" />
+                              <span>{item}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <div className="voxnest-search-dropdown-item voxnest-search-dropdown-disabled">
+                        <div className="voxnest-no-history">
+                          暂无搜索记录
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             }
             style={{ width: '100%' }}
           />
         </div>
 
         {/* 右侧操作区 */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          flex: '1 1 0',
+          minWidth: '0',
+          justifyContent: 'flex-end'
+        }}>
         <Space className="voxnest-header-actions" size="middle">
           {/* Header Right Slot - 可以添加额外的按钮 */}
           <ConditionalSlot id="header.right" />
@@ -308,6 +413,7 @@ export const EnhancedLayout: React.FC = () => {
             </>
           )}
         </Space>
+        </div>
       </Header>
 
       <Content className="voxnest-main-content" style={{ padding: '32px 24px', background: 'transparent' }}>

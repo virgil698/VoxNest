@@ -263,32 +263,32 @@ const CreatePost: React.FC = () => {
       // 处理标签选择
       let tagIds: number[] = [];
       
-      // 必须选择一个常驻标签（分类）
+      // 必须选择一个类别
       if (!values.categoryId) {
-        message.error('请选择一个分类（常驻标签）');
+        message.error('请选择一个类别');
         return;
       }
       
       tagIds.push(values.categoryId);
       
-      // 处理动态标签选择
+      // 处理标签选择
       if (values.dynamicTags) {
         const dynamicTagSelection = values.dynamicTags as DynamicTagSelection;
         
-        // 添加现有的动态标签
+        // 添加现有的标签
         tagIds.push(...dynamicTagSelection.existingTagIds);
         
-        // 处理新建的动态标签
+        // 处理新建的标签
         if (dynamicTagSelection.newDynamicTags.length > 0) {
           try {
-            // 在 processPostTags 中必须包含常驻标签，因为后端验证要求至少有一个常驻标签
+            // 在 processPostTags 中必须包含类别，因为后端验证要求至少有一个类别
             const tagProcessResult = await tagApi.processPostTags({
-              existingTagIds: [values.categoryId, ...dynamicTagSelection.existingTagIds], // 包含常驻标签
+              existingTagIds: [values.categoryId, ...dynamicTagSelection.existingTagIds], // 包含类别
               newDynamicTags: dynamicTagSelection.newDynamicTags,
             });
             // processPostTags 现在返回所有标签ID (现有的 + 新创建的)
             const processedTagIds = tagProcessResult.data.data || [];
-            // 只添加新创建的标签ID（排除已经添加的常驻标签和现有动态标签）
+            // 只添加新创建的标签ID（排除已经添加的类别和现有标签）
             const alreadyIncludedIds = [values.categoryId, ...dynamicTagSelection.existingTagIds];
             const newTagIds = processedTagIds.filter(id => !alreadyIncludedIds.includes(id));
             tagIds.push(...newTagIds);
@@ -612,13 +612,13 @@ YouTube视频：
             <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
               <Form.Item
                 name="categoryId"
-                label={<span style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>分类</span>}
+                label={<span style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>类别</span>}
                 rules={[
-                  { required: true, message: '请选择分类（常驻标签）' }
+                  { required: true, message: '请选择类别' }
                 ]}
                 style={{ flex: 1 }}
               >
-                <PermanentTagSelector placeholder="请选择分类（常驻标签）" />
+                <PermanentTagSelector placeholder="请选择类别" />
               </Form.Item>
 
               <Form.Item
@@ -644,8 +644,8 @@ YouTube视频：
               </div>
               <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
                 <li>写一个清晰、有吸引力的标题</li>
-                <li>必须选择一个分类（常驻标签），方便其他用户发现</li>
-                <li>可以选择多个动态标签，或创建新的标签</li>
+                <li>必须选择一个类别，方便其他用户发现</li>
+                <li>可以选择多个标签，或创建新的标签</li>
                 <li>内容支持 Markdown 语法，让排版更美观</li>
                 <li>保持友善和尊重，共建和谐的交流环境</li>
               </ul>

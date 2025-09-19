@@ -1,0 +1,234 @@
+/* VoxNest 统一帖子列表样式 */
+/* 这个文件包含了所有新的Discourse风格的帖子列表样式 */
+
+/* 帖子列表容器 */
+.voxnest-post-list {
+  background: var(--bg-primary, #ffffff);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0,0,0,0.06));
+  border: 1px solid var(--border-color, #f0f0f0);
+  overflow: hidden;
+}
+
+/* 帖子项目 */
+.voxnest-post-item {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-color, #f0f0f0);
+  padding: 16px 20px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  gap: 12px;
+}
+
+.voxnest-post-item:last-child {
+  border-bottom: none;
+}
+
+.voxnest-post-item:hover {
+  background: rgba(99, 102, 241, 0.02) !important;
+}
+
+/* 用户头像 */
+.voxnest-post-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #6366F1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* 内容区域 */
+.voxnest-post-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 标题行 */
+.voxnest-post-title-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+  gap: 8px;
+}
+
+.voxnest-post-title {
+  margin: 0 !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #262626 !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+  transition: color 0.2s ease;
+}
+
+.voxnest-post-item:hover .voxnest-post-title {
+  color: var(--primary-color, #6366F1) !important;
+}
+
+/* 标签行 */
+.voxnest-post-tags-row {
+  margin-bottom: 6px;
+}
+
+.voxnest-post-tag {
+  border-radius: 12px !important;
+  font-size: 12px !important;
+  padding: 2px 8px !important;
+  border: none !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+
+.voxnest-post-tag-category {
+  background: #6366F1 !important;
+  color: white !important;
+}
+
+.voxnest-post-tag-normal {
+  background: #f3f4f6 !important;
+  border: 1px solid #e5e7eb !important;
+  color: #6b7280 !important;
+  font-weight: 400 !important;
+}
+
+.voxnest-post-tag-overflow {
+  background: #f3f4f6 !important;
+  border: 1px solid #e5e7eb !important;
+  color: #6b7280 !important;
+}
+
+/* 内容预览 */
+.voxnest-post-excerpt {
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  margin: 0 0 8px 0 !important;
+  color: #6b7280 !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 时间和作者信息 */
+.voxnest-post-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.voxnest-post-meta-text {
+  font-size: 12px !important;
+  color: #6b7280 !important;
+  margin: 0 !important;
+}
+
+/* 统计信息区域 */
+.voxnest-post-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  min-width: 150px;
+}
+
+.voxnest-post-stats-row {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.voxnest-post-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.voxnest-post-stat-icon {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.voxnest-post-stat-text {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.voxnest-post-stat-number {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+/* 特殊标签 */
+.voxnest-post-special-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.voxnest-post-tag-pinned {
+  background: #ef4444 !important;
+  color: white !important;
+}
+
+.voxnest-post-tag-hot {
+  background: #f97316 !important;
+  color: white !important;
+}
+
+.voxnest-post-tag-draft {
+  background: #f97316 !important;
+  color: white !important;
+}
+
+/* 移动端响应式适配 */
+@media (max-width: 768px) {
+  .voxnest-post-item {
+    padding: 12px 16px !important;
+  }
+
+  .voxnest-post-avatar {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .voxnest-post-title {
+    font-size: 14px !important;
+  }
+
+  .voxnest-post-stats {
+    min-width: 60px !important;
+  }
+}
+
+/* Ant Design组件覆盖 */
+.voxnest-post-item .ant-list-item-meta {
+  align-items: flex-start;
+  margin-bottom: 0;
+}
+
+.voxnest-post-item .ant-typography {
+  margin: 0;
+}
+
+.voxnest-post-item .ant-space {
+  font-size: 12px;
+}
+
+.voxnest-post-item .ant-tag {
+  margin: 0;
+}

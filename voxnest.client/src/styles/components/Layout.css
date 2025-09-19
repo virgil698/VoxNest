@@ -1,18 +1,22 @@
-/* 布局组件白色主题样式 */
+/* 布局组件优雅紫色主题样式 */
 
 .voxnest-layout {
-  background: var(--bg-primary);
+  background: transparent;
   min-height: 100vh;
 }
 
 .voxnest-header {
-  background: var(--bg-primary);
-  border-bottom: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%);
+  backdrop-filter: var(--backdrop-blur);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+  box-shadow: 0 2px 12px rgba(139, 92, 246, 0.08);
   padding: 0 24px;
   height: 64px;
   display: flex;
   align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .voxnest-header .logo {
@@ -23,15 +27,16 @@
 }
 
 .voxnest-content {
-  background: var(--bg-secondary);
+  background: transparent;
   padding: 24px;
   min-height: calc(100vh - 64px);
 }
 
 .voxnest-sidebar {
-  background: var(--bg-primary);
+  background: linear-gradient(180deg, #ffffff 0%, rgba(248, 249, 255, 0.95) 100%);
+  backdrop-filter: var(--backdrop-blur);
   border-right: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
 }
 
 .voxnest-sidebar .ant-menu {
@@ -41,29 +46,51 @@
 
 .voxnest-sidebar .ant-menu-item {
   color: var(--text-secondary);
-  margin: 4px 8px;
-  border-radius: 8px;
+  margin: 2px 12px;
+  border-radius: 12px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
-.voxnest-sidebar .ant-menu-item:hover {
-  background: var(--bg-secondary);
-  color: var(--primary-color);
+.voxnest-sidebar .ant-menu-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: var(--primary-color);
+  border-radius: 0 2px 2px 0;
+  transition: height 0.2s ease;
 }
+
 
 .voxnest-sidebar .ant-menu-item-selected {
-  background: rgba(79, 70, 229, 0.1);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
   color: var(--primary-color);
+  font-weight: 500;
+  transform: translateX(4px);
+}
+
+.voxnest-sidebar .ant-menu-item-selected::before {
+  height: 24px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
 }
 
 /* 页面容器 */
 .page-container {
-  background: var(--bg-primary);
-  border-radius: 12px;
-  box-shadow: var(--shadow-sm);
+  background: #ffffff;
+  backdrop-filter: var(--backdrop-blur);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.08);
   border: 1px solid var(--border-color);
-  padding: 24px;
+  padding: 32px;
   margin-bottom: 24px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 
 .page-header {
   border-bottom: 1px solid var(--border-color);
@@ -84,6 +111,19 @@
   font-size: 14px;
 }
 
+/* 桌面端搜索框居中 */
+.voxnest-header-search {
+  position: absolute !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 10 !important;
+}
+
+/* 确保Header有相对定位 */
+.voxnest-mobile-header {
+  position: relative !important;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .voxnest-content {
@@ -102,8 +142,9 @@
   /* 移动端 Header 优化 */
   .voxnest-mobile-header {
     padding: 0 16px !important;
-    gap: 8px !important;
+    gap: 0px !important;
     height: 60px !important;
+    position: relative !important;
   }
 
   /* Logo 在移动端缩小 */
@@ -119,8 +160,12 @@
 
   /* 搜索框在移动端优化 */
   .voxnest-header-search {
-    min-width: 100px !important;
-    max-width: 200px !important;
+    min-width: 220px !important;
+    max-width: 400px !important;
+    position: absolute !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 10 !important;
   }
 
   .voxnest-search-box {

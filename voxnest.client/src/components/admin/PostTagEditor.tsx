@@ -173,7 +173,9 @@ const PostTagEditor: React.FC<PostTagEditorProps> = ({
               {/* 常驻标签组 */}
               {permanentTags.length > 0 && (
                 <Select.OptGroup label="🔒 常驻标签">
-                  {permanentTags.map(tag => (
+                  {permanentTags
+                    .sort((a, b) => (a.priority || 0) - (b.priority || 0)) // 按优先级排序，数字越小越靠前
+                    .map(tag => (
                     <Select.Option
                       key={tag.id}
                       value={tag.id}

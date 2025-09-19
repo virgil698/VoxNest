@@ -180,13 +180,34 @@ export function useGlobalErrorHandler(source?: string) {
       );
     };
 
+    // 监听页面卸载，取消未完成的日志请求
+    const beforeUnloadHandler = () => {
+      LogApi.cancelAllPendingRequests();
+    };
+
+    // 监听页面隐藏（用户切换标签页等）
+    const visibilityChangeHandler = () => {
+      if (document.hidden) {
+        // 页面隐藏时，如果有太多未完成的请求，取消它们
+        const pendingCount = LogApi.getPendingRequestCount();
+        if (pendingCount > 5) {
+          console.debug(`Too many pending log requests (${pendingCount}), canceling them`);
+          LogApi.cancelAllPendingRequests();
+        }
+      }
+    };
+
     window.addEventListener('error', errorHandler);
     window.addEventListener('unhandledrejection', rejectionHandler);
+    window.addEventListener('beforeunload', beforeUnloadHandler);
+    document.addEventListener('visibilitychange', visibilityChangeHandler);
 
     // 清理函数
     return () => {
       window.removeEventListener('error', errorHandler);
       window.removeEventListener('unhandledrejection', rejectionHandler);
+      window.removeEventListener('beforeunload', beforeUnloadHandler);
+      document.removeEventListener('visibilitychange', visibilityChangeHandler);
     };
   }, [handleError]);
 

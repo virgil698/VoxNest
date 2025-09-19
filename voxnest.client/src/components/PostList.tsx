@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { List, Card, Button, Tag, Avatar, Space, Pagination, Spin, Alert, Empty } from 'antd';
-import { EyeOutlined, MessageOutlined, HeartOutlined, CalendarOutlined, UserOutlined, ReloadOutlined } from '@ant-design/icons';
+import { List, Button, Tag, Avatar, Space, Pagination, Spin, Alert, Empty, Typography } from 'antd';
+import { EyeOutlined, MessageOutlined, HeartOutlined, UserOutlined, ReloadOutlined, FireOutlined, PushpinOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { usePostsQuery, useLikePostMutation, type PostListParams } from '../hooks/usePostsQuery';
 import { useApiStateManagement } from '../hooks/useApiState';
+import '../styles/PostListUnified.css';
+
+const { Text, Title } = Typography;
 
 interface PostListProps {
   initialParams?: PostListParams;
@@ -147,80 +150,210 @@ const PostList: React.FC<PostListProps> = ({
 
       {/* 加载状态 */}
       <Spin spinning={isLoadingInitial} tip="加载中...">
-        <List
-          grid={{ gutter: 16, xs: 1, sm: 1, md: 1, lg: 1, xl: 1, xxl: 1 }}
-          dataSource={data?.posts || []}
-          renderItem={(post) => (
-            <List.Item>
-              <Card
-                hoverable
+        <div className="voxnest-post-list">
+          <List
+            dataSource={data?.posts || []}
+            renderItem={(post, index) => (
+              <List.Item 
+                className="voxnest-post-item"
                 onClick={() => handlePostClick(post)}
-                actions={[
-                  <Button
-                    key="like"
-                    type="text"
-                    icon={<HeartOutlined />}
-                    loading={likeMutation.isPending}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleLike(post.id);
-                    }}
-                  >
-                    {post.likeCount}
-                  </Button>,
-                  <Button
-                    key="comment"
-                    type="text"
-                    icon={<MessageOutlined />}
-                  >
-                    {post.commentCount}
-                  </Button>,
-                  <Button
-                    key="view"
-                    type="text"
-                    icon={<EyeOutlined />}
-                  >
-                    {post.viewCount}
-                  </Button>,
-                ]}
+                style={{ 
+                  cursor: 'pointer',
+                  padding: '16px 20px',
+                  borderBottom: index === (data?.posts || []).length - 1 ? 'none' : '1px solid #f0f0f0',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f8f9ff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
               >
-                <Card.Meta
-                  avatar={
-                    <Avatar 
-                      icon={<UserOutlined />}
-                      src={post.author?.avatar}
-                    />
-                  }
-                  title={
-                    <Space>
-                      <span>{post.title}</span>
-                      {post.status === 'DRAFT' && <Tag color="orange">草稿</Tag>}
-                    </Space>
-                  }
-                  description={
-                    <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                      <div>{post.excerpt}</div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Space size="small">
-                          <CalendarOutlined />
-                          <span>{dayjs(post.createdAt).format('YYYY-MM-DD HH:mm')}</span>
-                        </Space>
-                        <Space>
-                          {post.category && (
-                            <Tag color="blue">{post.category.name}</Tag>
-                          )}
-                          {post.tags?.map((tag) => (
-                            <Tag key={tag} color="default">{tag}</Tag>
-                          ))}
-                        </Space>
+                <div style={{ display: 'flex', alignItems: 'flex-start', width: '100%', gap: '12px' }}>
+                  {/* 左侧用户头像 */}
+                  <Avatar 
+                    size={44}
+                    icon={<UserOutlined />}
+                    src={post.author?.avatar}
+                    style={{ 
+                      flexShrink: 0,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                    }}
+                  />
+                  
+                  {/* 中间内容区域 */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {/* 标题行 */}
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px', gap: '8px' }}>
+                      <Title 
+                        level={5} 
+                        style={{ 
+                          margin: 0, 
+                          fontSize: '16px',
+                          fontWeight: 600,
+                          color: '#262626',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          flex: 1,
+                          minWidth: 0
+                        }}
+                      >
+                        {post.title}
+                      </Title>
+                      
+                      {/* 特殊标签 */}
+                      <Space size={4}>
+                        {(post as any).isPinned && (
+                          <Tag color="red" icon={<PushpinOutlined />} style={{ margin: 0 }}>
+                            置顶
+                          </Tag>
+                        )}
+                        {(post as any).isHot && (
+                          <Tag color="orange" icon={<FireOutlined />} style={{ margin: 0 }}>
+                            热门
+                          </Tag>
+                        )}
+                        {post.status === 'DRAFT' && (
+                          <Tag color="orange" style={{ margin: 0 }}>草稿</Tag>
+                        )}
+                      </Space>
+                    </div>
+
+                    {/* 类别和标签行 */}
+                    <div style={{ marginBottom: '6px' }}>
+                      <Space size={6}>
+                        {post.category && (
+                          <Tag 
+                            color="#6366F1" 
+                            style={{ 
+                              borderRadius: '12px',
+                              fontSize: '12px',
+                              padding: '2px 8px',
+                              border: 'none',
+                              fontWeight: 500
+                            }}
+                          >
+                            {post.category.name}
+                          </Tag>
+                        )}
+                        {post.tags?.slice(0, 3).map((tag) => (
+                          <Tag 
+                            key={tag} 
+                            style={{ 
+                              borderRadius: '12px',
+                              fontSize: '12px',
+                              padding: '2px 8px',
+                              backgroundColor: '#f3f4f6',
+                              border: '1px solid #e5e7eb',
+                              color: '#6b7280',
+                              fontWeight: 400
+                            }}
+                          >
+                            {tag}
+                          </Tag>
+                        ))}
+                        {post.tags && post.tags.length > 3 && (
+                          <Tag style={{ 
+                            borderRadius: '12px',
+                            fontSize: '12px',
+                            padding: '2px 8px',
+                            backgroundColor: '#f3f4f6',
+                            border: '1px solid #e5e7eb',
+                            color: '#6b7280'
+                          }}>
+                            +{post.tags.length - 3}
+                          </Tag>
+                        )}
+                      </Space>
+                    </div>
+
+                    {/* 内容预览（可选） */}
+                    {post.excerpt && (
+                      <Text 
+                        type="secondary" 
+                        style={{ 
+                          fontSize: '13px',
+                          lineHeight: '1.4',
+                          display: 'block',
+                          marginBottom: '8px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {post.excerpt}
+                      </Text>
+                    )}
+
+                    {/* 时间和作者信息 */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Text type="secondary" style={{ fontSize: '12px' }}>
+                        {post.author?.username || '匿名用户'}
+                      </Text>
+                      <Text type="secondary" style={{ fontSize: '12px' }}>
+                        •
+                      </Text>
+                      <Text type="secondary" style={{ fontSize: '12px' }}>
+                        {dayjs(post.createdAt).fromNow()}
+                      </Text>
+                    </div>
+                  </div>
+                  
+                  {/* 右侧统计信息 */}
+                  <div style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'flex-end', 
+                    justifyContent: 'flex-end',
+                    flexShrink: 0,
+                    minWidth: '150px'
+                  }}>
+                    {/* 统计数据 - 横向排列 */}
+                    <Space size={12} style={{ fontSize: '12px', color: '#6b7280' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <MessageOutlined style={{ fontSize: '12px', color: '#6b7280' }} />
+                        <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                          {post.commentCount}
+                        </span>
                       </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <EyeOutlined style={{ fontSize: '12px', color: '#6b7280' }} />
+                        <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                          {post.viewCount}
+                        </span>
+                      </div>
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<HeartOutlined />}
+                        loading={likeMutation.isPending}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleLike(post.id);
+                        }}
+                        style={{ 
+                          padding: '0',
+                          height: '20px',
+                          fontSize: '12px',
+                          color: '#6b7280',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          border: 'none',
+                          boxShadow: 'none'
+                        }}
+                      >
+                        {post.likeCount}
+                      </Button>
                     </Space>
-                  }
-                />
-              </Card>
-            </List.Item>
-          )}
-        />
+                  </div>
+                </div>
+              </List.Item>
+            )}
+          />
+        </div>
       </Spin>
 
       {/* 分页 */}

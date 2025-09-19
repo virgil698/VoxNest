@@ -35,6 +35,7 @@ import { adminApi, type SiteStats } from '../api/admin';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import '../styles/AllTagsXenForo.css';
 
 // 配置dayjs
 dayjs.extend(relativeTime);
@@ -82,7 +83,7 @@ const AllTags: React.FC = () => {
     },
   });
 
-  // 获取动态标签
+  // 获取标签
   const { data: dynamicTags = [], isLoading: loadingDynamic } = useQuery({
     queryKey: ['all-dynamic-tags'],
     queryFn: async () => {
@@ -125,7 +126,7 @@ const AllTags: React.FC = () => {
     enabled: permanentTags.length > 0,
   });
 
-  // 获取动态标签的统计信息
+  // 获取标签的统计信息
   const { data: dynamicTagsStats = {}, isLoading: loadingDynamicStats } = useQuery<TagStatsMap>({
     queryKey: ['dynamic-tags-stats', dynamicTags],
     queryFn: async (): Promise<TagStatsMap> => {
@@ -133,7 +134,7 @@ const AllTags: React.FC = () => {
       
       const stats: TagStatsMap = {};
       
-      // 并行获取每个动态标签的统计信息
+      // 并行获取每个标签的统计信息
       const promises = dynamicTags.map(async (tag: any) => {
         try {
           // 获取该标签的帖子列表（只获取第一页来统计和获取最新帖子）
@@ -328,399 +329,275 @@ const AllTags: React.FC = () => {
     }
 
     return (
-      <div style={{ marginBottom: 32 }}>
-        {/* 标题区域 - 单独的颜色背景 */}
-        <div style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          borderRadius: '12px 12px 0 0',
-          padding: '24px 32px',
-          marginBottom: 0
-        }}>
-          <Title level={3} style={{ 
-            margin: 0, 
-            color: 'white', 
-            textAlign: 'left',
-            display: 'flex',
-            alignItems: 'center',
-            fontSize: '20px',
-            fontWeight: 600
-          }}>
+      <div className="voxnest-tag-card">
+        {/* 标题区域 - 类别专用颜色 */}
+        <div className="voxnest-tag-header voxnest-category-header">
+          <Title level={3} className="voxnest-tag-title">
             <LockOutlined style={{ marginRight: 12, fontSize: 24 }} />
-            常驻分类
+            类别
           </Title>
-          <Text style={{ 
-            color: 'rgba(255,255,255,0.9)', 
-            fontSize: 15, 
-            display: 'block', 
-            marginTop: 8,
-            lineHeight: 1.5
-          }}>
+          <Text className="voxnest-tag-subtitle">
             系统管理的分类标签，帖子必须选择至少一个分类
           </Text>
         </div>
 
-        {/* 列表区域 - 白色背景 */}
+        {/* 列表区域 */}
         <Card 
           style={{
-            borderRadius: '0 0 12px 12px',
+            borderRadius: '0 0 8px 8px',
             borderTop: 'none',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+            border: 'none'
           }}
-          bodyStyle={{ padding: '16px' }}
+          bodyStyle={{ padding: 0 }}
         >
-          <Row gutter={[0, 1]}>
-            {permanentTags.map((tag, index) => {
-              const stats = permanentTagsStats[tag.id] || { totalPosts: 0, latestPost: null };
-              const latestPost = stats.latestPost;
-              
-              return (
-                <Col key={tag.id} span={24}>
-                  <div
-                    style={{ 
-                      cursor: 'pointer',
-                      padding: '20px 24px',
-                      borderBottom: index < permanentTags.length - 1 ? '1px solid #f0f0f0' : 'none',
-                      transition: 'all 0.2s ease',
-                      borderRadius: '6px'
-                    }}
-                    className="tag-item"
-                    onClick={() => handleTagClick(tag)}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#fafafa';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
-                  >
-                    <Row align="middle" style={{ minHeight: 60 }}>
-                      {/* 左侧：标签信息 */}
-                      <Col span={6}>
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
+          {permanentTags
+            .sort((a, b) => (a.priority || 0) - (b.priority || 0)) // 按优先级排序，数字越小越靠前
+            .map((tag, index) => {
+            const stats = permanentTagsStats[tag.id] || { totalPosts: 0, latestPost: null };
+            const latestPost = stats.latestPost;
+            
+            return (
+              <div
+                key={tag.id}
+                className="voxnest-tag-item"
+                onClick={() => handleTagClick(tag)}
+              >
+                    <div className="voxnest-tag-grid-item">
+                      {/* 左侧：基本信息 */}
+                      <div className="voxnest-tag-grid-basic">
+                        <div className="voxnest-tag-basic-info">
                           <Avatar
                             size={48}
-                            style={{
-                              backgroundColor: tag.color || '#52c41a',
-                              marginRight: 16,
-                              flexShrink: 0,
-                              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                            }}
+                            className="voxnest-tag-avatar voxnest-category-avatar"
                             icon={<LockOutlined style={{ fontSize: 20 }} />}
                           />
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <Title level={4} style={{ 
-                              margin: 0, 
-                              marginBottom: 4, 
-                              fontSize: '16px',
-                              fontWeight: 600,
-                              color: '#262626'
-                            }}>
+                          <div className="voxnest-tag-info">
+                            <Title level={4} className="voxnest-tag-name">
                               {tag.name}
                             </Title>
-                            <Text type="secondary" style={{ fontSize: 13 }}>
-                              常驻分类
-                            </Text>
+                            <Text className="voxnest-tag-type">类别</Text>
                           </div>
                         </div>
-                      </Col>
+                      </div>
 
                       {/* 中间：统计信息 */}
-                      <Col span={6} style={{ textAlign: 'center' }}>
-                        <Row gutter={24}>
-                          <Col span={12}>
-                            <div style={{ textAlign: 'center' }}>
-                              <div style={{ 
-                                fontSize: '18px', 
-                                fontWeight: 600, 
-                                color: '#262626',
-                                marginBottom: 4
-                              }}>
-                                {stats.totalPosts}
-                              </div>
-                              <div style={{ 
-                                fontSize: '12px', 
-                                color: '#8c8c8c',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}>
-                                <FileTextOutlined style={{ marginRight: 4, fontSize: '12px' }} />
-                                帖子数
-                              </div>
-                            </div>
-                          </Col>
-                          <Col span={12}>
-                            <div style={{ textAlign: 'center' }}>
-                              <div style={{ 
-                                fontSize: '18px', 
-                                fontWeight: 600, 
-                                color: '#262626',
-                                marginBottom: 4
-                              }}>
-                                {tag.useCount}
-                              </div>
-                              <div style={{ 
-                                fontSize: '12px', 
-                                color: '#8c8c8c',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}>
-                                <MessageOutlined style={{ marginRight: 4, fontSize: '12px' }} />
-                                使用次数
-                              </div>
-                            </div>
-                          </Col>
-                        </Row>
-                      </Col>
+                      <div className="voxnest-tag-grid-stats">
+                        <div className="voxnest-tag-stat-item">
+                          <div className="voxnest-tag-stat-number">{stats.totalPosts}</div>
+                          <div className="voxnest-tag-stat-label">
+                            <FileTextOutlined style={{ marginRight: 4, fontSize: 12 }} />
+                            帖子
+                          </div>
+                        </div>
+                        <div className="voxnest-tag-stat-item">
+                          <div className="voxnest-tag-stat-number">{tag.useCount}</div>
+                          <div className="voxnest-tag-stat-label">
+                            <MessageOutlined style={{ marginRight: 4, fontSize: 12 }} />
+                            引用
+                          </div>
+                        </div>
+                      </div>
 
-                      {/* 右侧：最新帖子 */}
-                      <Col span={12} style={{ paddingLeft: '24px', borderLeft: '1px solid #f0f0f0' }}>
-                        {latestPost ? (
-                          <div>
-                            <div style={{ marginBottom: 8 }}>
-                              <Text strong style={{ fontSize: 13, color: '#8c8c8c' }}>最新帖子</Text>
+                      {/* 右侧：最新帖子 - XenForo风格 */}
+                      <div className="voxnest-tag-grid-latest">
+                        <div className="voxnest-latest-post">
+                          {latestPost ? (
+                            <>
+                              <div className="voxnest-latest-post-header">
+                                <Text className="voxnest-latest-post-label">最新帖子</Text>
+                              </div>
+                              <div className="voxnest-latest-post-content">
+                                <Avatar
+                                  size={32}
+                                  src={latestPost.author?.avatar}
+                                  className="voxnest-latest-post-avatar"
+                                  icon={<UserOutlined />}
+                                />
+                                <div className="voxnest-latest-post-info">
+                                  <Paragraph
+                                    ellipsis={{ rows: 1 }}
+                                    className="voxnest-latest-post-title"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate(`/posts/${latestPost.id}`);
+                                    }}
+                                  >
+                                    {latestPost.title}
+                                  </Paragraph>
+                                  <div className="voxnest-latest-post-meta">
+                                    <Text 
+                                      className="voxnest-latest-post-author"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (latestPost.author?.id) {
+                                          navigate(`/users/${latestPost.author.id}`);
+                                        }
+                                      }}
+                                    >
+                                      {latestPost.author?.displayName || latestPost.author?.username || '未知用户'}
+                                    </Text>
+                                    <div className="voxnest-meta-divider" />
+                                    <ClockCircleOutlined style={{ fontSize: 11 }} />
+                                    <Text className="voxnest-latest-post-time">
+                                      {latestPost.publishedAt ? formatTime(latestPost.publishedAt) : '未知时间'}
+                                    </Text>
+                                  </div>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="voxnest-no-posts">
+                              <div className="voxnest-no-posts-icon">📝</div>
+                              <Text className="voxnest-no-posts-text">暂无帖子</Text>
                             </div>
-                            <div style={{ marginBottom: 8 }}>
-                              <Paragraph
-                                ellipsis={{ rows: 1 }}
-                                style={{ 
-                                  margin: 0, 
-                                  fontWeight: 500,
-                                  fontSize: '14px',
-                                  color: '#262626'
-                                }}
-                              >
-                                {latestPost.title}
-                              </Paragraph>
-                            </div>
-                            <Space size="small" style={{ fontSize: 12, color: '#8c8c8c' }}>
-                              <UserOutlined />
-                              <Text type="secondary" style={{ fontSize: '12px' }}>
-                                {latestPost.author?.displayName || latestPost.author?.username || '未知用户'}
-                              </Text>
-                              <Divider type="vertical" />
-                              <ClockCircleOutlined />
-                              <Text type="secondary" style={{ fontSize: '12px' }}>
-                                {latestPost.publishedAt ? formatTime(latestPost.publishedAt) : '未知时间'}
-                              </Text>
-                            </Space>
-                          </div>
-                        ) : (
-                          <div style={{ color: '#bfbfbf', textAlign: 'center', fontSize: '14px' }}>
-                            <Text type="secondary">暂无帖子</Text>
-                          </div>
-                        )}
-                      </Col>
-                    </Row>
-                  </div>
-                </Col>
-              );
-            })}
-          </Row>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                </div>
+            );
+          })}
         </Card>
       </div>
     );
   };
 
-  // 渲染论坛板块样式的动态标签
+  // 渲染论坛板块样式的标签 - XenForo风格
   const renderForumStyleDynamicTags = () => {
     if (dynamicTags.length === 0) {
       return null;
     }
 
-    // 按使用次数排序动态标签
+    // 按使用次数排序标签
     const sortedDynamicTags = [...dynamicTags].sort((a, b) => b.useCount - a.useCount);
 
     return (
-      <div style={{ marginBottom: 32 }}>
-        {/* 标题区域 - 单独的颜色背景 */}
-        <div style={{
-          background: 'linear-gradient(135deg, #1890ff 0%, #722ed1 100%)',
-          borderRadius: '12px 12px 0 0',
-          padding: '24px 32px',
-          marginBottom: 0
-        }}>
-          <Title level={3} style={{ 
-            margin: 0, 
-            color: 'white', 
-            textAlign: 'left',
-            display: 'flex',
-            alignItems: 'center',
-            fontSize: '20px',
-            fontWeight: 600
-          }}>
+      <div className="voxnest-tag-card">
+        {/* 标题区域 - 标签专用颜色 */}
+        <div className="voxnest-tag-header dynamic">
+          <Title level={3} className="voxnest-tag-title">
             <TagsOutlined style={{ marginRight: 12, fontSize: 24 }} />
-            动态标签
+            标签
           </Title>
-          <Text style={{ 
-            color: 'rgba(255,255,255,0.9)', 
-            fontSize: 15, 
-            display: 'block', 
-            marginTop: 8,
-            lineHeight: 1.5
-          }}>
+          <Text className="voxnest-tag-subtitle">
             用户创建的标签，可选择多个，无引用时自动清理
           </Text>
         </div>
 
-        {/* 列表区域 - 白色背景 */}
+        {/* 列表区域 */}
         <Card 
           style={{
-            borderRadius: '0 0 12px 12px',
+            borderRadius: '0 0 8px 8px',
             borderTop: 'none',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+            border: 'none'
           }}
-          bodyStyle={{ padding: '16px' }}
+          bodyStyle={{ padding: 0 }}
         >
-          <Row gutter={[0, 1]}>
-            {sortedDynamicTags.map((tag, index) => {
-              const stats = dynamicTagsStats[tag.id] || { totalPosts: 0, latestPost: null };
-              const latestPost = stats.latestPost;
-              
-              return (
-                <Col key={tag.id} span={24}>
-                  <div
-                    style={{ 
-                      cursor: 'pointer',
-                      padding: '20px 24px',
-                      borderBottom: index < sortedDynamicTags.length - 1 ? '1px solid #f0f0f0' : 'none',
-                      transition: 'all 0.2s ease',
-                      borderRadius: '6px'
-                    }}
-                    className="tag-item"
-                    onClick={() => handleTagClick(tag)}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#fafafa';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
-                  >
-                    <Row align="middle" style={{ minHeight: 60 }}>
-                      {/* 左侧：标签信息 */}
-                      <Col span={6}>
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                          <Avatar
-                            size={48}
-                            style={{
-                              backgroundColor: tag.color || '#1890ff',
-                              marginRight: 16,
-                              flexShrink: 0,
-                              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                            }}
-                            icon={<TagsOutlined style={{ fontSize: 20 }} />}
-                          />
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <Title level={4} style={{ 
-                              margin: 0, 
-                              marginBottom: 4, 
-                              fontSize: '16px',
-                              fontWeight: 600,
-                              color: '#262626'
-                            }}>
-                              {tag.name}
-                            </Title>
-                            <Text type="secondary" style={{ fontSize: 13 }}>
-                              动态标签
-                            </Text>
+          {sortedDynamicTags.map((tag, index) => {
+            const stats = dynamicTagsStats[tag.id] || { totalPosts: 0, latestPost: null };
+            const latestPost = stats.latestPost;
+            
+            return (
+              <div
+                key={tag.id}
+                className="voxnest-tag-item"
+                onClick={() => handleTagClick(tag)}
+              >
+                <div className="voxnest-tag-grid-item">
+                  {/* 左侧：基本信息 */}
+                  <div className="voxnest-tag-grid-basic">
+                    <div className="voxnest-tag-basic-info">
+                      <Avatar
+                        size={48}
+                        className="voxnest-tag-avatar dynamic"
+                        icon={<TagsOutlined style={{ fontSize: 20 }} />}
+                      />
+                      <div className="voxnest-tag-info">
+                        <Title level={4} className="voxnest-tag-name">
+                          {tag.name}
+                        </Title>
+                        <Text className="voxnest-tag-type">标签</Text>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 中间：统计信息 */}
+                  <div className="voxnest-tag-grid-stats">
+                    <div className="voxnest-tag-stat-item">
+                      <div className="voxnest-tag-stat-number">{stats.totalPosts}</div>
+                      <div className="voxnest-tag-stat-label">
+                        <FileTextOutlined style={{ marginRight: 4, fontSize: 12 }} />
+                        帖子
+                      </div>
+                    </div>
+                    <div className="voxnest-tag-stat-item">
+                      <div className="voxnest-tag-stat-number">{tag.useCount}</div>
+                      <div className="voxnest-tag-stat-label">
+                        <MessageOutlined style={{ marginRight: 4, fontSize: 12 }} />
+                        使用
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 右侧：最新帖子 - XenForo风格 */}
+                  <div className="voxnest-tag-grid-latest">
+                    <div className="voxnest-latest-post">
+                      {latestPost ? (
+                        <>
+                          <div className="voxnest-latest-post-header">
+                            <Text className="voxnest-latest-post-label">最新帖子</Text>
                           </div>
-                        </div>
-                      </Col>
-
-                      {/* 中间：统计信息 */}
-                      <Col span={6} style={{ textAlign: 'center' }}>
-                        <Row gutter={24}>
-                          <Col span={12}>
-                            <div style={{ textAlign: 'center' }}>
-                              <div style={{ 
-                                fontSize: '18px', 
-                                fontWeight: 600, 
-                                color: '#262626',
-                                marginBottom: 4
-                              }}>
-                                {stats.totalPosts}
-                              </div>
-                              <div style={{ 
-                                fontSize: '12px', 
-                                color: '#8c8c8c',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}>
-                                <FileTextOutlined style={{ marginRight: 4, fontSize: '12px' }} />
-                                帖子数
-                              </div>
-                            </div>
-                          </Col>
-                          <Col span={12}>
-                            <div style={{ textAlign: 'center' }}>
-                              <div style={{ 
-                                fontSize: '18px', 
-                                fontWeight: 600, 
-                                color: '#262626',
-                                marginBottom: 4
-                              }}>
-                                {tag.useCount}
-                              </div>
-                              <div style={{ 
-                                fontSize: '12px', 
-                                color: '#8c8c8c',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}>
-                                <MessageOutlined style={{ marginRight: 4, fontSize: '12px' }} />
-                                使用次数
-                              </div>
-                            </div>
-                          </Col>
-                        </Row>
-                      </Col>
-
-                      {/* 右侧：最新帖子 */}
-                      <Col span={12} style={{ paddingLeft: '24px', borderLeft: '1px solid #f0f0f0' }}>
-                        {latestPost ? (
-                          <div>
-                            <div style={{ marginBottom: 8 }}>
-                              <Text strong style={{ fontSize: 13, color: '#8c8c8c' }}>最新帖子</Text>
-                            </div>
-                            <div style={{ marginBottom: 8 }}>
+                          <div className="voxnest-latest-post-content">
+                            <Avatar
+                              size={32}
+                              src={latestPost.author?.avatar}
+                              className="voxnest-latest-post-avatar"
+                              icon={<UserOutlined />}
+                            />
+                            <div className="voxnest-latest-post-info">
                               <Paragraph
                                 ellipsis={{ rows: 1 }}
-                                style={{ 
-                                  margin: 0, 
-                                  fontWeight: 500,
-                                  fontSize: '14px',
-                                  color: '#262626'
+                                className="voxnest-latest-post-title"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/posts/${latestPost.id}`);
                                 }}
                               >
                                 {latestPost.title}
                               </Paragraph>
+                              <div className="voxnest-latest-post-meta">
+                                <Text 
+                                  className="voxnest-latest-post-author"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (latestPost.author?.id) {
+                                      navigate(`/users/${latestPost.author.id}`);
+                                    }
+                                  }}
+                                >
+                                  {latestPost.author?.displayName || latestPost.author?.username || '未知用户'}
+                                </Text>
+                                <div className="voxnest-meta-divider" />
+                                <ClockCircleOutlined style={{ fontSize: 11 }} />
+                                <Text className="voxnest-latest-post-time">
+                                  {latestPost.publishedAt ? formatTime(latestPost.publishedAt) : '未知时间'}
+                                </Text>
+                              </div>
                             </div>
-                            <Space size="small" style={{ fontSize: 12, color: '#8c8c8c' }}>
-                              <UserOutlined />
-                              <Text type="secondary" style={{ fontSize: '12px' }}>
-                                {latestPost.author?.displayName || latestPost.author?.username || '未知用户'}
-                              </Text>
-                              <Divider type="vertical" />
-                              <ClockCircleOutlined />
-                              <Text type="secondary" style={{ fontSize: '12px' }}>
-                                {latestPost.publishedAt ? formatTime(latestPost.publishedAt) : '未知时间'}
-                              </Text>
-                            </Space>
                           </div>
-                        ) : (
-                          <div style={{ color: '#bfbfbf', textAlign: 'center', fontSize: '14px' }}>
-                            <Text type="secondary">暂无帖子</Text>
-                          </div>
-                        )}
-                      </Col>
-                    </Row>
+                        </>
+                      ) : (
+                        <div className="voxnest-no-posts">
+                          <div className="voxnest-no-posts-icon">🏷️</div>
+                          <Text className="voxnest-no-posts-text">暂无帖子</Text>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </Col>
-              );
-            })}
-          </Row>
+                </div>
+              </div>
+            );
+          })}
         </Card>
       </div>
     );
@@ -735,10 +612,10 @@ const AllTags: React.FC = () => {
           <div className="voxnest-compact-banner">
             <div className="voxnest-compact-content">
               <Title level={2} className="voxnest-compact-title">
-                标签广场
+                类别与标签
               </Title>
               <Text className="voxnest-compact-subtitle">
-                浏览所有标签，发现更多感兴趣的话题
+                浏览所有类别与标签，发现更多感兴趣的话题
               </Text>
             </div>
           </div>
@@ -750,7 +627,7 @@ const AllTags: React.FC = () => {
             </Breadcrumb.Item>
             <Breadcrumb.Item>
               <TagsOutlined />
-              所有标签
+              类别与标签
             </Breadcrumb.Item>
           </Breadcrumb>
 
@@ -771,7 +648,7 @@ const AllTags: React.FC = () => {
               {/* 使用论坛板块样式渲染常驻标签 */}
               {renderForumStylePermanentTags()}
               
-              {/* 使用论坛板块样式渲染动态标签 */}
+              {/* 使用论坛板块样式渲染标签 */}
               {renderForumStyleDynamicTags()}
             </div>
           )}

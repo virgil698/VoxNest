@@ -7,6 +7,7 @@ export interface TagOption {
   color?: string;
   isPermanent: boolean;
   useCount: number;
+  priority?: number;
 }
 
 export interface PostTagSelection {

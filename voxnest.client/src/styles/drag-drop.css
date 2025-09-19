@@ -93,21 +93,6 @@
   }
 }
 
-/* 确认重置按钮动画 */
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.02);
-    opacity: 0.9;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
 
 /* 深色主题支持 */
 @media (prefers-color-scheme: dark) {

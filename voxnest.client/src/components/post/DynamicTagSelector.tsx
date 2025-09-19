@@ -45,7 +45,7 @@ const DynamicTagSelector: React.FC<DynamicTagSelectorProps> = ({
   
   const inputRef = useRef<any>(null);
 
-  // 获取动态标签
+  // 获取标签
   const { data: dynamicTags = [], isLoading } = useQuery({
     queryKey: ['dynamic-tags'],
     queryFn: async () => {
@@ -54,19 +54,19 @@ const DynamicTagSelector: React.FC<DynamicTagSelectorProps> = ({
     },
   });
 
-  // 搜索动态标签
+  // 搜索标签
   const { data: searchResults = [] } = useQuery({
     queryKey: ['search-dynamic-tags', searchValue],
     queryFn: async () => {
       if (!searchValue.trim()) return [];
       const response = await tagApi.searchTags(searchValue, 20);
-      // 只返回动态标签
+      // 只返回标签
       return (response.data.data || []).filter(tag => !tag.isPermanent);
     },
     enabled: !!searchValue.trim(),
   });
 
-  // 当前可选择的标签（搜索结果或全部动态标签）
+  // 当前可选择的标签（搜索结果或全部标签）
   const displayTags = searchValue ? searchResults : dynamicTags;
 
   // 更新选中状态
@@ -98,7 +98,7 @@ const DynamicTagSelector: React.FC<DynamicTagSelectorProps> = ({
     updateValue(newSelectedTags, newDynamicTags);
   };
 
-  // 添加新的动态标签
+  // 添加新的标签
   const handleAddNewTag = async () => {
     if (!newTagName.trim()) return;
 
@@ -143,7 +143,7 @@ const DynamicTagSelector: React.FC<DynamicTagSelectorProps> = ({
     message.success('新标签已添加');
   };
 
-  // 删除新动态标签
+  // 删除新标签
   const handleRemoveNewTag = (tagName: string) => {
     const updatedNewTags = newDynamicTags.filter(name => name !== tagName);
     setNewDynamicTags(updatedNewTags);
@@ -173,7 +173,7 @@ const DynamicTagSelector: React.FC<DynamicTagSelectorProps> = ({
 
   return (
     <div>
-      {/* 动态标签选择器 */}
+      {/* 标签选择器 */}
       <Select
         mode="multiple"
         style={{ width: '100%' }}
@@ -278,7 +278,7 @@ const DynamicTagSelector: React.FC<DynamicTagSelectorProps> = ({
         <Text type="secondary" style={{ fontSize: '12px' }}>
           <Space>
             <TagsOutlined />
-            <Tag color="blue">动态标签</Tag>
+            <Tag color="blue">标签</Tag>
             用户创建的标签，可选择多个（可选）
           </Space>
         </Text>
@@ -287,7 +287,7 @@ const DynamicTagSelector: React.FC<DynamicTagSelectorProps> = ({
           <Space>
             <TagsOutlined />
             <Tag color="orange">新建标签</Tag>
-            创建帖子时新建的动态标签
+            创建帖子时新建的标签
           </Space>
         </Text>
       </div>
@@ -296,7 +296,7 @@ const DynamicTagSelector: React.FC<DynamicTagSelectorProps> = ({
       {dynamicTags.length > 0 && (
         <div style={{ marginTop: 8 }}>
           <Text type="secondary" style={{ fontSize: '12px' }}>
-            可用动态标签: {dynamicTags.length} 个
+            可用标签: {dynamicTags.length} 个
           </Text>
         </div>
       )}

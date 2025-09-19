@@ -23,7 +23,6 @@ import {
   EyeOutlined,
   LikeOutlined,
   MessageOutlined,
-  UserOutlined,
   FileTextOutlined,
   ThunderboltOutlined,
   AppstoreOutlined,
@@ -42,6 +41,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import '../styles/TagPosts.css';
+import '../styles/PostListUnified.css';
 
 // 配置dayjs
 dayjs.extend(relativeTime);
@@ -303,82 +303,174 @@ const TagPosts: React.FC = () => {
     return date.toLocaleDateString();
   };
 
-  // 渲染帖子卡片
-  const renderPostCard = (post: PostListItem) => (
-    <Card
+  // 渲染帖子列表项（新样式）
+  const renderPostCard = (post: PostListItem, index: number) => (
+    <div
       key={post.id}
-      className="forum-post-card"
-      hoverable
+      className="voxnest-post-item"
       onClick={() => navigate(`/posts/${post.id}`)}
-      bodyStyle={{ padding: '24px' }}
+      style={{ 
+        cursor: 'pointer',
+        padding: '16px 20px',
+        borderBottom: index === posts.length - 1 ? 'none' : '1px solid #f0f0f0',
+        transition: 'all 0.2s ease',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = '#f8f9ff';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'transparent';
+      }}
     >
-      <div className="forum-post-content">
-        {/* 帖子标题 */}
-        <Title level={3} className="forum-post-title">
-          {post.title}
-        </Title>
-        
-        {/* 帖子摘要 */}
-        {post.summary && (
-          <Paragraph 
-            className="forum-post-summary"
-            ellipsis={{ rows: 2 }}
-          >
-            {post.summary}
-          </Paragraph>
-        )}
-        
-        {/* 标签区域 */}
-        <div className="forum-post-tags">
-          <Space wrap size={[8, 8]}>
-            {post.tags?.map(tag => (
-              <Tag
-                key={tag.id}
-                color={tag.color || 'blue'}
-                className="forum-post-tag"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (tag.slug !== slug) {
-                    navigate(`/tags/${tag.slug}?name=${encodeURIComponent(tag.name)}`);
-                  }
-                }}
-              >
-                {tag.name}
-              </Tag>
-            ))}
-          </Space>
+      <div style={{ display: 'flex', alignItems: 'flex-start', width: '100%', gap: '12px' }}>
+        {/* 左侧用户头像 */}
+        <div 
+          style={{ 
+            width: '44px',
+            height: '44px',
+            borderRadius: '50%',
+            backgroundColor: '#6366F1',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontSize: '18px',
+            fontWeight: 'bold',
+            flexShrink: 0,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}
+        >
+          {(post.author?.displayName || post.author?.username || '匿名用户')[0]?.toUpperCase()}
         </div>
         
-        {/* 帖子元信息 */}
-        <div className="forum-post-meta">
-          <div className="forum-post-author">
-            <UserOutlined className="forum-post-meta-icon" />
-            <span className="forum-post-author-name">
-              {post.author.displayName || post.author.username}
-            </span>
-            <span className="forum-post-time">
-              • {formatTime(post.createdAt)}
-            </span>
+        {/* 中间内容区域 */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* 标题行 */}
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px', gap: '8px' }}>
+            <Title 
+              level={5} 
+              style={{ 
+                margin: 0, 
+                fontSize: '16px',
+                fontWeight: 600,
+                color: '#262626',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                flex: 1,
+                minWidth: 0
+              }}
+            >
+              {post.title}
+            </Title>
           </div>
-          <div className="forum-post-stats">
-            <Space size={16}>
-              <span className="forum-post-stat">
-                <EyeOutlined className="forum-post-stat-icon" />
-                {post.viewCount}
-              </span>
-              <span className="forum-post-stat">
-                <LikeOutlined className="forum-post-stat-icon" />
-                {post.likeCount}
-              </span>
-              <span className="forum-post-stat">
-                <MessageOutlined className="forum-post-stat-icon" />
-                {post.commentCount}
-              </span>
+
+          {/* 标签行 */}
+          <div style={{ marginBottom: '6px' }}>
+            <Space size={6}>
+              {post.tags?.slice(0, 3).map((tag) => (
+                <Tag 
+                  key={tag.id} 
+                  color={tag.color || '#6366F1'}
+                  style={{ 
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    padding: '2px 8px',
+                    border: 'none',
+                    fontWeight: 500,
+                    cursor: 'pointer'
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (tag.slug !== slug) {
+                      navigate(`/tags/${tag.slug}?name=${encodeURIComponent(tag.name)}`);
+                    }
+                  }}
+                >
+                  {tag.name}
+                </Tag>
+              ))}
+              {post.tags && post.tags.length > 3 && (
+                <Tag style={{ 
+                  borderRadius: '12px',
+                  fontSize: '12px',
+                  padding: '2px 8px',
+                  backgroundColor: '#f3f4f6',
+                  border: '1px solid #e5e7eb',
+                  color: '#6b7280'
+                }}>
+                  +{post.tags.length - 3}
+                </Tag>
+              )}
             </Space>
           </div>
+
+          {/* 内容预览 */}
+          {post.summary && (
+            <Paragraph 
+              style={{ 
+                fontSize: '13px',
+                lineHeight: '1.4',
+                margin: '0 0 8px 0',
+                color: '#6b7280',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {post.summary}
+            </Paragraph>
+          )}
+
+          {/* 时间和作者信息 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>
+              {post.author?.displayName || post.author?.username || '匿名用户'}
+            </span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>•</span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>
+              {formatTime(post.createdAt)}
+            </span>
+          </div>
+        </div>
+        
+        {/* 右侧统计信息 */}
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'flex-end', 
+          justifyContent: 'flex-end',
+          flexShrink: 0,
+          minWidth: '120px'
+        }}>
+          {/* 统计数据 - 横向排列 */}
+          <Space size={12} style={{ fontSize: '12px', color: '#6b7280' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <MessageOutlined style={{ fontSize: '12px', color: '#6b7280' }} />
+              <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                {post.commentCount || 0}
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <EyeOutlined style={{ fontSize: '12px', color: '#6b7280' }} />
+              <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                {post.viewCount || 0}
+              </span>
+            </div>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '4px'
+            }}>
+              <LikeOutlined style={{ fontSize: '12px', color: '#6b7280' }} />
+              <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                {post.likeCount || 0}
+              </span>
+            </div>
+          </Space>
         </div>
       </div>
-    </Card>
+    </div>
   );
 
   if (isLoading) {
@@ -569,7 +661,15 @@ const TagPosts: React.FC = () => {
           </div>
         ) : (
           <>
-            {posts.map(renderPostCard)}
+            <div className="voxnest-post-list" style={{
+              background: 'var(--bg-primary)',
+              borderRadius: '12px',
+              boxShadow: 'var(--shadow-sm)',
+              border: '1px solid var(--border-color)',
+              overflow: 'hidden'
+            }}>
+              {posts.map((post: PostListItem, index: number) => renderPostCard(post, index))}
+            </div>
             
             {totalCount > pageSize && (
               <div className="posts-pagination">

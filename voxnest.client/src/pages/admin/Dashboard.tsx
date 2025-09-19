@@ -536,16 +536,17 @@ const Dashboard: React.FC = () => {
             {...commonCardProps}
             style={{ 
               ...commonCardProps.style,
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              border: 'none',
-              borderRadius: '12px'
+              background: '#ffffff',
+              border: '1px solid #f0f0f0',
+              borderRadius: '12px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
             }}
             bodyStyle={{ 
               padding: '20px',
               textAlign: 'center'
             }}
           >
-            <div style={{ color: 'white' }}>
+            <div style={{ color: '#b794f6' }}>
               <div style={{ 
                 fontSize: '24px', 
                 fontWeight: 600, 
@@ -556,6 +557,7 @@ const Dashboard: React.FC = () => {
               </div>
               <div style={{ 
                 fontSize: '14px', 
+                color: '#b794f6',
                 opacity: 0.9,
                 marginBottom: '4px'
               }}>
@@ -563,6 +565,7 @@ const Dashboard: React.FC = () => {
               </div>
               <div style={{ 
                 fontSize: '12px', 
+                color: '#b794f6',
                 opacity: 0.8,
                 fontStyle: 'italic'
               }}>

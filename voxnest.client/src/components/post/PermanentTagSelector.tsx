@@ -17,9 +17,9 @@ const PermanentTagSelector: React.FC<PermanentTagSelectorProps> = ({
   value,
   onChange,
   disabled = false,
-  placeholder = '请选择分类（常驻标签）',
+  placeholder = '请选择类别',
 }) => {
-  // 获取常驻标签
+  // 获取类别
   const { data: permanentTags = [], isLoading } = useQuery({
     queryKey: ['permanent-tags'],
     queryFn: async () => {
@@ -42,7 +42,7 @@ const PermanentTagSelector: React.FC<PermanentTagSelectorProps> = ({
 
   return (
     <div>
-      {/* 常驻标签选择器 */}
+      {/* 类别选择器 */}
       <Select
         style={{ width: '100%' }}
         placeholder={placeholder}
@@ -58,7 +58,9 @@ const PermanentTagSelector: React.FC<PermanentTagSelectorProps> = ({
           return tag ? tag.name.toLowerCase().includes(input.toLowerCase()) : false;
         }}
       >
-        {permanentTags.map(tag => (
+        {permanentTags
+          .sort((a, b) => (a.priority || 0) - (b.priority || 0)) // 按优先级排序，数字越小越靠前
+          .map(tag => (
           <Select.Option
             key={tag.id}
             value={tag.id}
@@ -69,7 +71,7 @@ const PermanentTagSelector: React.FC<PermanentTagSelectorProps> = ({
         ))}
       </Select>
 
-      {/* 已选择的标签显示 */}
+      {/* 已选择的类别显示 */}
       {value && (
         <div style={{ marginTop: 8 }}>
           {(() => {
@@ -92,8 +94,8 @@ const PermanentTagSelector: React.FC<PermanentTagSelectorProps> = ({
         <Text type="secondary" style={{ fontSize: '12px' }}>
           <Space>
             <TagsOutlined />
-            <Tag color="green">常驻标签</Tag>
-            由管理员创建的分类标签，必须选择一个
+            <Tag color="green">类别</Tag>
+            由管理员创建的类别，必须选择一个
           </Space>
         </Text>
       </div>

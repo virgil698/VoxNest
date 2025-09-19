@@ -63,7 +63,7 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const [activeTab, setActiveTab] = useState('appearance');
+  const [activeTab, setActiveTab] = useState('interface');
   const [serverResetModalVisible, setServerResetModalVisible] = useState(false);
   const [resetCategory, setResetCategory] = useState<string>('');
   const [exportModalVisible, setExportModalVisible] = useState(false);
@@ -92,7 +92,7 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
   const [redisDisableStep, setRedisDisableStep] = useState<'warning' | 'confirm1' | 'confirm2' | 'password'>('warning');
   const [adminPassword, setAdminPassword] = useState('');
 
-  // 服务器配置相关hooks
+  // 后端配置相关hooks
   const {
     serverConfig,
     databaseConfig,
@@ -115,7 +115,7 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
   const [loggingForm] = Form.useForm();
   const [redisForm] = Form.useForm();
 
-  // 初始化服务器配置表单数据
+  // 初始化后端配置表单数据
   useEffect(() => {
     if (serverConfig.data) {
       serverForm.setFieldsValue(serverConfig.data);
@@ -370,7 +370,7 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
     }
   }, [adminPassword, handleRedisConfigChange]);
 
-  // 服务器配置相关处理函数
+  // 后端配置相关处理函数
   const handleServerConfigSave = async () => {
     try {
       const values = await serverForm.validateFields();
@@ -426,12 +426,12 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
     setHasChanges(true);
   }, []);
 
-  // 服务器配置标签页渲染函数
+  // 后端配置标签页渲染函数
   const renderServerConfigTab = () => (
     <div style={{ maxWidth: '800px' }}>
       <Alert
-        message="服务器配置说明"
-        description="这些设置影响服务器的运行行为，保存在服务器配置文件中。修改后可能需要重启服务才能生效。"
+        message="后端配置说明"
+        description="这些设置影响后端的运行行为，保存在后端配置文件中。修改后可能需要重启服务才能生效。"
         type="info"
         showIcon
         style={{ marginBottom: 16 }}
@@ -1213,7 +1213,7 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
           站点设置
         </Title>
         <Paragraph type="secondary" style={{ margin: '8px 0 0 0' }}>
-          管理网站的各项配置设置，包括外观、功能和服务器配置
+          管理网站的各项配置设置，包括外观、功能和后端配置
         </Paragraph>
       </div>
 
@@ -1308,20 +1308,20 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
                   ),
                 };
               }),
-            // 服务器配置 - 统一的主标签，包含子标签
+            // 后端配置 - 统一的主标签，包含子标签
             {
               key: 'server-config',
               label: (
                 <Space>
                   <AppstoreOutlined />
-                  服务器配置
+                  后端配置
                 </Space>
               ),
               children: (
                 <div style={{ maxWidth: '1000px' }}>
                   <Alert
-                    message="服务器配置说明"
-                    description="这些设置控制服务器的核心功能，修改后可能需要重启服务才能生效。建议在修改前先备份配置。"
+                    message="后端配置说明"
+                    description="这些设置控制后端的核心功能，修改后可能需要重启服务才能生效。建议在修改前先备份配置。"
                     type="warning"
                     showIcon
                     style={{ marginBottom: 16 }}
@@ -1381,7 +1381,7 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
             <Space>
               {activeTab === 'server-config' && (
                 <>
-                  <Tooltip title="备份服务器配置">
+                  <Tooltip title="备份后端配置">
                     <Button
                       icon={<ExportOutlined />}
                       loading={backupConfig.isPending}
@@ -1457,7 +1457,7 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
         />
       </Modal>
 
-      {/* 服务器配置重置确认模态框 */}
+      {/* 后端配置重置确认模态框 */}
       <Modal
         title="确认重置配置"
         open={serverResetModalVisible}
@@ -1625,9 +1625,9 @@ const SiteSettings: React.FC<SiteSettingsProps> = () => {
         description={
           <ul style={{ paddingLeft: '16px', margin: '8px 0' }}>
             <li>前端设置保存在浏览器本地存储中，仅影响当前浏览器</li>
-            <li>服务器配置保存在服务器端，影响所有用户和全站功能</li>
+            <li>后端配置保存在服务器端，影响所有用户和全站功能</li>
             <li>端口配置只能通过后端配置文件修改，不能通过此界面更改</li>
-            <li>部分服务器配置更改需要重启服务才能生效</li>
+            <li>部分后端配置更改需要重启服务才能生效</li>
             <li>建议在修改前先备份当前配置</li>
           </ul>
         }

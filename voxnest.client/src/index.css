@@ -35,34 +35,36 @@ body {
   line-height: 1.6;
   color: #4A4A4A;
   font-size: 14px;
-  background: #F8F9FA;
+  background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 50%, #f3f4ff 100%);
+  background-attachment: fixed;
   min-height: 100vh;
 }
 
-/* VoxNest 白色主题色 */
+/* VoxNest 优雅紫色主题 */
 :root {
-  --primary-color: #4F46E5;
-  --primary-hover: #6366F1;
-  --primary-active: #3730A3;
-  --secondary-color: #818CF8;
-  --purple-primary: #8B5CF6;
-  --purple-hover: #7C3AED;
+  --primary-color: #6366F1;
+  --primary-hover: #7C3AED;
+  --primary-active: #5B21B6;
+  --secondary-color: #8B5CF6;
+  --purple-primary: #7C3AED;
+  --purple-hover: #6D28D9;
   --purple-light: #A78BFA;
-  --purple-bg: #F3F4F6;
+  --purple-bg: rgba(139, 92, 246, 0.05);
   --success-color: #10B981;
   --warning-color: #F59E0B;
   --error-color: #EF4444;
-  --text-primary: #2D3748;
-  --text-secondary: #718096;
-  --text-muted: #A0AEC0;
-  --border-color: #E2E8F0;
-  --border-light: #F7FAFC;
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F8FAFC;
-  --bg-tertiary: #EDF2F7;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.08);
+  --text-primary: #1F2937;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+  --border-color: rgba(139, 92, 246, 0.12);
+  --border-light: rgba(139, 92, 246, 0.08);
+  --bg-primary: #ffffff;
+  --bg-secondary: rgba(248, 249, 255, 0.9);
+  --bg-tertiary: rgba(243, 244, 255, 0.8);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.12);
+  --backdrop-blur: blur(10px);
 }
 
 /* 链接样式 */
@@ -135,19 +137,6 @@ a:active {
   transition: all 0.3s ease;
 }
 
-.ant-input,
-.ant-input-password .ant-input {
-  border-radius: 8px;
-  border: 2px solid var(--border-color);
-  transition: all 0.3s ease;
-}
-
-.ant-input:focus,
-.ant-input-password .ant-input:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
-}
-
 .ant-select-selector {
   border-radius: 8px !important;
   border: 2px solid var(--border-color) !important;
@@ -186,7 +175,7 @@ a:active {
 
   /* 移动端搜索框样式 */
   .voxnest-search-box {
-    min-width: 150px !important;
+    min-width: 220px !important;
     font-size: 13px !important;
     padding: 8px 12px !important;
   }
@@ -444,7 +433,6 @@ a:active {
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  animation: float 3s ease-in-out infinite;
 }
 
 .voxnest-hero-icon span {
@@ -482,13 +470,8 @@ a:active {
   display: flex;
   flex-direction: column;
   align-items: center;
-  animation: fadeInUp 0.6s ease-out forwards;
-  opacity: 0;
 }
 
-.voxnest-hero-stats .stat-item:nth-child(1) { animation-delay: 0.1s; }
-.voxnest-hero-stats .stat-item:nth-child(2) { animation-delay: 0.2s; }
-.voxnest-hero-stats .stat-item:nth-child(3) { animation-delay: 0.3s; }
 
 .voxnest-hero-stats .stat-number {
   font-size: 32px;
@@ -505,22 +488,6 @@ a:active {
   font-weight: 500;
 }
 
-/* 动画关键帧 */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 /* 响应式设计 */
 @media (max-width: 768px) {
@@ -616,100 +583,7 @@ a:active {
   height: 100%;
 }
 
-/* B站风格搜索框样式 */
-.voxnest-search-box {
-  border-radius: 8px !important;
-  border: 1px solid #E3E5E7 !important;
-  background: #F1F2F3 !important;
-  transition: all 0.2s ease !important;
-  box-shadow: none !important;
-  padding: 9px 16px !important;
-  font-size: 14px !important;
-  color: #18191C !important;
-  font-weight: 400 !important;
-}
 
-.voxnest-search-box:hover {
-  border-color: #C9CDD4 !important;
-  background: #EBEEF0 !important;
-  box-shadow: none !important;
-}
-
-.voxnest-search-box:focus {
-  border-color: var(--purple-primary) !important;
-  background: #FFFFFF !important;
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1) !important;
-}
-
-.voxnest-search-box::placeholder {
-  color: #9499A0 !important;
-  font-size: 14px !important;
-  font-weight: 400 !important;
-}
-
-/* 搜索按钮样式 */
-.voxnest-search-button {
-  border: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  padding: 4px 8px !important;
-  height: auto !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: all 0.2s ease !important;
-  margin-left: 4px !important;
-}
-
-.voxnest-search-button:hover {
-  background: rgba(0, 0, 0, 0.06) !important;
-  color: #61666D !important;
-}
-
-.voxnest-search-box:focus-within .voxnest-search-button {
-  background: transparent !important;
-}
-
-.voxnest-search-box:focus-within .voxnest-search-button:hover {
-  background: rgba(139, 92, 246, 0.08) !important;
-  color: var(--purple-primary) !important;
-}
-
-.voxnest-search-button .anticon {
-  color: #61666D !important;
-  font-size: 16px !important;
-}
-
-.voxnest-search-box:focus-within .voxnest-search-button .anticon {
-  color: var(--purple-primary) !important;
-}
-
-/* 清除按钮样式 */
-.voxnest-search-box .ant-input-clear-icon {
-  color: #9499A0 !important;
-  font-size: 12px !important;
-  margin-right: 4px !important;
-}
-
-.voxnest-search-box .ant-input-clear-icon:hover {
-  color: #61666D !important;
-}
-
-/* 动画效果 */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.fade-in {
-  animation: fadeIn 0.3s ease-out;
-}
 
 /* 编辑器文本选择优化 */
 .voxnest-editor {
@@ -855,4 +729,303 @@ a:active {
     font-size: 14px;
     line-height: 1.6;
   }
+}
+
+/* Antd 组件主题覆盖 */
+.ant-card {
+  background: var(--bg-primary) !important;
+  backdrop-filter: var(--backdrop-blur) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--shadow-md) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+
+.ant-btn-primary {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
+  border: none !important;
+  border-radius: 10px !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+
+.ant-input,
+.ant-input-affix-wrapper {
+  border: 1px solid var(--border-color) !important;
+  border-radius: 10px !important;
+  background: var(--bg-primary) !important;
+  backdrop-filter: var(--backdrop-blur) !important;
+  transition: all 0.3s ease !important;
+}
+
+.ant-input:focus,
+.ant-input-affix-wrapper:focus,
+.ant-input-focused,
+.ant-input-affix-wrapper-focused {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+}
+
+.ant-select-selector {
+  border: 1px solid var(--border-color) !important;
+  border-radius: 10px !important;
+  background: var(--bg-primary) !important;
+  backdrop-filter: var(--backdrop-blur) !important;
+}
+
+.ant-select-focused .ant-select-selector {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+}
+
+.ant-dropdown {
+  background: var(--bg-primary) !important;
+  backdrop-filter: var(--backdrop-blur) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.ant-menu {
+  background: transparent !important;
+}
+
+.ant-menu-item:hover {
+  background: var(--purple-bg) !important;
+  color: var(--primary-color) !important;
+}
+
+.ant-menu-item-selected {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%) !important;
+  color: var(--primary-color) !important;
+}
+
+/* Discourse风格搜索框 */
+.voxnest-search-container {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+}
+
+.voxnest-search-box {
+  background: #ffffff !important;
+  border: 2px solid var(--primary-color) !important;
+  border-radius: 20px !important;
+  transition: all 0.3s ease !important;
+  font-size: 14px !important;
+  padding: 10px 45px 10px 38px !important;
+  height: 40px !important;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1) !important;
+}
+
+.voxnest-search-box:focus {
+  background: #ffffff !important;
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2) !important;
+  outline: none !important;
+}
+
+.voxnest-search-box:focus-within {
+  background: #ffffff !important;
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2) !important;
+}
+
+.voxnest-search-box::placeholder {
+  color: #999 !important;
+  font-size: 14px !important;
+}
+
+/* 搜索图标样式 */
+.voxnest-search-icon {
+  position: absolute !important;
+  left: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  color: #666 !important;
+  z-index: 2 !important;
+  cursor: pointer !important;
+  transition: color 0.3s ease !important;
+}
+
+.voxnest-search-icon:hover {
+  color: var(--primary-color) !important;
+}
+
+/* 筛选按钮样式 */
+.voxnest-search-filter {
+  position: absolute !important;
+  right: 8px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  color: #666 !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 6px !important;
+  padding: 6px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  z-index: 2 !important;
+}
+
+.voxnest-search-filter:hover {
+  color: var(--primary-color) !important;
+  background: rgba(99, 102, 241, 0.08) !important;
+}
+
+/* 搜索下拉菜单样式 */
+.voxnest-search-dropdown {
+  position: absolute !important;
+  top: 100% !important;
+  left: 0 !important;
+  right: 0 !important;
+  background: #ffffff !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  z-index: 1000 !important;
+  margin-top: 4px !important;
+  max-height: 320px !important;
+  overflow-y: auto !important;
+}
+
+.voxnest-search-dropdown-item {
+  padding: 10px 16px !important;
+  cursor: pointer !important;
+  transition: background 0.2s ease !important;
+  border-bottom: 1px solid #f5f5f5 !important;
+}
+
+.voxnest-search-dropdown-item:last-child {
+  border-bottom: none !important;
+}
+
+.voxnest-search-dropdown-item:hover {
+  background: var(--purple-bg) !important;
+}
+
+.voxnest-search-dropdown-disabled {
+  cursor: default !important;
+  background: transparent !important;
+  padding: 8px 16px !important;
+}
+
+.voxnest-search-dropdown-disabled:hover {
+  background: transparent !important;
+}
+
+/* 位置信息区域特殊样式 */
+.voxnest-location-info {
+  padding: 10px 16px !important;
+  font-size: 12px !important;
+  color: #666 !important;
+  line-height: 1.4 !important;
+}
+
+/* 位置标签样式 */
+.voxnest-location-badge {
+  display: inline-block !important;
+  background: var(--primary-color) !important;
+  color: white !important;
+  padding: 2px 6px !important;
+  border-radius: 3px !important;
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  margin-left: 6px !important;
+  line-height: 1.3 !important;
+}
+
+/* 搜索历史项样式 */
+.voxnest-search-history-item {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.voxnest-search-history-icon {
+  margin-right: 8px !important;
+  color: #999 !important;
+}
+
+/* 搜索历史标题样式 */
+.voxnest-search-history-title {
+  color: #999 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 4px 0 2px 0 !important;
+  line-height: 1.2 !important;
+}
+
+/* 无搜索记录样式 */
+.voxnest-no-history {
+  color: #999 !important;
+  font-size: 12px !important;
+  text-align: center !important;
+  padding: 12px 0 !important;
+  line-height: 1.2 !important;
+}
+
+/* Logo渐变效果 */
+.voxnest-logo-gradient {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+}
+
+/* 模态框样式 */
+.ant-modal-content {
+  background: var(--bg-primary) !important;
+  backdrop-filter: var(--backdrop-blur) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* 表格样式 */
+.ant-table {
+  background: transparent !important;
+}
+
+.ant-table-thead > tr > th {
+  background: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: var(--purple-bg) !important;
+}
+
+/* 标签样式 */
+.ant-tag {
+  border-radius: 20px !important;
+  border: 1px solid var(--border-color) !important;
+  background: var(--bg-secondary) !important;
+  color: var(--text-secondary) !important;
+  transition: all 0.2s ease !important;
+}
+
+
+
+/* 滚动条优化 */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
 }

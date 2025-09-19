@@ -827,16 +827,6 @@ iframe[src*="youtu.be"]:hover {
 iframe[data-loading="true"] {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0f0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
-  animation: videoLoading 1.5s infinite;
-}
-
-@keyframes videoLoading {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
 }
 
 /* 确保iframe在所有容器中都能正确显示 */
@@ -961,4 +951,83 @@ div iframe[src*="youtu.be"],
 
 .md-editor-resize-bar:hover {
   background: var(--primary-color) !important;
+}
+
+/* VoxNest 新帖子列表样式 */
+.voxnest-post-list {
+  background: var(--bg-primary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.voxnest-post-item {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.voxnest-post-item:last-child {
+  border-bottom: none;
+}
+
+.voxnest-post-item:hover {
+  background: rgba(99, 102, 241, 0.02) !important;
+}
+
+.voxnest-post-item .ant-list-item-meta {
+  align-items: flex-start;
+  margin-bottom: 0;
+}
+
+.voxnest-post-item .ant-typography-title {
+  transition: color 0.2s ease;
+}
+
+.voxnest-post-item:hover .ant-typography-title {
+  color: var(--primary-color) !important;
+}
+
+/* 标签样式优化 */
+.voxnest-post-item .ant-tag {
+  border-radius: 12px;
+  font-size: 12px;
+  padding: 2px 8px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* 统计信息样式 */
+.voxnest-post-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.voxnest-post-stats .ant-typography {
+  margin: 0;
+}
+
+/* 移动端响应式适配 */
+@media (max-width: 768px) {
+  .voxnest-post-item div[style*="padding"] {
+    padding: 12px 16px !important;
+  }
+
+  .voxnest-post-item .ant-avatar {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .voxnest-post-item .ant-typography-title {
+    font-size: 14px !important;
+  }
+
+  .voxnest-post-stats {
+    min-width: 60px !important;
+  }
 }

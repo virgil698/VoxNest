@@ -758,7 +758,7 @@ public class ServerConfigService : IServerConfigService
             {
                 allowed_origins = new[] { "http://localhost:54976", "http://localhost:3000", "http://localhost:5173" },
                 allowed_methods = new[] { "GET", "POST", "PUT", "DELETE", "OPTIONS" },
-                allowed_headers = new[] { "Content-Type", "Authorization", "X-Requested-With", "X-Request-Id" },
+                allowed_headers = new[] { "Content-Type", "Authorization", "X-Requested-With", "X-Request-Id", "X-Log-Request" },
                 allow_credentials = true
             },
             logging = new

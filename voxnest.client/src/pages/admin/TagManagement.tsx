@@ -31,6 +31,8 @@ import {
   ClockCircleOutlined,
   UserOutlined,
   LockOutlined,
+  ArrowUpOutlined,
+  ArrowDownOutlined,
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
@@ -61,8 +63,8 @@ const TagManagement: React.FC = () => {
     pageSize,
     search: searchText || undefined,
     isPermanent: activeTab === 'permanent',
-    sortBy: 'useCount',
-    sortDirection: 'desc',
+    sortBy: activeTab === 'permanent' ? 'priority' : 'useCount',
+    sortDirection: activeTab === 'permanent' ? 'asc' : 'desc',
   }), [currentPage, pageSize, searchText, activeTab]);
 
   // 当切换标签页时重置分页
@@ -148,6 +150,19 @@ const TagManagement: React.FC = () => {
     },
   });
 
+  // 更新标签优先级
+  const updatePriorityMutation = useMutation({
+    mutationFn: ({ tagId, priority }: { tagId: number; priority: number }) => 
+      AdminApi.updateTagPriority(tagId, priority),
+    onSuccess: () => {
+      message.success('优先级更新成功');
+      queryClient.invalidateQueries({ queryKey: ['admin-tags'] });
+    },
+    onError: () => {
+      message.error('优先级更新失败');
+    },
+  });
+
   // 批量删除标签
   const batchDeleteMutation = useMutation({
     mutationFn: (tagIds: number[]) => AdminApi.batchDeleteTags(tagIds),
@@ -175,14 +190,21 @@ const TagManagement: React.FC = () => {
         name: tag.name,
         color: tag.color || '#1890ff', // ColorPicker 需要一个默认颜色值
         isPermanent: tag.isPermanent,
+        ...(tag.isPermanent && { priority: tag.priority }),
       });
     } else {
       setEditingTag(null);
       form.resetFields();
       // 为新建标签设置默认值
+      const defaultPriority = activeTab === 'permanent' ? 
+        ((tagData?.data || []).length > 0 ? 
+          Math.max(...(tagData?.data || []).map((t: AdminTag) => t.priority || 0)) + 10 : 0) : 
+        undefined;
+      
       form.setFieldsValue({
         color: '#1890ff',
         isPermanent: activeTab === 'permanent',
+        ...(activeTab === 'permanent' && { priority: defaultPriority }),
       });
     }
     setIsModalVisible(true);
@@ -207,6 +229,7 @@ const TagManagement: React.FC = () => {
           data: {
             name: values.name,
             color: colorValue,
+            ...(editingTag.isPermanent && values.priority !== undefined && { priority: Number(values.priority) }),
           },
         };
         console.log('🔧 更新标签数据:', updateData);
@@ -216,6 +239,7 @@ const TagManagement: React.FC = () => {
           name: values.name,
           color: colorValue,
           isPermanent: values.isPermanent || false,
+          ...(values.isPermanent && values.priority !== undefined && { priority: Number(values.priority) }),
         };
         console.log('🔧 创建标签数据:', createData);
         await createTagMutation.mutateAsync(createData);
@@ -246,6 +270,26 @@ const TagManagement: React.FC = () => {
     }
   };
 
+  // 处理优先级调整
+  const handlePriorityChange = (tagId: number, direction: 'up' | 'down') => {
+    const currentTags = tagData?.data || [];
+    const currentTag = currentTags.find((tag: AdminTag) => tag.id === tagId);
+    if (!currentTag) return;
+
+    let newPriority: number;
+    if (direction === 'up') {
+      // 向上移动，优先级减小
+      const upperTag = currentTags.find((tag: AdminTag) => tag.priority < currentTag.priority);
+      newPriority = upperTag ? upperTag.priority - 1 : currentTag.priority - 1;
+    } else {
+      // 向下移动，优先级增大
+      const lowerTag = currentTags.find((tag: AdminTag) => tag.priority > currentTag.priority);
+      newPriority = lowerTag ? lowerTag.priority + 1 : currentTag.priority + 1;
+    }
+
+    updatePriorityMutation.mutate({ tagId, priority: newPriority });
+  };
+
   // 表格列定义
   const columns = [
     {
@@ -262,6 +306,38 @@ const TagManagement: React.FC = () => {
         <Tag color={record.color || 'default'}>{name}</Tag>
       ),
     },
+    ...(activeTab === 'permanent' ? [{
+      title: '优先级',
+      dataIndex: 'priority',
+      key: 'priority',
+      width: 100,
+      sorter: true,
+      render: (priority: number, record: AdminTag) => (
+        <Space>
+          <Text strong>{priority}</Text>
+          <Space.Compact>
+            <Tooltip title="向上移动">
+              <Button
+                type="text"
+                size="small"
+                icon={<ArrowUpOutlined />}
+                onClick={() => handlePriorityChange(record.id, 'up')}
+                disabled={updatePriorityMutation.isPending}
+              />
+            </Tooltip>
+            <Tooltip title="向下移动">
+              <Button
+                type="text"
+                size="small"
+                icon={<ArrowDownOutlined />}
+                onClick={() => handlePriorityChange(record.id, 'down')}
+                disabled={updatePriorityMutation.isPending}
+              />
+            </Tooltip>
+          </Space.Compact>
+        </Space>
+      ),
+    }] : []),
     {
       title: '使用次数',
       dataIndex: 'useCount',
@@ -381,7 +457,7 @@ const TagManagement: React.FC = () => {
               icon={<PlusOutlined />}
               onClick={() => openModal()}
             >
-              新建{activeTab === 'permanent' ? '常驻' : '动态'}标签
+              新建{activeTab === 'permanent' ? '类别' : '标签'}
             </Button>
             <Button
               icon={<ReloadOutlined />}
@@ -393,7 +469,7 @@ const TagManagement: React.FC = () => {
             {activeTab === 'dynamic' && (
               <Popconfirm
                 title="清理无用标签"
-                description="将清理无引用的动态标签，确定继续吗？"
+                description="将清理无引用的标签，确定继续吗？"
                 onConfirm={() => cleanupTagsMutation.mutate()}
               >
                 <Button
@@ -455,7 +531,7 @@ const TagManagement: React.FC = () => {
   return (
     <div style={{ padding: '24px' }}>
       <Title level={2}>
-        <TagsOutlined /> 标签管理
+        <TagsOutlined /> 类别与标签管理
       </Title>
 
       <Tabs
@@ -467,7 +543,7 @@ const TagManagement: React.FC = () => {
             label: (
               <Space>
                 <LockOutlined />
-                常驻标签
+                类别
               </Space>
             ),
             children: renderTagManagement(),
@@ -477,7 +553,7 @@ const TagManagement: React.FC = () => {
             label: (
               <Space>
                 <FireOutlined />
-                动态标签
+                标签
               </Space>
             ),
             children: renderTagManagement(),
@@ -515,6 +591,23 @@ const TagManagement: React.FC = () => {
           >
             <ColorPicker showText />
           </Form.Item>
+          {((editingTag && editingTag.isPermanent) || (!editingTag && activeTab === 'permanent')) && (
+            <Form.Item
+              name="priority"
+              label="优先级"
+              rules={[
+                { required: true, message: '请输入优先级' },
+                { type: 'number', min: 0, message: '优先级不能小于0' },
+              ]}
+              tooltip="数字越小，显示越靠前"
+            >
+              <Input 
+                type="number" 
+                placeholder="请输入优先级（数字越小越靠前）" 
+                min={0}
+              />
+            </Form.Item>
+          )}
           {!editingTag && (
             <Form.Item
               name="isPermanent"
@@ -522,8 +615,8 @@ const TagManagement: React.FC = () => {
               valuePropName="checked"
             >
               <Switch
-                checkedChildren="常驻标签"
-                unCheckedChildren="动态标签"
+                checkedChildren="类别"
+                unCheckedChildren="标签"
                 disabled={true}
               />
             </Form.Item>
@@ -531,7 +624,7 @@ const TagManagement: React.FC = () => {
           {editingTag && (
             <Form.Item label="标签类型">
               <Tag color={editingTag.isPermanent ? 'green' : 'blue'}>
-                {editingTag.isPermanent ? '常驻标签' : '动态标签'}
+                {editingTag.isPermanent ? '类别' : '标签'}
               </Tag>
             </Form.Item>
           )}

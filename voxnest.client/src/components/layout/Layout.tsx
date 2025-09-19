@@ -121,15 +121,11 @@ export const Layout: React.FC = () => {
         {/* Logo和主导航 */}
         <div style={{ display: 'flex', alignItems: 'center', flex: '0 0 auto' }}>
           <div 
+            className="voxnest-logo-gradient"
             style={{ 
               fontSize: '24px', 
-              fontWeight: '700', 
               marginRight: '48px',
-              cursor: 'pointer',
-              background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
+              cursor: 'pointer'
             }}
             onClick={() => navigate('/')}
           >

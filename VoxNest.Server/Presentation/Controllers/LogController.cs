@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using VoxNest.Server.Application.DTOs.Log;
@@ -41,11 +42,24 @@ public class LogController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<LogEntryDto>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 400)]
     public async Task<ActionResult<ApiResponse<LogEntryDto>>> CreateLog(
-        [FromBody] CreateLogEntryDto createLogDto,
+        [FromBody] CreateLogEntryDto? createLogDto,
         CancellationToken cancellationToken)
     {
         try
         {
+            // 验证请求体是否为空或无效
+            if (createLogDto == null)
+            {
+                _logger.LogWarning("Received null log entry data from client IP: {ClientIP}", GetClientIpAddress());
+                return BadRequest(ApiResponse.CreateError("日志数据不能为空"));
+            }
+
+            // 验证必填字段
+            if (string.IsNullOrWhiteSpace(createLogDto.Message))
+            {
+                _logger.LogWarning("Received log entry with empty message from client IP: {ClientIP}", GetClientIpAddress());
+                return BadRequest(ApiResponse.CreateError("日志消息不能为空"));
+            }
             // 从请求中提取信息
             if (string.IsNullOrEmpty(createLogDto.IpAddress))
             {
@@ -99,12 +113,28 @@ public class LogController : ControllerBase
         catch (OperationCanceledException)
         {
             // 客户端取消请求是正常情况，不需要记录为错误
-            _logger.LogDebug("Log creation was canceled by client");
+            _logger.LogDebug("Log creation was canceled by client from IP: {ClientIP}", GetClientIpAddress());
             return StatusCode(499, ApiResponse.CreateError("请求已取消")); // 499 Client Closed Request
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid log entry data from client IP: {ClientIP}", GetClientIpAddress());
+            return BadRequest(ApiResponse.CreateError($"日志数据无效: {ex.Message}"));
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Invalid operation while creating log from client IP: {ClientIP}", GetClientIpAddress());
+            return BadRequest(ApiResponse.CreateError($"操作无效: {ex.Message}"));
+        }
+        catch (Exception ex) when (ex.InnerException is BadHttpRequestException)
+        {
+            // 特别处理HTTP请求内容错误
+            _logger.LogWarning(ex, "Bad HTTP request for log creation from client IP: {ClientIP}", GetClientIpAddress());
+            return BadRequest(ApiResponse.CreateError("请求内容格式错误，请检查数据完整性"));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating log entry");
+            _logger.LogError(ex, "Unexpected error creating log entry from client IP: {ClientIP}", GetClientIpAddress());
             return BadRequest(ApiResponse.CreateError("创建日志失败"));
         }
     }

@@ -38,6 +38,11 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // 添加请求内容验证
+  validateStatus: (status) => {
+    // 接受200-399的状态码，以及499（客户端关闭请求）
+    return (status >= 200 && status < 400) || status === 499;
+  },
 });
 
 // 请求拦截器 - 添加认证令牌和请求追踪

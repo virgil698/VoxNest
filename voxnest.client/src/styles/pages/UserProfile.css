@@ -1,21 +1,24 @@
-/* 用户个人主页独立样式 */
+/* 用户个人主页独立样式 - 优雅紫色主题 */
 
 .user-profile-container {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 50%, #f3f4ff 100%);
+  background-attachment: fixed;
   padding: 0 24px;
 }
 
 /* 头部背景区域 */
 .user-profile-header {
   position: relative;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #7C3AED 100%);
   overflow: hidden;
   padding: 32px 0;
   margin: 24px auto 0;
   max-width: 1200px;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(139, 92, 246, 0.12);
 }
 
 .user-profile-header::before {
@@ -167,11 +170,15 @@
 .user-posts-title {
   font-size: 18px !important;
   font-weight: 600 !important;
-  color: #1a202c !important;
+  color: #4A4A4A !important;
   margin: 0 !important;
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.user-posts-title .anticon {
+  color: #6366F1;
 }
 
 .user-posts-list {
@@ -182,30 +189,33 @@
 
 .user-post-card {
   background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.08);
   padding: 20px;
-  transition: all 0.2s ease;
-  border: 1px solid #f0f2f5;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(139, 92, 246, 0.12);
+  backdrop-filter: blur(10px);
 }
 
 .user-post-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
   transform: translateY(-2px);
+  border-color: rgba(139, 92, 246, 0.2);
 }
 
 .user-post-title {
   font-size: 18px !important;
   font-weight: 600 !important;
-  color: #1a202c !important;
+  color: #4A4A4A !important;
   text-decoration: none !important;
   margin-bottom: 8px !important;
   display: block;
   line-height: 1.4;
+  transition: color 0.3s ease;
 }
 
 .user-post-title:hover {
-  color: #1890ff !important;
+  color: #6366F1 !important;
 }
 
 .user-post-summary {
@@ -223,18 +233,21 @@
 }
 
 .user-post-tag {
-  background: #f0f2f5;
-  color: #666;
+  background: rgba(139, 92, 246, 0.08);
+  color: #6366F1;
   font-size: 12px;
   padding: 4px 12px;
   border-radius: 16px;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(139, 92, 246, 0.12);
 }
 
 .user-post-tag:hover {
-  background: #1890ff;
+  background: #6366F1;
   color: #ffffff;
+  border-color: #6366F1;
+  transform: scale(1.05);
 }
 
 .user-post-footer {
@@ -276,25 +289,37 @@
 
 .user-toolbar-card {
   background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.08);
   overflow: hidden;
+  border: 1px solid rgba(139, 92, 246, 0.12);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-toolbar-card:hover {
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.12);
+  transform: translateY(-2px);
 }
 
 .user-toolbar-header {
   padding: 16px 20px;
-  border-bottom: 1px solid #f0f2f5;
-  background: #fafbfc;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.12);
+  background: rgba(248, 249, 255, 0.9);
 }
 
 .user-toolbar-title {
   font-size: 16px !important;
   font-weight: 600 !important;
-  color: #1a202c !important;
+  color: #4A4A4A !important;
   margin: 0 !important;
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.user-toolbar-title .anticon {
+  color: #6366F1;
 }
 
 .user-toolbar-content {
@@ -315,7 +340,7 @@
 .user-stat-number {
   font-size: 24px;
   font-weight: 600;
-  color: #1890ff;
+  color: #6366F1;
   margin-bottom: 4px;
 }
 
@@ -361,7 +386,7 @@
 }
 
 .user-info-link {
-  color: #1890ff;
+  color: #6366F1;
   text-decoration: none;
 }
 

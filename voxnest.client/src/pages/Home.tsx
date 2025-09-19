@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Card, List, Avatar, Tag, Space, Typography, Button, Spin, Empty, message, Row, Col, Statistic } from 'antd';
+import { Card, Tag, Space, Typography, Button, Spin, Empty, message, Row, Col, Statistic } from 'antd';
 import { 
   EyeOutlined, 
   LikeOutlined, 
@@ -9,7 +9,7 @@ import {
   CloseOutlined
 } from '@ant-design/icons';
 import { Users, UserCheck, FileText, BarChart3, Megaphone, Flame, Tags } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { usePostStore } from '../stores/postStore';
 import { useAuthStore } from '../stores/authStore';
 import type { PostListItem, Tag as PostTag } from '../types/post';
@@ -18,6 +18,7 @@ import { adminApi, type SiteStats } from '../api/admin';
 
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
+import '../styles/PostListUnified.css';
 
 interface ApiError {
   response?: {
@@ -262,115 +263,108 @@ const Home: React.FC = () => {
     return icons;
   };
 
-  // 渲染帖子项
+  // 渲染帖子项（新统一样式）
   const renderPostItem = (post: PostListItem) => (
-    <List.Item key={post.id}>
-      <Card 
-        hoverable 
-        className="voxnest-post-card"
-        style={{ width: '100%' }}
-        onClick={() => handlePostClick(post.id)}
-        bodyStyle={{ padding: '20px' }}
-      >
-        <div style={{ marginBottom: '12px' }}>
-          <Space wrap>
-            {renderStatusIcon(post)}
-          </Space>
+    <div
+      key={post.id}
+      className="voxnest-post-item"
+      onClick={() => handlePostClick(post.id)}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = '#f8f9ff';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'transparent';
+      }}
+    >
+      {/* 左侧用户头像 */}
+      <div className="voxnest-post-avatar">
+        {(post.author?.displayName || post.author?.username || '匿名用户')[0]?.toUpperCase()}
+      </div>
+      
+      {/* 中间内容区域 */}
+      <div className="voxnest-post-content">
+        {/* 标题行 */}
+        <div className="voxnest-post-title-row">
+          <Title className="voxnest-post-title">
+            {post.title}
+          </Title>
+          
+          {/* 特殊标签 */}
+          <div className="voxnest-post-special-tags">
+            <Space size={4}>
+              {renderStatusIcon(post)}
+            </Space>
+          </div>
         </div>
-        
-        <Title level={4} style={{ marginBottom: '8px', cursor: 'pointer' }}>
-          {post.title}
-        </Title>
-        
-        {post.summary && (
-          <Paragraph 
-            ellipsis={{ rows: 2 }} 
-            style={{ marginBottom: '12px', color: '#666' }}
-          >
-            {post.summary}
-          </Paragraph>
-        )}
-        
-        {/* 分类和标签 */}
-        <div style={{ marginBottom: '12px' }}>
-          <Space wrap>
+
+        {/* 类别和标签行 */}
+        <div className="voxnest-post-tags-row">
+          <Space size={6}>
             {post.category && (
-              <Tag color="blue">{post.category.name}</Tag>
+              <Tag className="voxnest-post-tag voxnest-post-tag-category">
+                {post.category.name}
+              </Tag>
             )}
-            {post.tags.map((tag: PostTag) => (
-              <Tag key={tag.id} color={tag.color || 'default'}>
+            {post.tags?.slice(0, 3).map((tag: PostTag) => (
+              <Tag 
+                key={tag.id} 
+                className="voxnest-post-tag voxnest-post-tag-normal"
+                style={{ backgroundColor: tag.color || '#f3f4f6' }}
+              >
                 {tag.name}
               </Tag>
             ))}
+            {post.tags && post.tags.length > 3 && (
+              <Tag className="voxnest-post-tag voxnest-post-tag-overflow">
+                +{post.tags.length - 3}
+              </Tag>
+            )}
           </Space>
         </div>
-        
-        {/* 帖子信息 */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          marginTop: '12px',
-          paddingTop: '12px',
-          borderTop: '1px solid #f0f0f0'
-        }}>
-          <Space>
-            <Link 
-              to={`/user/${post.author.id}`}
-              style={{ 
-                textDecoration: 'none',
-                display: 'flex',
-                alignItems: 'center'
-              }}
-            >
-              <Avatar 
-                src={post.author.avatar} 
-                size="small"
-                style={{ cursor: 'pointer' }}
-              >
-                {post.author.displayName?.[0] || post.author.username[0]}
-              </Avatar>
-            </Link>
-            <Link 
-              to={`/user/${post.author.id}`}
-              style={{ 
-                textDecoration: 'none',
-                color: 'inherit'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = '#1890ff';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'inherit';
-              }}
-            >
-              <Text strong style={{ color: 'inherit' }}>
-                {post.author.displayName || post.author.username}
-              </Text>
-            </Link>
-            <Text type="secondary">•</Text>
-            <Text type="secondary">
-              {dayjs(post.publishedAt || post.createdAt).fromNow()}
-            </Text>
-          </Space>
-          
-          <Space size="large">
-            <Space size="small">
-              <EyeOutlined />
-              <span>{post.viewCount}</span>
-            </Space>
-            <Space size="small">
-              <LikeOutlined />
-              <span>{post.likeCount}</span>
-            </Space>
-            <Space size="small">
-              <MessageOutlined />
-              <span>{post.commentCount}</span>
-            </Space>
-          </Space>
+
+        {/* 内容预览 */}
+        {post.summary && (
+          <Paragraph className="voxnest-post-excerpt">
+            {post.summary}
+          </Paragraph>
+        )}
+
+        {/* 时间和作者信息 */}
+        <div className="voxnest-post-meta">
+          <span className="voxnest-post-meta-text">
+            {post.author?.displayName || post.author?.username || '匿名用户'}
+          </span>
+          <span className="voxnest-post-meta-text">•</span>
+          <span className="voxnest-post-meta-text">
+            {dayjs(post.publishedAt || post.createdAt).fromNow()}
+          </span>
         </div>
-      </Card>
-    </List.Item>
+      </div>
+      
+      {/* 右侧统计信息 */}
+      <div className="voxnest-post-stats">
+        <Space size={12} className="voxnest-post-stats-row">
+          <div className="voxnest-post-stat-item">
+            <MessageOutlined className="voxnest-post-stat-icon" />
+            <span className="voxnest-post-stat-text">
+              {post.commentCount}
+            </span>
+          </div>
+          <div className="voxnest-post-stat-item">
+            <EyeOutlined className="voxnest-post-stat-icon" />
+            <span className="voxnest-post-stat-text">
+              {post.viewCount}
+            </span>
+          </div>
+          <div className="voxnest-post-stat-item">
+            <LikeOutlined className="voxnest-post-stat-icon" />
+            <span className="voxnest-post-stat-text">
+              {post.likeCount}
+            </span>
+          </div>
+        </Space>
+      </div>
+    </div>
   );
 
   return (
@@ -415,11 +409,9 @@ const Home: React.FC = () => {
         </Empty>
       ) : (
         <>
-          <List
-            dataSource={posts}
-            renderItem={renderPostItem}
-            style={{ background: 'transparent' }}
-          />
+          <div className="voxnest-post-list">
+            {posts.map((post) => renderPostItem(post))}
+          </div>
           
           {hasNextPage && (
             <div style={{ textAlign: 'center', marginTop: '24px' }}>

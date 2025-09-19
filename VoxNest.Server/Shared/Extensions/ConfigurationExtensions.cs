@@ -86,7 +86,7 @@ public static class ConfigurationExtensions
                 },
                 AllowedHeaders = new List<string>
                 {
-                    "Content-Type", "Authorization", "X-Requested-With", "X-Request-Id"
+                    "Content-Type", "Authorization", "X-Requested-With", "X-Request-Id", "X-Log-Request"
                 },
                 AllowCredentials = true
             },

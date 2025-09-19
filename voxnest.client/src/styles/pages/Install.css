@@ -247,52 +247,6 @@
   }
 }
 
-/* 动画效果 */
-.install-card {
-  animation: slideInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(40px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.step-content {
-  animation: fadeInSlide 0.6s ease-out;
-}
-
-@keyframes fadeInSlide {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* 加载状态动画 */
-.step-loading {
-  animation: fadeInGlow 0.5s ease-out;
-}
-
-@keyframes fadeInGlow {
-  from {
-    opacity: 0;
-    box-shadow: 0 0 0 rgba(79, 70, 229, 0);
-  }
-  to {
-    opacity: 1;
-    box-shadow: 0 4px 20px rgba(79, 70, 229, 0.1);
-  }
-}
 
 /* 按钮悬停效果增强 */
 .install-form .ant-btn {
@@ -341,7 +295,6 @@
   background-size: 400% 400%;
   padding: 2px;
   z-index: -1;
-  animation: gradientRotate 4s ease-in-out infinite;
 }
 
 .voxnest-logo::after {
@@ -353,12 +306,6 @@
   z-index: -1;
 }
 
-@keyframes gradientRotate {
-  0%, 100% { background-position: 0% 50%; }
-  25% { background-position: 100% 50%; }
-  50% { background-position: 100% 100%; }
-  75% { background-position: 0% 100%; }
-}
 
 /* 现代化进度指示器 */
 .install-progress-bar {
@@ -386,13 +333,8 @@
   right: 0;
   bottom: 0;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  animation: shimmer 2s infinite;
 }
 
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
 
 /* 状态卡片样式 */
 .install-status-card {

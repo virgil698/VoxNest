@@ -347,6 +347,7 @@ export interface AdminTag {
   color?: string;
   useCount: number;
   isPermanent: boolean;
+  priority: number;
   createdBy?: number;
   creatorName?: string;
   createdAt: string;
@@ -357,11 +358,13 @@ export interface CreateTag {
   name: string;
   color?: string;
   isPermanent?: boolean;
+  priority?: number;
 }
 
 export interface UpdateTag {
   name: string;
   color?: string;
+  priority?: number;
 }
 
 export interface AdminTagQuery {
@@ -520,6 +523,16 @@ export class AdminApi {
 
   static async batchDeleteTags(tagIds: number[]): Promise<number> {
     const response = await apiClient.post('/api/admin/tags/batch-delete', tagIds);
+    return response.data.data;
+  }
+
+  static async updateTagPriority(tagId: number, priority: number): Promise<AdminTag> {
+    const response = await apiClient.put(`/api/admin/tags/${tagId}/priority`, { priority });
+    return response.data.data;
+  }
+
+  static async batchUpdateTagPriorities(tagPriorities: Array<{ id: number; priority: number }>): Promise<boolean> {
+    const response = await apiClient.put('/api/admin/tags/batch-priority', tagPriorities);
     return response.data.data;
   }
 

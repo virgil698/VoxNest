@@ -1,0 +1,305 @@
+/* VoxNest 类别与标签页面 - XenForo风格样式 */
+
+/* 类别/标签卡片基础样式 */
+.voxnest-tag-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.voxnest-tag-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* 类别/标签标题区域 */
+.voxnest-tag-header {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  padding: 24px 32px;
+  color: white;
+}
+
+.voxnest-tag-title {
+  margin: 0 !important;
+  color: white !important;
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  display: flex;
+  align-items: center;
+}
+
+.voxnest-tag-subtitle {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 15px;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+/* 列表项基础样式 */
+.voxnest-tag-item {
+  padding: 20px 24px;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.voxnest-tag-item:last-child {
+  border-bottom: none;
+}
+
+.voxnest-tag-item:hover {
+  background-color: #fafafa;
+}
+
+/* 标签基本信息区域 */
+.voxnest-tag-basic-info {
+  display: flex;
+  align-items: center;
+}
+
+.voxnest-tag-avatar {
+  margin-right: 16px !important;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.voxnest-tag-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.voxnest-tag-name {
+  margin: 0 !important;
+  margin-bottom: 4px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #262626 !important;
+}
+
+.voxnest-tag-type {
+  font-size: 13px;
+  color: #8c8c8c;
+}
+
+/* 统计信息区域 */
+.voxnest-tag-stats {
+  text-align: center;
+}
+
+.voxnest-tag-stat-item {
+  text-align: center;
+}
+
+.voxnest-tag-stat-number {
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 4px;
+}
+
+.voxnest-tag-stat-label {
+  font-size: 12px;
+  color: #8c8c8c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 最新帖子区域 - XenForo风格 */
+.voxnest-latest-post {
+  padding-left: 24px;
+  border-left: 1px solid #f0f0f0;
+}
+
+.voxnest-latest-post-header {
+  margin-bottom: 12px;
+}
+
+.voxnest-latest-post-label {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #8c8c8c !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* 最新帖子内容 */
+.voxnest-latest-post-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.voxnest-latest-post-avatar {
+  flex-shrink: 0;
+  margin-right: 0 !important;
+}
+
+.voxnest-latest-post-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.voxnest-latest-post-title {
+  margin: 0 !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  color: #262626 !important;
+  line-height: 1.4;
+  margin-bottom: 6px !important;
+}
+
+.voxnest-latest-post-title:hover {
+  color: #1890ff !important;
+}
+
+.voxnest-latest-post-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-top: 4px;
+}
+
+.voxnest-latest-post-author {
+  color: #595959 !important;
+  font-weight: 500;
+}
+
+.voxnest-latest-post-author:hover {
+  color: #1890ff !important;
+}
+
+.voxnest-latest-post-time {
+  color: #8c8c8c !important;
+}
+
+/* 无帖子状态 */
+.voxnest-no-posts {
+  text-align: center;
+  padding: 20px;
+  color: #bfbfbf;
+}
+
+.voxnest-no-posts-icon {
+  font-size: 32px;
+  color: #d9d9d9;
+  margin-bottom: 8px;
+}
+
+.voxnest-no-posts-text {
+  font-size: 14px;
+  color: #bfbfbf !important;
+}
+
+/* 分隔线样式 */
+.voxnest-meta-divider {
+  height: 12px;
+  border-left: 1px solid #d9d9d9;
+  margin: 0 6px;
+}
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+  .voxnest-tag-item {
+    padding: 16px 20px;
+  }
+  
+  .voxnest-tag-header {
+    padding: 20px 24px;
+  }
+  
+  .voxnest-tag-title {
+    font-size: 18px !important;
+  }
+  
+  .voxnest-latest-post {
+    padding-left: 16px;
+    border-left: none;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 16px;
+    margin-top: 16px;
+  }
+  
+  .voxnest-latest-post-content {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .voxnest-tag-stat-number {
+    font-size: 16px;
+  }
+}
+
+/* 高级网格布局 - 类似XenForo */
+.voxnest-tag-grid-item {
+  display: flex;
+  align-items: center;
+  min-height: 80px;
+  gap: 16px;
+}
+
+.voxnest-tag-grid-basic {
+  flex: 0 0 200px;
+  min-width: 200px;
+}
+
+.voxnest-tag-grid-stats {
+  flex: 0 0 120px;
+  text-align: center;
+  display: flex;
+  gap: 20px;
+}
+
+.voxnest-tag-grid-latest {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 类别特殊样式 */
+.voxnest-category-header {
+  background: linear-gradient(135deg, #52c41a 0%, #1890ff 100%);
+}
+
+.voxnest-category-avatar {
+  background: linear-gradient(135deg, #52c41a 0%, #1890ff 100%) !important;
+}
+
+/* 标签特殊样式 */
+.voxnest-tag-header.dynamic {
+  background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%);
+}
+
+.voxnest-tag-avatar.dynamic {
+  background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%) !important;
+}
+
+/* 动画效果 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.voxnest-tag-item {
+  animation: fadeInUp 0.3s ease;
+}
+
+/* 加载状态优化 */
+.voxnest-tag-skeleton {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.voxnest-tag-skeleton:last-child {
+  border-bottom: none;
+}
