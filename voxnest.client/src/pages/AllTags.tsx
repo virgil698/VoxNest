@@ -9,7 +9,6 @@ import {
   Col,
   Button,
   Avatar,
-  Divider,
   Tag,
   Statistic,
   message
@@ -352,7 +351,7 @@ const AllTags: React.FC = () => {
         >
           {permanentTags
             .sort((a, b) => (a.priority || 0) - (b.priority || 0)) // 按优先级排序，数字越小越靠前
-            .map((tag, index) => {
+            .map((tag) => {
             const stats = permanentTagsStats[tag.id] || { totalPosts: 0, latestPost: null };
             const latestPost = stats.latestPost;
             
@@ -493,7 +492,7 @@ const AllTags: React.FC = () => {
           }}
           bodyStyle={{ padding: 0 }}
         >
-          {sortedDynamicTags.map((tag, index) => {
+          {sortedDynamicTags.map((tag) => {
             const stats = dynamicTagsStats[tag.id] || { totalPosts: 0, latestPost: null };
             const latestPost = stats.latestPost;
             
